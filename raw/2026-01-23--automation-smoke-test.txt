@@ -1,0 +1,9 @@
+Automation Smoke Test
+
+The first successful deployment of a governed publishing pipeline represents more than infrastructure. It validates a thesis: that constrained automation produces better outcomes than either pure manual effort or unconstrained AI assistance.
+
+This test exists to verify the full loop: raw note to draft, draft to approval, approval to production. Each transition point has a gate. Each gate requires explicit human consent.
+
+The system fails closed. Rejected content never reaches production. Ambiguous states halt rather than guess. The bot suggests; the human decides.
+
+If you're reading this on the live site, the smoke test passed.
