@@ -23,13 +23,65 @@ Posts represent provisional ideas, experiments, and operational observations sha
 
 The site publishes the following entry types:
 
-- **Short Essay** — focused analysis of a single idea
-- **Experiment Log** — hypothesis, constraint, result, next step
-- **Status Update** — operational changes and incidents
-- **Thought Snippet** — brief signal extraction
-- **Working Note** — incomplete reasoning or open questions
+| Type | Frontmatter Slug | Required Fields |
+|------|------------------|-----------------|
+| Short Essay | `short-essay` | `claim`, `implication` |
+| Experiment Log | `experiment-log` | `hypothesis`, `constraint`, `result`, `resultDetails`, `nextStep` |
+| Status Update | `status-update` | `status`, `whatChanged`, `whatBroke`, `nextStep` |
+| Thought Snippet | `thought-snippet` | `content` (max 200 words) |
+| Working Note | `working-note` | `content`, `openQuestion` |
 
 Each post is timestamped and tagged. No retroactive editing.
+
+---
+
+## Publishing Architecture (Hybrid Model)
+
+This site uses a **hybrid publishing model**:
+
+1. **Authoring** — Markdown files in `/inbox/` with YAML frontmatter
+2. **Compilation** — `compileContent.ts` validates and transforms to TypeScript
+3. **Runtime** — Static TypeScript arrays, no runtime markdown parsing
+
+### Directory Structure
+
+```
+/raw/       # Human-written raw notes (input)
+/inbox/     # Conductor-generated markdown drafts (PR surface)
+```
+
+### Frontmatter Schema
+
+```yaml
+---
+slug: "2026-01-23-example-post"
+title: "Post Title"
+date: "2026-01-23T08:10:00-08:00"  # ISO 8601 with timezone
+type: "short-essay"                 # Enum-safe slug
+context: "systems"                  # Optional: governance, systems, infra, execution, signal
+tags: ["systems", "governance"]     # Max 3 from allowed list
+claim: "Core assertion"             # Type-specific fields...
+implication: "Closing line"
+---
+Optional body content (rarely used).
+```
+
+### Validation (Fail-Closed)
+
+The `compileContent.ts` script enforces:
+- Valid type and context slugs
+- Max 3 tags from allowed list
+- Required fields by type
+- No forbidden content (client names, financial claims, marketing language)
+
+**If validation fails, the build fails.** No partial outputs.
+
+### Build Commands
+
+```bash
+npm run compile  # Validate and generate TypeScript
+npm run build    # Full build (includes compile as prebuild)
+```
 
 ---
 
@@ -41,14 +93,6 @@ Each post is timestamped and tagged. No retroactive editing.
 - LinkedIn: https://www.linkedin.com/in/danmercede  
 
 This repository does not replace or duplicate content from those sources.
-
----
-
-## Publishing Model
-
-Content is authored as Markdown and rendered statically.
-
-Future updates may introduce automated draft generation, but all published entries are intentionally reviewed and approved.
 
 ---
 

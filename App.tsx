@@ -1,6 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { ENTRIES } from './constants';
+import { ENTRIES as LEGACY_ENTRIES } from './constants';
+import { ENTRIES as GENERATED_ENTRIES } from './constants.generated';
 import { Tag, EntryType } from './types';
+
+// Merge generated entries (newest) with legacy entries
+const ENTRIES = [...GENERATED_ENTRIES, ...LEGACY_ENTRIES];
 import EntryCard from './components/EntryCard';
 import { ExternalLink, Rss, Archive as ArchiveIcon, BookOpen, X } from 'lucide-react';
 
