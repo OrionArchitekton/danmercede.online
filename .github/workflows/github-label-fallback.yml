@@ -1,0 +1,117 @@
+name: GitHub Label Fallback
+
+on:
+  pull_request:
+    types: [labeled]
+    branches: [main]
+
+env:
+  SLACK_CHANNEL_ID: ${{ secrets.DANMERCEDE_CHANNEL_ID }}
+  SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+jobs:
+  handle-approval:
+    if: github.event.label.name == 'approved' && contains(github.event.pull_request.labels.*.name, 'draft')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Check if already published
+        id: check
+        run: |
+          LABELS='${{ toJSON(github.event.pull_request.labels.*.name) }}'
+          
+          if echo "$LABELS" | jq -e 'any(. == "published")' > /dev/null; then
+            echo "already_published=true" >> $GITHUB_OUTPUT
+            echo "PR already has 'published' label - skipping"
+          else
+            echo "already_published=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Extract PR info
+        if: steps.check.outputs.already_published != 'true'
+        id: info
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          PR_BRANCH="${{ github.event.pull_request.head.ref }}"
+          ACTOR="${{ github.actor }}"
+          
+          # Get slug from branch
+          if [[ "$PR_BRANCH" == draft/* ]]; then
+            SLUG="${PR_BRANCH#draft/}"
+          else
+            SLUG="unknown"
+          fi
+          
+          echo "title=$PR_TITLE" >> $GITHUB_OUTPUT
+          echo "number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "slug=$SLUG" >> $GITHUB_OUTPUT
+          echo "actor=$ACTOR" >> $GITHUB_OUTPUT
+      
+      - name: Add approval comment
+        if: steps.check.outputs.already_published != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const timestamp = new Date().toISOString();
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ github.event.pull_request.number }},
+              body: `Approved via GitHub by @${{ github.actor }} at ${timestamp}`
+            });
+      
+      - name: Merge PR
+        if: steps.check.outputs.already_published != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prTitle = `${{ steps.info.outputs.title }}`.replace(/^Draft:\s*/i, '');
+            
+            await github.rest.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ github.event.pull_request.number }},
+              commit_title: `publish: ${prTitle}`,
+              merge_method: 'squash'
+            });
+      
+      - name: Add published label
+        if: steps.check.outputs.already_published != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ github.event.pull_request.number }},
+              labels: ['published']
+            });
+      
+      - name: Notify Slack
+        if: steps.check.outputs.already_published != 'true'
+        run: |
+          TITLE="${{ steps.info.outputs.title }}"
+          NUMBER="${{ steps.info.outputs.number }}"
+          SLUG="${{ steps.info.outputs.slug }}"
+          ACTOR="${{ steps.info.outputs.actor }}"
+          
+          curl -s -X POST "https://slack.com/api/chat.postMessage" \
+            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"channel\": \"$SLACK_CHANNEL_ID\",
+              \"text\": \"Published via GitHub: $TITLE\",
+              \"blocks\": [
+                {
+                  \"type\": \"section\",
+                  \"text\": {
+                    \"type\": \"mrkdwn\",
+                    \"text\": \"*Published via GitHub* :github:\\n\\n*$TITLE*\\nApproved by: @$ACTOR\\nPR: #$NUMBER\\n\\n:link: <https://danmercede.online/#$SLUG|View Post>\"
+                  }
+                }
+              ]
+            }"

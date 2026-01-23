@@ -1,0 +1,293 @@
+name: Draft Builder
+
+on:
+  workflow_dispatch:
+    inputs:
+      raw_file:
+        description: 'Specific raw file to process (optional, processes newest if empty)'
+        required: false
+        type: string
+  schedule:
+    # Weekly: Mondays at 8:10 AM PT (15:10 UTC during PST, 16:10 UTC during PDT)
+    - cron: '10 16 * * 1'
+
+env:
+  SLACK_CHANNEL_ID: ${{ secrets.DANMERCEDE_CHANNEL_ID }}
+  SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+  CONDUCTOR_URL: ${{ secrets.CONDUCTOR_URL }}
+
+jobs:
+  build-draft:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Find newest raw file
+        id: find-raw
+        run: |
+          if [ -n "${{ inputs.raw_file }}" ]; then
+            RAW_FILE="${{ inputs.raw_file }}"
+            if [ ! -f "raw/$RAW_FILE" ]; then
+              echo "::error::Specified file raw/$RAW_FILE does not exist"
+              exit 1
+            fi
+          else
+            # Find newest file in /raw/ (excluding .gitkeep)
+            RAW_FILE=$(ls -t raw/*.{txt,md} 2>/dev/null | head -1 | xargs basename 2>/dev/null || echo "")
+          fi
+          
+          if [ -z "$RAW_FILE" ] || [ "$RAW_FILE" = ".gitkeep" ]; then
+            echo "::notice::No new raw files found in /raw/"
+            echo "found=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "raw_file=$RAW_FILE" >> $GITHUB_OUTPUT
+          echo "found=true" >> $GITHUB_OUTPUT
+          echo "Found raw file: $RAW_FILE"
+      
+      - name: Read raw content
+        if: steps.find-raw.outputs.found == 'true'
+        id: read-raw
+        run: |
+          RAW_FILE="raw/${{ steps.find-raw.outputs.raw_file }}"
+          RAW_CONTENT=$(cat "$RAW_FILE")
+          
+          # Extract date from filename (YYYY-MM-DD--title.txt)
+          FILENAME="${{ steps.find-raw.outputs.raw_file }}"
+          DATE_PART=$(echo "$FILENAME" | grep -oP '^\d{4}-\d{2}-\d{2}' || echo "")
+          
+          if [ -z "$DATE_PART" ]; then
+            DATE_PART=$(date +%Y-%m-%d)
+          fi
+          
+          # Get current time in PT
+          TIMESTAMP="${DATE_PART}T08:10:00-08:00"
+          
+          echo "date=$DATE_PART" >> $GITHUB_OUTPUT
+          echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+          
+          # Save content to file for multiline handling
+          echo "$RAW_CONTENT" > /tmp/raw_content.txt
+      
+      - name: Call Cosmocrat Conductor
+        if: steps.find-raw.outputs.found == 'true'
+        id: conductor
+        run: |
+          RAW_CONTENT=$(cat /tmp/raw_content.txt)
+          DATE="${{ steps.read-raw.outputs.date }}"
+          TIMESTAMP="${{ steps.read-raw.outputs.timestamp }}"
+          
+          # Build conductor payload
+          PAYLOAD=$(jq -n \
+            --arg raw "$RAW_CONTENT" \
+            --arg date "$TIMESTAMP" \
+            --argjson tags '["governance", "systems", "infra", "execution", "signal", "failure-modes"]' \
+            --argjson focus '["governance", "systems", "execution"]' \
+            '{
+              raw_note: $raw,
+              date: $date,
+              allowed_tags: $tags,
+              current_focus: $focus,
+              contract: "publishing-prompt-v1"
+            }')
+          
+          # Call conductor (or use fallback for now)
+          if [ -n "$CONDUCTOR_URL" ]; then
+            RESPONSE=$(curl -s -X POST "$CONDUCTOR_URL/api/publish" \
+              -H "Content-Type: application/json" \
+              -d "$PAYLOAD" \
+              --max-time 60)
+            
+            # Check for REJECTED
+            if echo "$RESPONSE" | grep -q "REJECTED"; then
+              echo "::error::Conductor rejected the content"
+              echo "rejected=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+            
+            echo "$RESPONSE" > /tmp/conductor_output.md
+          else
+            # Fallback: Create basic markdown from raw content
+            TITLE=$(echo "$RAW_CONTENT" | head -1 | sed 's/^#\s*//')
+            SLUG="${DATE}-$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | head -c 50)"
+            
+            cat > /tmp/conductor_output.md << MDEOF
+---
+slug: "$SLUG"
+title: "$TITLE"
+date: "$TIMESTAMP"
+type: "short-essay"
+context: "governance"
+tags: ["governance", "systems"]
+claim: "$(echo "$RAW_CONTENT" | sed -n '2p' | head -c 200)"
+implication: "Further exploration needed."
+---
+MDEOF
+            
+            echo "slug=$SLUG" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "rejected=false" >> $GITHUB_OUTPUT
+      
+      - name: Parse conductor output
+        if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true'
+        id: parse
+        run: |
+          # Extract slug from frontmatter
+          SLUG=$(grep -oP '^slug:\s*"\K[^"]+' /tmp/conductor_output.md || echo "")
+          TITLE=$(grep -oP '^title:\s*"\K[^"]+' /tmp/conductor_output.md || echo "Draft Post")
+          TYPE=$(grep -oP '^type:\s*"\K[^"]+' /tmp/conductor_output.md || echo "short-essay")
+          
+          if [ -z "$SLUG" ]; then
+            DATE="${{ steps.read-raw.outputs.date }}"
+            SLUG="${DATE}-draft-$(date +%s)"
+          fi
+          
+          echo "slug=$SLUG" >> $GITHUB_OUTPUT
+          echo "title=$TITLE" >> $GITHUB_OUTPUT
+          echo "type=$TYPE" >> $GITHUB_OUTPUT
+          
+          # Copy to inbox
+          cp /tmp/conductor_output.md "inbox/${SLUG}.md"
+      
+      - name: Compile content
+        if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true'
+        id: compile
+        run: |
+          npm run compile
+          
+          if [ $? -ne 0 ]; then
+            echo "::error::Compilation failed - validation errors"
+            echo "compile_failed=true" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          echo "compile_failed=false" >> $GITHUB_OUTPUT
+      
+      - name: Create Pull Request
+        if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true' && steps.compile.outputs.compile_failed != 'true'
+        id: create-pr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: draft/${{ steps.parse.outputs.slug }}
+          title: "Draft: ${{ steps.parse.outputs.title }}"
+          body: |
+            ## Draft Post
+            
+            **Type:** ${{ steps.parse.outputs.type }}
+            **Slug:** `${{ steps.parse.outputs.slug }}`
+            
+            ---
+            
+            This PR was automatically generated from `/raw/${{ steps.find-raw.outputs.raw_file }}`.
+            
+            **Review the changes and use Slack to approve:**
+            - Click **Approve** in `#danmercede-publishing` to merge and publish
+            - Click **Needs Edit** to request changes
+            - Click **Reject** to close this PR
+          labels: draft
+          delete-branch: true
+      
+      - name: Post to Slack
+        if: steps.create-pr.outputs.pull-request-number
+        run: |
+          PR_NUMBER="${{ steps.create-pr.outputs.pull-request-number }}"
+          PR_URL="${{ steps.create-pr.outputs.pull-request-url }}"
+          TITLE="${{ steps.parse.outputs.title }}"
+          TYPE="${{ steps.parse.outputs.type }}"
+          SLUG="${{ steps.parse.outputs.slug }}"
+          
+          # Build Slack Block Kit message with interactive buttons
+          BLOCKS=$(jq -n \
+            --arg title "$TITLE" \
+            --arg pr_num "$PR_NUMBER" \
+            --arg pr_url "$PR_URL" \
+            --arg type "$TYPE" \
+            --arg slug "$SLUG" \
+            '[
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": "Draft Ready for Review",
+                  "emoji": true
+                }
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {"type": "mrkdwn", "text": ("*Title:*\n" + $title)},
+                  {"type": "mrkdwn", "text": ("*Type:*\n" + $type)}
+                ]
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {"type": "mrkdwn", "text": ("*PR:*\n<" + $pr_url + "|#" + $pr_num + ">")},
+                  {"type": "mrkdwn", "text": ("*Slug:*\n`" + $slug + "`")}
+                ]
+              },
+              {
+                "type": "actions",
+                "elements": [
+                  {
+                    "type": "button",
+                    "text": {"type": "plain_text", "text": "Approve", "emoji": true},
+                    "style": "primary",
+                    "action_id": "approve_post",
+                    "value": $pr_num
+                  },
+                  {
+                    "type": "button",
+                    "text": {"type": "plain_text", "text": "Needs Edit", "emoji": true},
+                    "action_id": "needs_edit_post",
+                    "value": $pr_num
+                  },
+                  {
+                    "type": "button",
+                    "text": {"type": "plain_text", "text": "Reject", "emoji": true},
+                    "style": "danger",
+                    "action_id": "reject_post",
+                    "value": $pr_num
+                  }
+                ]
+              }
+            ]')
+          
+          # Post to Slack using Bot Token
+          curl -s -X POST "https://slack.com/api/chat.postMessage" \
+            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"channel\": \"$SLACK_CHANNEL_ID\", \"blocks\": $BLOCKS, \"text\": \"Draft ready: $TITLE\"}"
+      
+      - name: Notify if no raw files
+        if: steps.find-raw.outputs.found != 'true'
+        run: |
+          echo "No new raw files found. Workflow complete."
+      
+      - name: Notify if rejected
+        if: steps.conductor.outputs.rejected == 'true'
+        run: |
+          # Post rejection notice to Slack
+          curl -s -X POST "https://slack.com/api/chat.postMessage" \
+            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"channel\": \"$SLACK_CHANNEL_ID\", \"text\": \"Draft rejected by Conductor for: ${{ steps.find-raw.outputs.raw_file }}\"}"

@@ -1,0 +1,109 @@
+name: Post-Publish Verification
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+env:
+  SLACK_CHANNEL_ID: ${{ secrets.DANMERCEDE_CHANNEL_ID }}
+  SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+  SITE_URL: https://danmercede.online
+
+jobs:
+  verify-publish:
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'published')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Extract slug from PR
+        id: extract
+        run: |
+          # Extract slug from PR title "Draft: <title>" or branch name "draft/<slug>"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_BRANCH="${{ github.event.pull_request.head.ref }}"
+          
+          # Try to get slug from branch name first
+          if [[ "$PR_BRANCH" == draft/* ]]; then
+            SLUG="${PR_BRANCH#draft/}"
+          else
+            # Fallback: derive from title
+            TITLE=$(echo "$PR_TITLE" | sed 's/^Draft:\s*//')
+            SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g')
+          fi
+          
+          echo "slug=$SLUG" >> $GITHUB_OUTPUT
+          echo "title=$PR_TITLE" >> $GITHUB_OUTPUT
+      
+      - name: Wait for Vercel deployment
+        run: |
+          echo "Waiting 120 seconds for Vercel deployment..."
+          sleep 120
+      
+      - name: Verify posts.json
+        id: verify
+        run: |
+          SLUG="${{ steps.extract.outputs.slug }}"
+          
+          # Fetch posts.json
+          RESPONSE=$(curl -s "${SITE_URL}/posts.json" || echo "{}")
+          
+          # Check if slug exists in posts
+          if echo "$RESPONSE" | jq -e ".posts[] | select(.slug == \"$SLUG\")" > /dev/null 2>&1; then
+            echo "verified=true" >> $GITHUB_OUTPUT
+            echo "Slug '$SLUG' found in posts.json"
+          else
+            echo "verified=false" >> $GITHUB_OUTPUT
+            echo "::warning::Slug '$SLUG' NOT found in posts.json"
+          fi
+          
+          # Get post count
+          COUNT=$(echo "$RESPONSE" | jq '.count // 0')
+          echo "count=$COUNT" >> $GITHUB_OUTPUT
+      
+      - name: Notify success
+        if: steps.verify.outputs.verified == 'true'
+        run: |
+          SLUG="${{ steps.extract.outputs.slug }}"
+          TITLE="${{ steps.extract.outputs.title }}"
+          COUNT="${{ steps.verify.outputs.count }}"
+          
+          curl -s -X POST "https://slack.com/api/chat.postMessage" \
+            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"channel\": \"$SLACK_CHANNEL_ID\",
+              \"blocks\": [
+                {
+                  \"type\": \"section\",
+                  \"text\": {
+                    \"type\": \"mrkdwn\",
+                    \"text\": \"*Published!* $TITLE\\n\\n:white_check_mark: Verified in posts.json (total: $COUNT posts)\\n:link: <${SITE_URL}/#${SLUG}|View Post>\"
+                  }
+                }
+              ],
+              \"text\": \"Published: $TITLE\"
+            }"
+      
+      - name: Notify failure
+        if: steps.verify.outputs.verified != 'true'
+        run: |
+          SLUG="${{ steps.extract.outputs.slug }}"
+          TITLE="${{ steps.extract.outputs.title }}"
+          
+          curl -s -X POST "https://slack.com/api/chat.postMessage" \
+            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"channel\": \"$SLACK_CHANNEL_ID\",
+              \"blocks\": [
+                {
+                  \"type\": \"section\",
+                  \"text\": {
+                    \"type\": \"mrkdwn\",
+                    \"text\": \"*Verification Failed* :warning:\\n\\nPost \`$SLUG\` not found in posts.json after deployment.\\n\\n<https://vercel.com/orion-apex/danmercede-online|Check Vercel Dashboard>\"
+                  }
+                }
+              ],
+              \"text\": \"Verification failed for: $TITLE\"
+            }"
