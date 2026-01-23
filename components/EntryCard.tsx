@@ -18,11 +18,13 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, onTagClick }) => {
              <div className="font-medium text-gray-900 border-l-2 border-black pl-3 py-1">
                 Claim: {entry.claim}
              </div>
-             <div className="prose prose-stone prose-p:text-gray-800 prose-p:leading-relaxed max-w-none">
-                {entry.content.split('\n\n').map((paragraph, idx) => (
-                    <p key={idx} className="mb-4 text-base opacity-90">{paragraph}</p>
-                ))}
-             </div>
+             {entry.content && (
+               <div className="prose prose-stone prose-p:text-gray-800 prose-p:leading-relaxed max-w-none">
+                  {entry.content.split('\n\n').map((paragraph, idx) => (
+                      <p key={idx} className="mb-4 text-base opacity-90">{paragraph}</p>
+                  ))}
+               </div>
+             )}
              <div className="text-sm font-mono text-gray-600 italic pt-2">
                 {entry.implication}
              </div>
