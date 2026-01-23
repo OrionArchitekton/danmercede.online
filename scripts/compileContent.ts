@@ -297,7 +297,7 @@ function main() {
   const projectRoot = path.resolve(__dirname, '..');
   const inboxDir = path.join(projectRoot, 'inbox');
   const outputTs = path.join(projectRoot, 'constants.generated.ts');
-  const outputJson = path.join(projectRoot, 'posts.json');
+  const outputJson = path.join(projectRoot, 'public', 'posts.json');
   
   console.log('📚 Compiling content from /inbox/...');
   console.log(`   Project root: ${projectRoot}`);
