@@ -127,19 +127,21 @@ jobs:
             # Fallback: Create basic markdown from raw content
             TITLE=$(echo "$RAW_CONTENT" | head -1 | sed 's/^#\s*//')
             SLUG="${DATE}-$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | head -c 50)"
+            CLAIM=$(echo "$RAW_CONTENT" | sed -n '2p' | head -c 200)
             
-            cat > /tmp/conductor_output.md << MDEOF
----
-slug: "$SLUG"
-title: "$TITLE"
-date: "$TIMESTAMP"
-type: "short-essay"
-context: "governance"
-tags: ["governance", "systems"]
-claim: "$(echo "$RAW_CONTENT" | sed -n '2p' | head -c 200)"
-implication: "Further exploration needed."
----
-MDEOF
+            # Build markdown file using printf to avoid heredoc issues
+            {
+              echo "---"
+              echo "slug: \"$SLUG\""
+              echo "title: \"$TITLE\""
+              echo "date: \"$TIMESTAMP\""
+              echo "type: \"short-essay\""
+              echo "context: \"governance\""
+              echo "tags: [\"governance\", \"systems\"]"
+              echo "claim: \"$CLAIM\""
+              echo "implication: \"Further exploration needed.\""
+              echo "---"
+            } > /tmp/conductor_output.md
             
             echo "slug=$SLUG" >> $GITHUB_OUTPUT
           fi
