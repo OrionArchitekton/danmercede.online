@@ -136,9 +136,11 @@ function validateDate(date: unknown, file: string): string | null {
     return null;
   }
   
-  // Accept full ISO 8601 with timezone: 2026-01-23T08:10:00-08:00
-  const iso8601Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/;
-  if (iso8601Regex.test(date)) {
+  // Accept full ISO 8601 with timezone: 2026-01-23T08:10:00-08:00 or 2026-01-23T08:10:00+0000
+  const iso8601WithColon = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/;
+  const iso8601NoColon = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{4}$/;
+  
+  if (iso8601WithColon.test(date) || iso8601NoColon.test(date)) {
     const parsed = new Date(date);
     if (!isNaN(parsed.getTime())) {
       return date;
@@ -157,15 +159,24 @@ function validateDate(date: unknown, file: string): string | null {
   return null;
 }
 
-function validateContext(context: unknown): ContextSlug | null {
+function validateContext(context: unknown): string | null {
   if (context === undefined || context === null) {
     return null; // Optional field
   }
   if (typeof context !== 'string') {
     return null;
   }
-  const valid: ContextSlug[] = ['governance', 'systems', 'infra', 'execution', 'signal', 'failure-modes'];
-  return valid.includes(context as ContextSlug) ? (context as ContextSlug) : null;
+  // Accept standard contexts
+  const standard: ContextSlug[] = ['governance', 'systems', 'infra', 'execution', 'signal', 'failure-modes'];
+  if (standard.includes(context as ContextSlug)) {
+    return context;
+  }
+  // Also accept extended contexts from classifier (docs, project, general, track)
+  const extended = ['docs', 'project', 'general', 'track'];
+  if (extended.includes(context) || context.startsWith('track:')) {
+    return context;
+  }
+  return null;
 }
 
 function validateForbiddenContent(content: string, file: string): string[] {
@@ -259,7 +270,7 @@ interface ParsedEntry {
   timestamp: string;
   type: TypeSlug;
   typeEnum: string;
-  context?: ContextLabel;
+  context?: string;  // Can be ContextLabel or extended context
   tags: Tag[];
   fields: Record<string, unknown>;
   body: string;
@@ -387,15 +398,16 @@ function main() {
     }
     
     // Validate context (optional)
-    let context: ContextLabel | undefined;
+    let context: string | undefined;
     if (data.context !== undefined) {
-      const contextSlug = validateContext(data.context);
-      if (contextSlug === null && data.context !== undefined) {
+      const contextVal = validateContext(data.context);
+      if (contextVal === null && data.context !== undefined) {
         allErrors.push({ file, field: 'context', message: `Invalid context: ${data.context}` });
         continue;
       }
-      if (contextSlug) {
-        context = CONTEXT_SLUG_TO_LABEL[contextSlug];
+      if (contextVal) {
+        // Map standard contexts to labels, pass extended contexts through
+        context = CONTEXT_SLUG_TO_LABEL[contextVal as ContextSlug] || contextVal;
       }
     }
     
