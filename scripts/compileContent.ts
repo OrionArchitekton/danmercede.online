@@ -110,8 +110,10 @@ function validateType(type: unknown, file: string): TypeSlug | null {
   if (typeof type !== 'string') {
     return null;
   }
+  // Normalize: accept underscores and convert to hyphens (e.g., short_essay → short-essay)
+  const normalized = type.replace(/_/g, '-') as TypeSlug;
   const valid: TypeSlug[] = ['short-essay', 'experiment-log', 'status-update', 'thought-snippet', 'working-note'];
-  return valid.includes(type as TypeSlug) ? (type as TypeSlug) : null;
+  return valid.includes(normalized) ? normalized : null;
 }
 
 function validateTags(tags: unknown, file: string): Tag[] | null {
