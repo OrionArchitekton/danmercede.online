@@ -2,7 +2,7 @@
 slug: "2026-01-24-business-integration-with-vertex"
 title: "Business Integration with Vertex AI"
 date: "2026-01-24T07:08:13+0000"
-type: "short_essay"
+type: "short-essay"
 context: "docs"
 tags: []
 claim: "Vertex AI serves as a core managed machine learning platform, enabling the integration of advanced analytics and predictive modeling into business logic and workflows."
