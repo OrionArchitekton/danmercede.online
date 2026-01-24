@@ -184,7 +184,7 @@ function validateRequiredFields(
   const errors: ValidationError[] = [];
   
   const requiredByType: Record<TypeSlug, string[]> = {
-    'short-essay': ['claim', 'implication'],
+    'short-essay': ['claim'],  // implication is optional
     'experiment-log': ['hypothesis', 'constraint', 'result', 'resultDetails', 'nextStep'],
     'status-update': ['status', 'whatChanged', 'whatBroke', 'nextStep'],
     'thought-snippet': ['content'],
