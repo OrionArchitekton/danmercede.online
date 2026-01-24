@@ -133,17 +133,26 @@ function validateDate(date: unknown, file: string): string | null {
   if (typeof date !== 'string') {
     return null;
   }
-  // Must be ISO 8601 with timezone
+  
+  // Accept full ISO 8601 with timezone: 2026-01-23T08:10:00-08:00
   const iso8601Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/;
-  if (!iso8601Regex.test(date)) {
-    return null;
+  if (iso8601Regex.test(date)) {
+    const parsed = new Date(date);
+    if (!isNaN(parsed.getTime())) {
+      return date;
+    }
   }
-  // Verify it's a valid date
-  const parsed = new Date(date);
-  if (isNaN(parsed.getTime())) {
-    return null;
+  
+  // Also accept simple date format: 2026-01-24 (convert to ISO 8601)
+  const simpleDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (simpleDateRegex.test(date)) {
+    const parsed = new Date(date + 'T12:00:00-08:00'); // Default to noon PST
+    if (!isNaN(parsed.getTime())) {
+      return date + 'T12:00:00-08:00';
+    }
   }
-  return date;
+  
+  return null;
 }
 
 function validateContext(context: unknown): ContextSlug | null {
