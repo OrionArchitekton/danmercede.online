@@ -3,9 +3,24 @@ import { ENTRIES as LEGACY_ENTRIES } from './constants';
 import { ENTRIES as GENERATED_ENTRIES } from './constants.generated';
 import { Tag, EntryType } from './types';
 
-// Merge generated entries with legacy entries, sorted newest first
+// Parse timestamp like "04:10 PM PT" to comparable value
+const parseFullDateTime = (date: string, timestamp: string): number => {
+  const match = timestamp.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (!match) return new Date(date).getTime();
+  
+  let hours = parseInt(match[1]);
+  const minutes = parseInt(match[2]);
+  const isPM = match[3].toUpperCase() === 'PM';
+  
+  if (isPM && hours !== 12) hours += 12;
+  if (!isPM && hours === 12) hours = 0;
+  
+  return new Date(`${date}T${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`).getTime();
+};
+
+// Merge generated entries with legacy entries, sorted newest first (by date AND time)
 const ENTRIES = [...GENERATED_ENTRIES, ...LEGACY_ENTRIES].sort((a, b) => 
-  new Date(b.date).getTime() - new Date(a.date).getTime()
+  parseFullDateTime(b.date, b.timestamp) - parseFullDateTime(a.date, a.timestamp)
 );
 import EntryCard from './components/EntryCard';
 import { ExternalLink, Rss, Archive as ArchiveIcon, BookOpen, X } from 'lucide-react';
@@ -40,23 +55,24 @@ const App: React.FC = () => {
     <div className="min-h-screen flex flex-col max-w-3xl mx-auto px-6 py-12 selection:bg-black selection:text-white">
       
       {/* 1. Header Hardening (Fixed lines) */}
-      <header className="mb-20 pb-8 border-b border-gray-100 relative">
-        {/* Micro-links Top Right */}
-        <div className="absolute top-0 right-0 flex items-center gap-4 text-xs font-mono text-gray-400">
-            <a href="/rss" className="hover:text-black transition-colors flex items-center gap-1">
-                RSS <Rss size={10} />
-            </a>
-            <button onClick={() => setViewMode('archive')} className="hover:text-black transition-colors flex items-center gap-1">
-                Archive <ArchiveIcon size={10} />
-            </button>
-            <a href="/policies" className="hover:text-black transition-colors flex items-center gap-1">
-                Policies <BookOpen size={10} />
-            </a>
-        </div>
-
-        {/* Line 1: Identity */}
-        <div className="text-base font-bold tracking-tight text-gray-900 mb-1">
-          danmercede.online <span className="text-gray-400 font-normal ml-2">— Living Signal Surface</span>
+      <header className="mb-20 pb-8 border-b border-gray-100">
+        {/* Line 1: Identity + Micro-links (responsive) */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
+          <div className="text-base font-bold tracking-tight text-gray-900">
+            danmercede.online <span className="text-gray-400 font-normal ml-2">— Living Signal Surface</span>
+          </div>
+          {/* Micro-links - below on mobile, inline on desktop */}
+          <div className="flex items-center gap-4 text-xs font-mono text-gray-400">
+              <a href="/rss" className="hover:text-black transition-colors flex items-center gap-1">
+                  RSS <Rss size={10} />
+              </a>
+              <button onClick={() => setViewMode('archive')} className="hover:text-black transition-colors flex items-center gap-1">
+                  Archive <ArchiveIcon size={10} />
+              </button>
+              <a href="/policies" className="hover:text-black transition-colors flex items-center gap-1">
+                  Policies <BookOpen size={10} />
+              </a>
+          </div>
         </div>
         
         {/* Line 2: Disclaimer */}
