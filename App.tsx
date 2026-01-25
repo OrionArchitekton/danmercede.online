@@ -3,8 +3,10 @@ import { ENTRIES as LEGACY_ENTRIES } from './constants';
 import { ENTRIES as GENERATED_ENTRIES } from './constants.generated';
 import { Tag, EntryType } from './types';
 
-// Merge generated entries (newest) with legacy entries
-const ENTRIES = [...GENERATED_ENTRIES, ...LEGACY_ENTRIES];
+// Merge generated entries with legacy entries, sorted newest first
+const ENTRIES = [...GENERATED_ENTRIES, ...LEGACY_ENTRIES].sort((a, b) => 
+  new Date(b.date).getTime() - new Date(a.date).getTime()
+);
 import EntryCard from './components/EntryCard';
 import { ExternalLink, Rss, Archive as ArchiveIcon, BookOpen, X } from 'lucide-react';
 
