@@ -1,46 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>danmercede.online — Working Notes</title>
-    <meta name="description" content="Short-form notes, experiments, and reflections on systems, governance, and execution." />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-              mono: ['JetBrains Mono', 'monospace'],
-            },
-            colors: {
-              signal: {
-                black: '#111111',
-                gray: '#666666',
-                light: '#E5E5E5',
-                bg: '#FAFAFA' // Slightly off-white for paper feel
-              }
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>danmercede.online — Working Notes</title>
+  <meta name="description"
+    content="Short-form notes, experiments, and reflections on systems, governance, and execution." />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" href="/favicon.ico">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            signal: {
+              black: '#111111',
+              gray: '#666666',
+              light: '#E5E5E5',
+              bg: '#FAFAFA' // Slightly off-white for paper feel
             }
           }
         }
       }
-    </script>
-    <style>
-      body {
-        background-color: #FAFAFA;
-        color: #111111;
-        -webkit-font-smoothing: antialiased;
-      }
-      /* Custom selection color */
-      ::selection {
-        background-color: #000;
-        color: #fff;
-      }
-    </style>
+    }
+  </script>
+  <style>
+    body {
+      background-color: #FAFAFA;
+      color: #111111;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Custom selection color */
+    ::selection {
+      background-color: #000;
+      color: #fff;
+    }
+  </style>
   <script type="importmap">
 {
   "imports": {
@@ -52,8 +62,10 @@
 }
 </script>
 </head>
-  <body>
-    <div id="root"></div>
-      <script type="module" src="/index.tsx"></script>
-  </body>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
 </html>
