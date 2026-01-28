@@ -100,7 +100,7 @@ const App: React.FC = () => {
 
                 <div className="shrink-0 pt-1 sm:pt-0">
                     <img
-                        src="https://storage.googleapis.com/cosmocrat/cosmocrat_logos_graphics/contextual/dan-mercede-founder-working-portait.webp"
+                        src="/dan-mercede-founder-working-portait.webp"
                         alt="Dan Mercede Working Portrait"
                         className="w-20 h-20 rounded-full border border-gray-100 object-cover grayscale hover:grayscale-0 transition-all duration-500"
                     />
