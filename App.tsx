@@ -232,7 +232,7 @@ const App: React.FC = () => {
                 <div className="flex flex-col md:items-end gap-1">
                     <span className="italic">This is a working log.</span>
                     <a
-                        href="https://danmercede.com"
+                        href="https://www.danmercede.com"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 hover:text-black transition-colors"
