@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { ENTRIES as LEGACY_ENTRIES } from './constants';
+import { ENTRIES as LEGACY_ENTRIES, getImageMeta } from './constants';
 import { ENTRIES as GENERATED_ENTRIES } from './constants.generated';
 import { Tag, EntryType } from './types';
+
 
 // Parse timestamp like "04:10 PM PT" to comparable value
 const parseFullDateTime = (date: string, timestamp: string): number => {
@@ -100,8 +101,8 @@ const App: React.FC = () => {
 
                 <div className="shrink-0 pt-1 sm:pt-0">
                     <img
-                        src="/dan-mercede-founder-working-portait.webp"
-                        alt="Dan Mercede Working Portrait"
+                        src="/dan-mercede-founder-working-portrait.png"
+                        alt={getImageMeta("/dan-mercede-founder-working-portrait.png").alt}
                         className="w-20 h-20 rounded-full border border-gray-100 object-cover grayscale hover:grayscale-0 transition-all duration-500"
                     />
                 </div>
