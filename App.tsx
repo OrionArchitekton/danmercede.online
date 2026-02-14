@@ -85,15 +85,15 @@ const App: React.FC = () => {
 
                     {/* Line 3: Scope */}
                     <div className="text-xs text-gray-500 font-mono mb-4">
-                        Scope: Systems architecture, governed execution, failure analysis.
+                        Scope: Runtime governance, execution control planes, failure-mode analysis.
                     </div>
 
                     {/* Line 4: Focus */}
                     <div className="text-xs font-mono flex items-center gap-2">
                         <span className="text-gray-400 uppercase tracking-wider">Current Focus:</span>
                         <div className="flex gap-2">
-                            <span className="text-black bg-gray-100 px-1.5 py-0.5 rounded-sm">Systems</span>
-                            <span className="text-black bg-gray-100 px-1.5 py-0.5 rounded-sm">Governance</span>
+                            <span className="text-black bg-gray-100 px-1.5 py-0.5 rounded-sm">Runtime Governance</span>
+                            <span className="text-black bg-gray-100 px-1.5 py-0.5 rounded-sm">Control Planes</span>
                             <span className="text-black bg-gray-100 px-1.5 py-0.5 rounded-sm">Failure Modes</span>
                         </div>
                     </div>
@@ -224,23 +224,38 @@ const App: React.FC = () => {
             </main>
 
             {/* Minimal Footer (Locked Structure) */}
-            <footer className="mt-32 pt-12 border-t border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 text-sm text-gray-400 font-mono">
-                <div className="flex flex-col gap-1">
-                    <span className="text-gray-900 font-medium">Dan Mercede</span>
-                    <span>{new Date().getFullYear()}</span>
-                </div>
-
-                <div className="flex flex-col md:items-end gap-1">
-                    <span className="italic">This is a working log.</span>
+            <footer className="mt-32 pt-12 border-t border-gray-100 flex flex-col gap-6 text-sm text-gray-400 font-mono">
+                <div className="flex flex-col items-center gap-1">
                     <a
-                        href="https://www.danmercede.com"
+                        href="https://www.orionintelligenceagency.com/book"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1 hover:text-black transition-colors"
+                        className="text-gray-900 font-medium text-xs uppercase tracking-wider hover:underline transition-colors"
                     >
-                        Context: danmercede.com
-                        <ExternalLink size={12} />
+                        Book a Runtime Governance Readiness Scan &rarr;
                     </a>
+                    <span className="text-gray-400 text-[10px] tracking-wide font-normal normal-case">
+                        Gap map &bull; Failure heatmap &bull; Enforcement checklist &bull; 30/60/90 plan
+                    </span>
+                </div>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div className="flex flex-col gap-1">
+                        <span className="text-gray-900 font-medium">Dan Mercede</span>
+                        <span>{new Date().getFullYear()}</span>
+                    </div>
+
+                    <div className="flex flex-col md:items-end gap-1">
+                        <span className="italic">This is a working log.</span>
+                        <a
+                            href="https://www.danmercede.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 hover:text-black transition-colors"
+                        >
+                            Context: danmercede.com
+                            <ExternalLink size={12} />
+                        </a>
+                    </div>
                 </div>
             </footer>
         </div>
