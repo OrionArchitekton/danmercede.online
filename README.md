@@ -130,7 +130,7 @@ The `context` field also accepts extended classifier values (`docs`, `project`, 
 
 ## Automated Publishing
 
-Publishing is automated by three GitHub Actions workflows. The repository is, in practice, driven by these automated PRs — direct external PRs are not accepted (see Notes).
+Publishing is automated by three GitHub Actions workflows. The repository is, in practice, driven by these automated PRs — direct external PRs are not accepted (see below).
 
 - **`draft-builder.yml`** — runs on a weekly schedule (Monday) and on manual dispatch. It takes the newest note in `raw/`, turns it into a frontmatter draft (optionally via an internal drafting service when configured), opens a `draft/<slug>` pull request, and posts Slack approval buttons (Approve / Needs-Edit / Reject).
 - **`github-label-fallback.yml`** — when a `draft` PR is labeled `approved`, squash-merges it and applies a `published` label.
