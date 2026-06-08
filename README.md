@@ -53,6 +53,7 @@ Each post is timestamped and tagged. No retroactive editing.
 
 ```bash
 npm install
+npm run compile    # generates constants.generated.ts (required for dev server)
 npm run dev        # vite dev server on http://localhost:3000 (host 0.0.0.0)
 ```
 
