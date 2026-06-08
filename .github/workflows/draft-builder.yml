@@ -191,6 +191,12 @@ jobs:
           # Points compileContent.ts at the substrate checkout above. If the checkout
           # step failed (e.g. token denial), compileContent falls back to inbox-only.
           SUBSTRATE_PATH: ${{ github.workspace }}/vendor/substrate
+          # GitHub Actions ubuntu-latest runs in UTC. formatTimestamp/formatDate in
+          # compileContent.ts use new Date().getHours()/getFullYear() (local-timezone
+          # read) then append a hardcoded "PT" label. Without TZ pinned the published
+          # bundle would show timestamps offset by 7-8 hours from source frontmatter.
+          # Pin to PT here so generated timestamps match author intent.
+          TZ: America/Los_Angeles
         run: |
           npm run compile
 

@@ -713,7 +713,16 @@ function main() {
   if (substratePath) {
     console.log(`\n   Substrate path: ${substratePath}`);
     substrateEntries = readSubstrateCanonicals(substratePath);
-    console.log(`   Substrate canonicals admitted: ${substrateEntries.length}`);
+    // Count .md files in canonical dir to compute skip count for CI visibility.
+    // Combined with ref:main substrate checkout, this surfaces silent substrate-side
+    // regressions (typo in surface_targets, accidental status change, schema drift)
+    // in the build log so silent drops are observable even though consumer is FAIL-OPEN.
+    const canonicalDir = path.join(substratePath, 'publishing', 'canonical');
+    const totalFiles = fs.existsSync(canonicalDir)
+      ? fs.readdirSync(canonicalDir).filter(f => f.endsWith('.md')).length
+      : 0;
+    const skippedCount = Math.max(0, totalFiles - substrateEntries.length);
+    console.log(`   Substrate canonicals: ${substrateEntries.length} admitted, ${skippedCount} skipped (see ℹ️/⚠️ logs above for skip reasons)`);
   } else {
     console.log('\n   ℹ️  No substrate path resolved (SUBSTRATE_PATH unset + no sibling). Continuing with inbox only.');
   }

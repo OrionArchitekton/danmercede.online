@@ -145,10 +145,15 @@ test('readSubstrateCanonicals filters non-canonical status', () => {
   assert.ok(!slugs.includes('2026-05-22-draft-status'), 'draft-status fixture must be filtered out');
 });
 
-test('readSubstrateCanonicals admits valid fixture', () => {
+test('readSubstrateCanonicals admits valid fixture with full layer-derived mapping', () => {
   const entries = readSubstrateCanonicals(FIXTURE_SUBSTRATE);
-  const slugs = entries.map(e => e.slug);
-  assert.ok(slugs.includes('2026-05-20-valid-target-canonical'), 'valid fixture must be admitted');
+  const valid = entries.find(e => e.slug === '2026-05-20-valid-target-canonical');
+  assert.ok(valid, 'valid fixture must be admitted');
+  // Verify the FULL file-read → mapper path produces the locked layer-derivation:
+  // layer "authority-gate" → tags ["governance", "execution"] + context "Governance"
+  assert.deepEqual(valid!.tags, ['governance', 'execution']);
+  assert.equal(valid!.context, 'Governance');
+  assert.equal(valid!.typeEnum, 'EntryType.ShortEssay');
 });
 
 test('readSubstrateCanonicals returns [] on missing canonical dir', () => {
@@ -317,6 +322,33 @@ test('mergeEntriesDedupBySlug: substrate wins on slug conflict', () => {
   assert.equal(merged.length, 1);
   assert.equal(merged[0].title, 'SUBSTRATE title');
   assert.equal(merged[0].source, 'substrate');
+  // Substrate is the canonical authority on the FULL entry payload, not just title.
+  // Verify claim and body are also replaced (not just the headline metadata).
+  assert.equal(merged[0].fields.claim, 'substrate-claim');
+  assert.equal(merged[0].body, 'substrate body');
+});
+
+test('readSubstrateCanonicals + mergeEntriesDedupBySlug: end-to-end conflict resolution via real fixture', () => {
+  // Exercises the FULL file-read → mapping → merge path against the conflict fixture,
+  // proving substrate-wins precedence holds after gray-matter parse + mapper, not just
+  // when both sides are inline literals (as in the test above).
+  const entries = readSubstrateCanonicals(FIXTURE_SUBSTRATE);
+  const conflict = entries.find(e => e.slug === '2026-03-06-execution-boundary-deterministic-governance');
+  assert.ok(conflict, 'conflict fixture must be admitted by readSubstrateCanonicals');
+  assert.equal(conflict!.title, 'SUBSTRATE Version: Execution Boundary');
+  assert.equal(conflict!.source, 'substrate');
+  assert.equal(conflict!.fields.claim, 'Substrate-side claim wins on slug conflict.');
+
+  // Inbox entry with the SAME slug as the conflict fixture (matches a real inbox slug).
+  const inboxConflict = makeInboxEntry(
+    '2026-03-06-execution-boundary-deterministic-governance',
+    'INBOX Version: Should Be Replaced'
+  );
+  const merged = mergeEntriesDedupBySlug([inboxConflict], [conflict!]);
+  assert.equal(merged.length, 1);
+  assert.equal(merged[0].title, 'SUBSTRATE Version: Execution Boundary');
+  assert.equal(merged[0].source, 'substrate');
+  assert.equal(merged[0].fields.claim, 'Substrate-side claim wins on slug conflict.');
 });
 
 test('mergeEntriesDedupBySlug preserves inbox-only entries when no substrate conflict', () => {
