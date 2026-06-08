@@ -170,18 +170,36 @@ jobs:
           # Copy to inbox
           cp /tmp/conductor_output.md "inbox/${SLUG}.md"
       
+      - name: Checkout dan-mercede-substrate
+        if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: OrionArchitekton/dan-mercede-substrate
+          # Pinning to default branch (main); switch to a SHA pin when substrate
+          # publishes versioned releases. Token defaults to GITHUB_TOKEN which has
+          # public read access for OrionArchitekton repos; if substrate is private,
+          # supply a PAT via the SUBSTRATE_READ_TOKEN secret.
+          ref: main
+          path: vendor/substrate
+          token: ${{ secrets.SUBSTRATE_READ_TOKEN || secrets.GITHUB_TOKEN }}
+          fetch-depth: 1
+
       - name: Compile content
         if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true'
         id: compile
+        env:
+          # Points compileContent.ts at the substrate checkout above. If the checkout
+          # step failed (e.g. token denial), compileContent falls back to inbox-only.
+          SUBSTRATE_PATH: ${{ github.workspace }}/vendor/substrate
         run: |
           npm run compile
-          
+
           if [ $? -ne 0 ]; then
             echo "::error::Compilation failed - validation errors"
             echo "compile_failed=true" >> $GITHUB_OUTPUT
             exit 1
           fi
-          
+
           echo "compile_failed=false" >> $GITHUB_OUTPUT
       
       - name: Create Pull Request

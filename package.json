@@ -8,7 +8,8 @@
     "prebuild": "npm run compile",
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "tsx --test tests/compileContent.test.ts"
   },
   "dependencies": {
     "react": "^19.2.3",
