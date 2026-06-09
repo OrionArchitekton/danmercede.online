@@ -1,6 +1,6 @@
 {
-  "generated": "2026-06-09T00:16:38.740Z",
-  "count": 15,
+  "generated": "2026-06-09T00:32:43.081Z",
+  "count": 18,
   "posts": [
     {
       "slug": "2026-05-20-pre-execution-authority-gates",
@@ -43,6 +43,24 @@
       "title": "Enforcing Control-Plane Authority with Gates",
       "type": "short-essay",
       "date": "2026-02-14"
+    },
+    {
+      "slug": "2026-02-13-audit-receipts-beat-observability",
+      "title": "Why Audit Receipts Beat Observability Dashboards",
+      "type": "short-essay",
+      "date": "2026-02-13"
+    },
+    {
+      "slug": "2026-02-13-runtime-governance-vs-policy-governance",
+      "title": "Runtime Governance vs. Policy Governance",
+      "type": "short-essay",
+      "date": "2026-02-13"
+    },
+    {
+      "slug": "2026-02-13-what-fail-closed-actually-means",
+      "title": "What Fail-Closed Actually Means in Agent Execution",
+      "type": "short-essay",
+      "date": "2026-02-13"
     },
     {
       "slug": "2026-01-30-memory-as-infrastructure",

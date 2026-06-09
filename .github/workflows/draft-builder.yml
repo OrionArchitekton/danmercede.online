@@ -208,6 +208,15 @@ jobs:
 
           echo "compile_failed=false" >> $GITHUB_OUTPUT
       
+      - name: Remove vendor/substrate before PR creation
+        if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true' && steps.compile.outputs.compile_failed != 'true'
+        # The substrate checkout above places an external repo at vendor/substrate.
+        # Without explicit removal, create-pull-request (which stages ALL modified
+        # and untracked files by default) would include the embedded checkout as
+        # either a gitlink or a bulk file tree in the draft PR. Strip it before PR
+        # creation; add-paths below provides defense in depth.
+        run: rm -rf vendor/substrate
+
       - name: Create Pull Request
         if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true' && steps.compile.outputs.compile_failed != 'true'
         id: create-pr
@@ -218,18 +227,26 @@ jobs:
           title: "Draft: ${{ steps.parse.outputs.title }}"
           body: |
             ## Draft Post
-            
+
             **Type:** ${{ steps.parse.outputs.type }}
             **Slug:** `${{ steps.parse.outputs.slug }}`
-            
+
             ---
-            
+
             This PR was automatically generated from `/raw/${{ steps.find-raw.outputs.raw_file }}`.
-            
+
             **Review the changes and use Slack to approve:**
             - Click **Approve** in `#danmercede-publishing` to merge and publish
             - Click **Needs Edit** to request changes
             - Click **Reject** to close this PR
+          # Whitelist the only paths the draft-builder is allowed to mutate. Belt-and-
+          # suspenders with the rm step above: even if a future change adds another
+          # auxiliary checkout/tmp tree under the worktree, the PR stays scoped to
+          # actual draft content.
+          add-paths: |
+            inbox/**
+            constants.generated.ts
+            public/posts.json
           labels: draft
           delete-branch: true
       

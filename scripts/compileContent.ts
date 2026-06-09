@@ -166,16 +166,33 @@ function validateTags(tags: unknown, file: string): Tag[] | null {
 }
 
 function validateDate(date: unknown, file: string): string | null {
-  // gray-matter parses unquoted YAML date scalars (e.g. `date: 2026-05-20`) as JS Date
-  // objects rather than strings. Accept both and normalize to ISO 8601 with timezone.
+  // gray-matter parses unquoted YAML date scalars as JS Date objects rather than strings:
+  //   `date: 2026-05-20`              → Date for 2026-05-20T00:00:00Z (date-only sentinel)
+  //   `date: 2026-05-20T07:00:00-07:00` → Date for 2026-05-20T14:00:00Z (full instant)
+  // The two cases have to map differently: date-only defaults to noon PST so it sorts
+  // predictably; full ISO must preserve the exact instant (and its PT-local time).
   let dateStr: string;
   if (date instanceof Date) {
     if (isNaN(date.getTime())) {
       return null;
     }
-    // Date-only YAML values come through as midnight UTC; default consumer convention
-    // is noon PST so they sort and display predictably.
-    dateStr = date.toISOString();
+    // Detect "midnight UTC, zero milliseconds" — gray-matter's canonical shape for a
+    // date-only YAML scalar. Any non-midnight or non-zero-ms instant is treated as a
+    // full timestamp whose exact instant must be preserved.
+    const isDateOnlySentinel =
+      date.getUTCHours() === 0 &&
+      date.getUTCMinutes() === 0 &&
+      date.getUTCSeconds() === 0 &&
+      date.getUTCMilliseconds() === 0;
+    if (isDateOnlySentinel) {
+      // YYYY-MM-DD slice from ISO, then noon-PST default — matches the quoted-string
+      // date-only branch below for byte-identical output.
+      dateStr = date.toISOString().slice(0, 10);
+    } else {
+      // Preserve the exact instant. Use toISOString() (yields .sssZ form) and let the
+      // downstream millisecond-Z branch normalize it to the timezone-bearing canonical.
+      dateStr = date.toISOString();
+    }
   } else if (typeof date === 'string') {
     dateStr = date;
   } else {
@@ -193,11 +210,15 @@ function validateDate(date: unknown, file: string): string | null {
     }
   }
 
-  // ISO 8601 with milliseconds + Z (from Date.toISOString()): normalize to noon PST simple form
-  const isoWithMillis = /^(\d{4}-\d{2}-\d{2})T\d{2}:\d{2}:\d{2}\.\d+Z$/;
-  const isoWithMillisMatch = dateStr.match(isoWithMillis);
-  if (isoWithMillisMatch) {
-    return isoWithMillisMatch[1] + 'T12:00:00-08:00';
+  // ISO 8601 with milliseconds + Z (from Date.toISOString() for a full instant):
+  // accept as-is — formatTimestamp/formatDate render it correctly via Intl.DateTimeFormat
+  // with explicit America/Los_Angeles, so we don't need to rewrite the string.
+  const isoWithMillis = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z$/;
+  if (isoWithMillis.test(dateStr)) {
+    const parsed = new Date(dateStr);
+    if (!isNaN(parsed.getTime())) {
+      return dateStr;
+    }
   }
 
   // Also accept simple date format: 2026-01-24 (convert to ISO 8601)

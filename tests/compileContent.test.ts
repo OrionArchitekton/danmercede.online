@@ -308,6 +308,40 @@ test('mapSubstrateToEntry rejects invalid Date object', () => {
   assert.equal(entry, null);
 });
 
+test('mapSubstrateToEntry preserves time-of-day for unquoted full ISO timestamps parsed as Date', () => {
+  // gray-matter parses an unquoted YAML full ISO timestamp (`date: 2026-05-20T07:00:00-07:00`)
+  // as a JS Date for the exact instant. Regression guard against silently rewriting that
+  // Date to the date-only noon-PST default — which would publish 12:00 PM PT instead of
+  // the canonical 07:00 AM PT timestamp.
+  const data = {
+    slug: 'full-iso-as-date',
+    title: 'Full ISO As Date',
+    // The literal value gray-matter would produce for `date: 2026-05-20T07:00:00-07:00`.
+    date: new Date('2026-05-20T07:00:00-07:00'),
+    type: 'essay-long',
+    surface_targets: ['danmercede.online'],
+    layer: 'authority-gate',
+    claim: 'c',
+    implication: 'i',
+    status: 'canonical',
+  };
+  const priorTZ = process.env.TZ;
+  try {
+    process.env.TZ = 'UTC';
+    const entry = mapSubstrateToEntry(data, 'body', 'test.md');
+    assert.ok(entry, 'full-ISO-as-Date should still be admitted');
+    // 07:00 PT is the correct timestamp for the original canonical, not the noon-PST default.
+    assert.equal(entry!.timestamp, '07:00 AM PT', 'full ISO Date must preserve exact instant');
+    assert.equal(entry!.date, '2026-05-20', 'date field reflects the PT calendar day');
+  } finally {
+    if (priorTZ === undefined) {
+      delete process.env.TZ;
+    } else {
+      process.env.TZ = priorTZ;
+    }
+  }
+});
+
 test('formatTimestamp/formatDate: PT label correct regardless of host TZ', () => {
   // Regression guard against runner-TZ contamination of "PT"-labeled output.
   // Vercel and most CI runners default to UTC; relying on Date.getHours() / getFullYear()

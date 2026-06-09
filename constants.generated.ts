@@ -186,6 +186,48 @@ A critical aspect of its function involves the use of Gates. Gates are a mechani
   }
 ,
   {
+    id: "2026-02-13-audit-receipts-beat-observability",
+    slug: "2026-02-13-audit-receipts-beat-observability",
+    title: "Why Audit Receipts Beat Observability Dashboards",
+    date: "2026-02-13",
+    timestamp: "11:00 AM PT",
+    type: EntryType.ShortEssay,
+    context: "Governance",
+    tags: ["governance","systems","signal"],
+    claim: "Observability answers what happened. Audit receipts answer who authorized it, under what policy, and whether that policy was current at execution time.",
+    implication: "Enterprise AI systems that rely solely on observability dashboards will discover their governance gap the first time a regulator asks for evidence of authorization, not just a timeline of events.",
+    content: "Observability tells you what happened. Audit receipts prove what was authorized. The difference matters when the question shifts from debugging to accountability. An observability dashboard shows you that Agent-47 called the billing API at 14:32:07 and returned a 200. An audit receipt shows you that Agent-47 was authorized to call the billing API by Policy-12, that the authority gate confirmed the action against the current ruleset at 14:32:06, that the human escalation threshold was not triggered, and that the execution was logged with a cryptographic hash linking the policy version to the action. When a regulator asks why your AI system charged a customer incorrectly, the observability dashboard gives you a timeline. The audit receipt gives you a chain of custody. Observability is necessary. It is not sufficient. The gap is evidence-grade attribution. Knowing that something happened is not the same as proving that it was authorized, by whom, under what policy, at what version. Runtime governance systems that generate audit receipts at execution time close this gap. Every action carries its own proof of authorization. Not reconstructed from logs after the fact. Generated at the moment of execution and immutable from that point forward. This is the difference between an AI system you can monitor and an AI system you can defend.",
+  }
+,
+  {
+    id: "2026-02-13-runtime-governance-vs-policy-governance",
+    slug: "2026-02-13-runtime-governance-vs-policy-governance",
+    title: "Runtime Governance vs. Policy Governance",
+    date: "2026-02-13",
+    timestamp: "09:40 AM PT",
+    type: EntryType.ShortEssay,
+    context: "Governance",
+    tags: ["governance","execution","systems"],
+    claim: "If governance is not enforced at runtime, it is not governance. It is documentation.",
+    implication: "Enterprise AI governance must move from review-board artifacts to execution-path enforcement — or accept that agents operate ungoverned between audits.",
+    content: "Most enterprise AI governance today is policy governance. A document. A review board. A quarterly audit. Someone signs a PDF and the system is considered governed. The problem is obvious once you see it: nothing in that chain runs at execution time. The agent fires, the tool call lands, the customer gets a response — and the governance layer is none the wiser until the post-mortem. Runtime governance inverts this. Governance logic runs in the execution path. Every agent action passes through authority gates before it reaches production. If the gate fails, the action fails. Not after. Not eventually. At the moment of execution. This is not a philosophical distinction. It is an architectural one. Policy governance is a human process bolted onto a software system. Runtime governance is a software system that enforces human policy. The difference shows up in failure modes. Policy governance fails open — the agent acts, and you discover the violation later. Runtime governance fails closed — if governance cannot confirm authorization, the action does not execute. Every enterprise deploying autonomous agents will eventually learn this distinction. The ones who learn it before an incident have a structural advantage over the ones who learn it during one.",
+  }
+,
+  {
+    id: "2026-02-13-what-fail-closed-actually-means",
+    slug: "2026-02-13-what-fail-closed-actually-means",
+    title: "What Fail-Closed Actually Means in Agent Execution",
+    date: "2026-02-13",
+    timestamp: "10:15 AM PT",
+    type: EntryType.ShortEssay,
+    context: "Execution",
+    tags: ["execution","failure-modes","governance"],
+    claim: "Fail-closed is not a feature. It is the minimum viable safety posture for any agent that takes real-world actions.",
+    implication: "Any AI orchestration layer that defaults to execution when governance checks fail has chosen speed over safety — and will eventually pay the bill for that choice.",
+    content: "Fail-closed is a term borrowed from physical security. A fail-closed lock stays locked when power is cut. The default state is denial. In agent execution, fail-closed means: if the governance layer cannot verify authorization, the action does not fire. The agent does not proceed optimistically. It stops. Most agent frameworks today are fail-open by design. If the guardrail service times out, the agent continues. If the policy check throws an exception, the fallback is to execute anyway. This is not a bug in the guardrail. It is a design choice in the orchestration layer — and it is the wrong one for any system with real-world consequences. Fail-closed imposes a cost. Latency increases. Some actions get blocked that should have passed. False positives create friction. But the alternative is worse: an agent that acts without confirmed authorization because the confirmation service was slow. In a fail-open system, the blast radius of a governance outage is the entire action space of every agent that depends on it. In a fail-closed system, the blast radius of a governance outage is zero actions. The tradeoff is between occasional false denials and occasional unauthorized actions. For enterprise AI systems — where a single unauthorized action can trigger regulatory exposure, financial loss, or reputational damage — the math is not close.",
+  }
+,
+  {
     id: "2026-01-30-memory-as-infrastructure",
     slug: "2026-01-30-memory-as-infrastructure",
     title: "Memory as Infrastructure in OCF",
