@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# External substrate checkout produced by CI's draft-builder workflow
+# (actions/checkout of OrionArchitekton/dan-mercede-substrate at vendor/substrate).
+# Never commit the embedded repo tree into this repo.
+vendor/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

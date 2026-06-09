@@ -170,20 +170,58 @@ jobs:
           # Copy to inbox
           cp /tmp/conductor_output.md "inbox/${SLUG}.md"
       
+      - name: Checkout dan-mercede-substrate
+        if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true'
+        # FAIL-OPEN: a substrate-side outage (token denial, repo deleted, network
+        # error) must not abort the job. compileContent.ts already falls back to
+        # inbox-only when SUBSTRATE_PATH can't be resolved, so let this step fail
+        # silently and let the compile step honor the documented fail-open posture.
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          repository: OrionArchitekton/dan-mercede-substrate
+          # Pinning to default branch (main); switch to a SHA pin when substrate
+          # publishes versioned releases. Token defaults to GITHUB_TOKEN which has
+          # public read access for OrionArchitekton repos; if substrate is private,
+          # supply a PAT via the SUBSTRATE_READ_TOKEN secret.
+          ref: main
+          path: vendor/substrate
+          token: ${{ secrets.SUBSTRATE_READ_TOKEN || secrets.GITHUB_TOKEN }}
+          fetch-depth: 1
+
       - name: Compile content
         if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true'
         id: compile
+        env:
+          # Points compileContent.ts at the substrate checkout above. If the checkout
+          # step failed (e.g. token denial), compileContent falls back to inbox-only.
+          SUBSTRATE_PATH: ${{ github.workspace }}/vendor/substrate
+          # GitHub Actions ubuntu-latest runs in UTC. formatTimestamp/formatDate in
+          # compileContent.ts use new Date().getHours()/getFullYear() (local-timezone
+          # read) then append a hardcoded "PT" label. Without TZ pinned the published
+          # bundle would show timestamps offset by 7-8 hours from source frontmatter.
+          # Pin to PT here so generated timestamps match author intent.
+          TZ: America/Los_Angeles
         run: |
           npm run compile
-          
+
           if [ $? -ne 0 ]; then
             echo "::error::Compilation failed - validation errors"
             echo "compile_failed=true" >> $GITHUB_OUTPUT
             exit 1
           fi
-          
+
           echo "compile_failed=false" >> $GITHUB_OUTPUT
       
+      - name: Remove vendor/substrate before PR creation
+        if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true' && steps.compile.outputs.compile_failed != 'true'
+        # The substrate checkout above places an external repo at vendor/substrate.
+        # Without explicit removal, create-pull-request (which stages ALL modified
+        # and untracked files by default) would include the embedded checkout as
+        # either a gitlink or a bulk file tree in the draft PR. Strip it before PR
+        # creation; add-paths below provides defense in depth.
+        run: rm -rf vendor/substrate
+
       - name: Create Pull Request
         if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true' && steps.compile.outputs.compile_failed != 'true'
         id: create-pr
@@ -194,18 +232,26 @@ jobs:
           title: "Draft: ${{ steps.parse.outputs.title }}"
           body: |
             ## Draft Post
-            
+
             **Type:** ${{ steps.parse.outputs.type }}
             **Slug:** `${{ steps.parse.outputs.slug }}`
-            
+
             ---
-            
+
             This PR was automatically generated from `/raw/${{ steps.find-raw.outputs.raw_file }}`.
-            
+
             **Review the changes and use Slack to approve:**
             - Click **Approve** in `#danmercede-publishing` to merge and publish
             - Click **Needs Edit** to request changes
             - Click **Reject** to close this PR
+          # Whitelist the only paths the draft-builder is allowed to mutate. Belt-and-
+          # suspenders with the rm step above: even if a future change adds another
+          # auxiliary checkout/tmp tree under the worktree, the PR stays scoped to
+          # actual draft content.
+          add-paths: |
+            inbox/**
+            constants.generated.ts
+            public/posts.json
           labels: draft
           delete-branch: true
       
