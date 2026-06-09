@@ -346,6 +346,23 @@ function formatDate(isoDate: string): string {
   return PT_DATE_FORMATTER.format(date);
 }
 
+/**
+ * Parse a display timestamp ("HH:MM AM/PM PT") back into minutes-since-midnight.
+ * Used as the tiebreaker in the same-day sort so the generated bundle matches
+ * App.tsx's newest-first expectation. Returns 0 on unparseable input (safe default
+ * that preserves array order for that pair).
+ */
+function timestampToMinutes(ts: string): number {
+  const m = ts.match(/^(\d{1,2}):(\d{2})\s+(AM|PM)/i);
+  if (!m) return 0;
+  let hours = parseInt(m[1], 10);
+  const minutes = parseInt(m[2], 10);
+  const ampm = m[3].toUpperCase();
+  if (ampm === 'PM' && hours !== 12) hours += 12;
+  if (ampm === 'AM' && hours === 12) hours = 0;
+  return hours * 60 + minutes;
+}
+
 // ============================================================================
 // Entry Generation
 // ============================================================================
@@ -483,7 +500,9 @@ export function mapSubstrateToEntry(
   if (!(dateRaw instanceof Date) && (typeof dateRaw !== 'string' || !dateRaw.trim())) missing.push('date');
   if (typeof typeRaw !== 'string' || !typeRaw.trim()) missing.push('type');
   if (typeof claim !== 'string' || !claim.trim()) missing.push('claim');
-  if (typeof implication !== 'string' || !implication.trim()) missing.push('implication');
+  // `implication` is OPTIONAL per the consumer contract (validateRequiredFields treats
+  // it as optional for short-essay — only 'claim' is required). Substrate canonicals
+  // missing implication should still be admitted, not silent-dropped.
   if (missing.length > 0) {
     console.log(`   ⚠️  substrate canonical skipped (missing required: ${missing.join(', ')}): ${filename}`);
     return null;
@@ -509,9 +528,12 @@ export function mapSubstrateToEntry(
 
   const fields: Record<string, unknown> = {
     claim: claim as string,
-    implication: implication as string,
     content: body,
   };
+  // Only include `implication` when present (optional per consumer contract).
+  if (typeof implication === 'string' && implication.trim()) {
+    fields.implication = implication;
+  }
 
   return {
     slug: slug as string,
@@ -791,11 +813,16 @@ function main() {
     process.exit(0);
   }
 
-  // 5. Sort entries by date (newest first)
+  // 5. Sort entries newest-first by (date, timestamp).
+  // Plain `new Date(a.date).getTime()` collapses same-day entries to a tie because
+  // `a.date` is YYYY-MM-DD only; same-day entries then keep their input order
+  // (ascending by inbox-file timestamp), but App.tsx expects descending. Resolve
+  // by parsing the "HH:MM AM/PM PT" display timestamp back into minutes-since-midnight
+  // and using it as the tiebreaker.
   merged.sort((a, b) => {
-    const dateA = new Date(a.date);
-    const dateB = new Date(b.date);
-    return dateB.getTime() - dateA.getTime();
+    const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
+    if (dateDiff !== 0) return dateDiff;
+    return timestampToMinutes(b.timestamp) - timestampToMinutes(a.timestamp);
   });
 
   // 6. Generate outputs

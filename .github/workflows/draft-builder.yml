@@ -172,6 +172,11 @@ jobs:
       
       - name: Checkout dan-mercede-substrate
         if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true'
+        # FAIL-OPEN: a substrate-side outage (token denial, repo deleted, network
+        # error) must not abort the job. compileContent.ts already falls back to
+        # inbox-only when SUBSTRATE_PATH can't be resolved, so let this step fail
+        # silently and let the compile step honor the documented fail-open posture.
+        continue-on-error: true
         uses: actions/checkout@v4
         with:
           repository: OrionArchitekton/dan-mercede-substrate
