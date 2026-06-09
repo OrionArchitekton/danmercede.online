@@ -308,6 +308,42 @@ test('mapSubstrateToEntry rejects invalid Date object', () => {
   assert.equal(entry, null);
 });
 
+test('formatTimestamp/formatDate: PT label correct regardless of host TZ', () => {
+  // Regression guard against runner-TZ contamination of "PT"-labeled output.
+  // Vercel and most CI runners default to UTC; relying on Date.getHours() / getFullYear()
+  // (which use the process TZ) would produce wrong PT timestamps in production builds.
+  // Production canonical: 2026-03-06T20:46:21+0000 → 12:46 PM PT (March, pre-DST = UTC-8).
+  // formatTimestamp/formatDate are not exported, so exercise them via mapSubstrateToEntry,
+  // which calls them after admission.
+  const data = {
+    slug: 'tz-regression',
+    title: 'TZ Regression Probe',
+    // 2026-03-06T20:46:21+0000 — same shape as production canonical.
+    date: '2026-03-06T20:46:21+0000',
+    type: 'essay-long',
+    surface_targets: ['danmercede.online'],
+    layer: 'authority-gate',
+    claim: 'c',
+    implication: 'i',
+    status: 'canonical',
+  };
+  const priorTZ = process.env.TZ;
+  try {
+    // Simulate Vercel runner.
+    process.env.TZ = 'UTC';
+    const entry = mapSubstrateToEntry(data, 'body', 'tz-test.md');
+    assert.ok(entry, 'TZ regression: entry should still be admitted under TZ=UTC');
+    assert.equal(entry!.timestamp, '12:46 PM PT', 'PT label must reflect America/Los_Angeles, not host TZ');
+    assert.equal(entry!.date, '2026-03-06', 'date must reflect America/Los_Angeles calendar day');
+  } finally {
+    if (priorTZ === undefined) {
+      delete process.env.TZ;
+    } else {
+      process.env.TZ = priorTZ;
+    }
+  }
+});
+
 // ---------------------------------------------------------------------------
 // deriveTagsFromLayer / deriveContextFromLayer
 // ---------------------------------------------------------------------------

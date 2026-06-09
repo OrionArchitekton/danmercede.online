@@ -294,22 +294,35 @@ function validateRequiredFields(
 // Timestamp Formatting
 // ============================================================================
 
+// Use explicit America/Los_Angeles timezone for PT-labeled output regardless
+// of runner timezone. Vercel and most CI runners default to UTC; relying on
+// `Date.prototype.getHours()` / `getFullYear()` (which use the process TZ)
+// would publish wrong "PT" timestamps in production builds.
+const PT_TIME_FORMATTER = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/Los_Angeles',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: true,
+});
+
+const PT_DATE_FORMATTER = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/Los_Angeles',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
 function formatTimestamp(isoDate: string): string {
   const date = new Date(isoDate);
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
-  const ampm = hours >= 12 ? 'PM' : 'AM';
-  const hour12 = hours % 12 || 12;
-  const minuteStr = minutes.toString().padStart(2, '0');
-  return `${hour12.toString().padStart(2, '0')}:${minuteStr} ${ampm} PT`;
+  // en-US 2-digit hour12 produces e.g. "07:00 AM"; append " PT" for the consumer label.
+  const formatted = PT_TIME_FORMATTER.format(date);
+  return `${formatted} PT`;
 }
 
 function formatDate(isoDate: string): string {
   const date = new Date(isoDate);
-  const year = date.getFullYear();
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  // en-CA with 2-digit month/day produces ISO-shaped "YYYY-MM-DD".
+  return PT_DATE_FORMATTER.format(date);
 }
 
 // ============================================================================
