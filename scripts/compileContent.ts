@@ -166,7 +166,19 @@ function validateTags(tags: unknown, file: string): Tag[] | null {
 }
 
 function validateDate(date: unknown, file: string): string | null {
-  if (typeof date !== 'string') {
+  // gray-matter parses unquoted YAML date scalars (e.g. `date: 2026-05-20`) as JS Date
+  // objects rather than strings. Accept both and normalize to ISO 8601 with timezone.
+  let dateStr: string;
+  if (date instanceof Date) {
+    if (isNaN(date.getTime())) {
+      return null;
+    }
+    // Date-only YAML values come through as midnight UTC; default consumer convention
+    // is noon PST so they sort and display predictably.
+    dateStr = date.toISOString();
+  } else if (typeof date === 'string') {
+    dateStr = date;
+  } else {
     return null;
   }
 
@@ -174,19 +186,26 @@ function validateDate(date: unknown, file: string): string | null {
   const iso8601WithColon = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/;
   const iso8601NoColon = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{4}$/;
 
-  if (iso8601WithColon.test(date) || iso8601NoColon.test(date)) {
-    const parsed = new Date(date);
+  if (iso8601WithColon.test(dateStr) || iso8601NoColon.test(dateStr)) {
+    const parsed = new Date(dateStr);
     if (!isNaN(parsed.getTime())) {
-      return date;
+      return dateStr;
     }
+  }
+
+  // ISO 8601 with milliseconds + Z (from Date.toISOString()): normalize to noon PST simple form
+  const isoWithMillis = /^(\d{4}-\d{2}-\d{2})T\d{2}:\d{2}:\d{2}\.\d+Z$/;
+  const isoWithMillisMatch = dateStr.match(isoWithMillis);
+  if (isoWithMillisMatch) {
+    return isoWithMillisMatch[1] + 'T12:00:00-08:00';
   }
 
   // Also accept simple date format: 2026-01-24 (convert to ISO 8601)
   const simpleDateRegex = /^\d{4}-\d{2}-\d{2}$/;
-  if (simpleDateRegex.test(date)) {
-    const parsed = new Date(date + 'T12:00:00-08:00'); // Default to noon PST
+  if (simpleDateRegex.test(dateStr)) {
+    const parsed = new Date(dateStr + 'T12:00:00-08:00'); // Default to noon PST
     if (!isNaN(parsed.getTime())) {
-      return date + 'T12:00:00-08:00';
+      return dateStr + 'T12:00:00-08:00';
     }
   }
 
@@ -426,7 +445,8 @@ export function mapSubstrateToEntry(
   const missing: string[] = [];
   if (typeof slug !== 'string' || !slug.trim()) missing.push('slug');
   if (typeof title !== 'string' || !title.trim()) missing.push('title');
-  if (typeof dateRaw !== 'string' || !dateRaw.trim()) missing.push('date');
+  // gray-matter parses unquoted YAML dates as Date objects; allow both Date and non-empty string.
+  if (!(dateRaw instanceof Date) && (typeof dateRaw !== 'string' || !dateRaw.trim())) missing.push('date');
   if (typeof typeRaw !== 'string' || !typeRaw.trim()) missing.push('type');
   if (typeof claim !== 'string' || !claim.trim()) missing.push('claim');
   if (typeof implication !== 'string' || !implication.trim()) missing.push('implication');
@@ -684,7 +704,7 @@ function main() {
   let inboxEntries: ParsedEntry[] = [];
   let allErrors: ValidationError[] = [];
 
-  if (!fs.existsSync(inboxDir)) {
+  if (!fs.existsSync(inboxDir) || !fs.statSync(inboxDir).isDirectory()) {
     console.log('   ℹ️  No inbox directory found.');
   } else {
     const inboxFiles = fs.readdirSync(inboxDir).filter(f => f.endsWith('.md') && f !== '.gitkeep');
@@ -718,7 +738,7 @@ function main() {
     // regressions (typo in surface_targets, accidental status change, schema drift)
     // in the build log so silent drops are observable even though consumer is FAIL-OPEN.
     const canonicalDir = path.join(substratePath, 'publishing', 'canonical');
-    const totalFiles = fs.existsSync(canonicalDir)
+    const totalFiles = fs.existsSync(canonicalDir) && fs.statSync(canonicalDir).isDirectory()
       ? fs.readdirSync(canonicalDir).filter(f => f.endsWith('.md')).length
       : 0;
     const skippedCount = Math.max(0, totalFiles - substrateEntries.length);

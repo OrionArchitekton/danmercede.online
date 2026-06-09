@@ -270,6 +270,44 @@ test('mapSubstrateToEntry skips missing required fields', () => {
   assert.equal(entry, null);
 });
 
+test('mapSubstrateToEntry accepts unquoted YAML date parsed as Date object', () => {
+  // gray-matter parses unquoted YAML date scalars (e.g. `date: 2026-05-20`) as JS Date
+  // objects, not strings. Regression guard: prior `typeof === string` check would skip
+  // such canonicals silently, dropping them from the bundle even though they are valid.
+  const data = {
+    slug: 'unquoted-date',
+    title: 'Unquoted Date',
+    date: new Date('2026-05-20T00:00:00Z'),
+    type: 'essay-long',
+    surface_targets: ['danmercede.online'],
+    layer: 'authority-gate',
+    claim: 'c',
+    implication: 'i',
+    status: 'canonical',
+  };
+  const entry = mapSubstrateToEntry(data, 'body', 'test.md');
+  assert.ok(entry, 'unquoted YAML date (Date object) must be admitted, not silently skipped');
+  assert.equal(entry!.slug, 'unquoted-date');
+  // Date object normalized to consumer date string form (date only, no time component).
+  assert.match(entry!.date, /^2026-05-20/);
+});
+
+test('mapSubstrateToEntry rejects invalid Date object', () => {
+  const data = {
+    slug: 'bad-date',
+    title: 'Bad Date',
+    date: new Date('not-a-date'),
+    type: 'essay-long',
+    surface_targets: ['danmercede.online'],
+    layer: 'authority-gate',
+    claim: 'c',
+    implication: 'i',
+    status: 'canonical',
+  };
+  const entry = mapSubstrateToEntry(data, 'body', 'test.md');
+  assert.equal(entry, null);
+});
+
 // ---------------------------------------------------------------------------
 // deriveTagsFromLayer / deriveContextFromLayer
 // ---------------------------------------------------------------------------
