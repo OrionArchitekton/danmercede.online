@@ -171,30 +171,31 @@ jobs:
           cp /tmp/conductor_output.md "inbox/${SLUG}.md"
       
       - name: Checkout dan-mercede-substrate
-        if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true'
-        # FAIL-OPEN: a substrate-side outage (token denial, repo deleted, network
-        # error) must not abort the job. compileContent.ts already falls back to
-        # inbox-only when SUBSTRATE_PATH can't be resolved, so let this step fail
-        # silently and let the compile step honor the documented fail-open posture.
-        continue-on-error: true
+        # FAIL-LOUD (Spec 4b D9): the live site serves the committed bundle —
+        # Vercel never recompiles (Spec 4b D1, PR #20) — so production no longer
+        # depends on this workflow. A substrate checkout failure (revoked deploy
+        # key, repo moved, network error) must fail this run visibly instead of
+        # fail-opening into an inbox-only compile that would open a PR regressing
+        # the committed bundle. The previous continue-on-error posture is retired.
+        # Runs on every invocation (Spec 4b D3): substrate drift propagates even
+        # when no raw draft exists.
         uses: actions/checkout@v4
         with:
           repository: OrionArchitekton/dan-mercede-substrate
           # Pinning to default branch (main); switch to a SHA pin when substrate
-          # publishes versioned releases. Token defaults to GITHUB_TOKEN which has
-          # public read access for OrionArchitekton repos; if substrate is private,
-          # supply a PAT via the SUBSTRATE_READ_TOKEN secret.
+          # publishes versioned releases. dan-mercede-substrate is PRIVATE: access
+          # is via a read-only, single-repo deploy key (Spec 4b D2) whose private
+          # half lives in the SUBSTRATE_SSH_KEY actions secret.
           ref: main
           path: vendor/substrate
-          token: ${{ secrets.SUBSTRATE_READ_TOKEN || secrets.GITHUB_TOKEN }}
+          ssh-key: ${{ secrets.SUBSTRATE_SSH_KEY }}
+          persist-credentials: false
           fetch-depth: 1
 
       - name: Compile content
-        if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true'
         id: compile
         env:
-          # Points compileContent.ts at the substrate checkout above. If the checkout
-          # step failed (e.g. token denial), compileContent falls back to inbox-only.
+          # Points compileContent.ts at the substrate checkout above.
           SUBSTRATE_PATH: ${{ github.workspace }}/vendor/substrate
           # GitHub Actions ubuntu-latest runs in UTC. formatTimestamp/formatDate in
           # compileContent.ts use new Date().getHours()/getFullYear() (local-timezone
@@ -214,15 +215,14 @@ jobs:
           echo "compile_failed=false" >> $GITHUB_OUTPUT
       
       - name: Remove vendor/substrate before PR creation
-        if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true' && steps.compile.outputs.compile_failed != 'true'
         # The substrate checkout above places an external repo at vendor/substrate.
         # Without explicit removal, create-pull-request (which stages ALL modified
         # and untracked files by default) would include the embedded checkout as
-        # either a gitlink or a bulk file tree in the draft PR. Strip it before PR
-        # creation; add-paths below provides defense in depth.
+        # either a gitlink or a bulk file tree in the PR. Strip it before PR
+        # creation; the add-paths whitelists below provide defense in depth.
         run: rm -rf vendor/substrate
 
-      - name: Create Pull Request
+      - name: Create Pull Request (draft post)
         if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true' && steps.compile.outputs.compile_failed != 'true'
         id: create-pr
         uses: peter-evans/create-pull-request@v6
@@ -254,7 +254,42 @@ jobs:
             public/posts.json
           labels: draft
           delete-branch: true
-      
+
+      - name: Create Pull Request (substrate sync)
+        # Spec 4b D3/D8: when this run carries no admissible draft (no raw file,
+        # or the conductor rejected it), pure substrate drift still ships. Fires
+        # mutually exclusively with the draft PR above: the draft PR requires
+        # found=true AND not-rejected; this one fires on the complement, so no run
+        # opens two PRs proposing the same bundle.
+        if: steps.find-raw.outputs.found != 'true' || steps.conductor.outputs.rejected == 'true'
+        id: create-sync-pr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # STABLE branch (Spec 4b D8): no run-id suffix, so subsequent runs update
+          # the same branch and PR in place instead of accumulating per-run PRs
+          # that propose identical drift.
+          branch: substrate-sync
+          title: "Substrate sync: refresh content bundle"
+          body: |
+            ## Substrate sync
+
+            No raw draft was admitted this run, but the compiled bundle picked up
+            canonical drift from `dan-mercede-substrate` (Spec 4b D3/D8). This PR
+            carries only the bundle artifacts compiled by CI from substrate
+            canonicals targeting `danmercede.online` — review and merge to publish
+            them to the live site.
+
+            This branch is stable: later runs with further drift update this PR in
+            place. No-drift runs do not open or touch a PR.
+          # Sync PRs may mutate ONLY the compiled bundle artifacts. Narrower than
+          # the draft whitelist on purpose: no inbox/ here — a sync run admits no
+          # draft, so any inbox change showing up would be a bug worth surfacing.
+          add-paths: |
+            constants.generated.ts
+            public/posts.json
+          delete-branch: true
+
       - name: Post to Slack
         if: steps.create-pr.outputs.pull-request-number
         run: |
