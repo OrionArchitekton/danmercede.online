@@ -40,6 +40,7 @@ test('VERCEL=1 compile exits 0, prints sentinel, leaves committed bundle byte-id
     cwd: projectRoot,
     env: { ...process.env, VERCEL: '1' },
     encoding: 'utf-8',
+    shell: process.platform === 'win32',
   });
 
   assert.equal(

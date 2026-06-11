@@ -2,8 +2,9 @@
  * checkInboxDrift.ts — Spec 4b D5 inbox-drift gate.
  *
  * D1 makes the committed bundle the deploy truth (Vercel never compiles).
- * This gate makes that enforceable: it recompiles inbox-only (no VERCEL,
- * no SUBSTRATE_PATH; caller pins TZ) and asserts every freshly compiled
+ * This gate makes that enforceable: it recompiles inbox-only (no VERCEL;
+ * SUBSTRATE_PATH pinned to an empty directory so the compiler's sibling-repo
+ * fallback cannot fire; caller pins TZ) and asserts every freshly compiled
  * entry exists identically in the committed public/posts.json, comparing
  * {slug, title, date, type}. The top-level `generated` timestamp is ignored.
  *
@@ -19,6 +20,7 @@
 
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -57,18 +59,26 @@ function main(): void {
   let compileStderr = '';
   let freshJsonRaw: string | null = null;
 
+  // Inbox-only compile must be truly inbox-only: simply unsetting
+  // SUBSTRATE_PATH is not enough, because resolveSubstratePath() falls back
+  // to the sibling `../dan-mercede-substrate` checkout when the env var is
+  // absent. Pin SUBSTRATE_PATH to an existing EMPTY directory: the resolver
+  // accepts it (it exists), and the substrate read fail-opens to zero
+  // canonicals (no publishing/canonical inside).
+  const emptySubstrateDir = fs.mkdtempSync(path.join(os.tmpdir(), 'inbox-drift-no-substrate-'));
+
   try {
-    // Inbox-only compile: VERCEL must be unset (the D1 guard would skip the
-    // compile entirely) and SUBSTRATE_PATH must be unset (substrate must not
-    // participate). TZ is inherited from the caller, which pins it.
+    // VERCEL must be unset (the D1 guard would skip the compile entirely).
+    // TZ is inherited from the caller, which pins it.
     const env = { ...process.env };
     delete env.VERCEL;
-    delete env.SUBSTRATE_PATH;
+    env.SUBSTRATE_PATH = emptySubstrateDir;
 
     const result = spawnSync(resolveTsx(), [path.join('scripts', 'compileContent.ts')], {
       cwd: projectRoot,
       env,
       encoding: 'utf-8',
+      shell: process.platform === 'win32',
     });
     compileStatus = result.status;
     compileStderr = result.stderr ?? '';
@@ -80,6 +90,7 @@ function main(): void {
     // ALWAYS restore the committed bytes — the gate must leave the tree clean.
     fs.writeFileSync(generatedTsPath, committedTsBytes);
     fs.writeFileSync(postsJsonPath, committedJsonBytes);
+    fs.rmSync(emptySubstrateDir, { recursive: true, force: true });
   }
 
   if (compileStatus !== 0) {
@@ -97,6 +108,15 @@ function main(): void {
 
   const fresh = JSON.parse(freshJsonRaw) as PostsBundle;
   const committed = JSON.parse(committedJsonBytes.toString('utf-8')) as PostsBundle;
+
+  if (!fresh || !Array.isArray(fresh.posts)) {
+    console.error('❌ DRIFT CHECK FAILED: compiled posts.json is malformed or missing posts array');
+    process.exit(1);
+  }
+  if (!committed || !Array.isArray(committed.posts)) {
+    console.error('❌ DRIFT CHECK FAILED: committed posts.json is malformed or missing posts array');
+    process.exit(1);
+  }
 
   // Subset assertion keyed by slug: every fresh entry must exist in the
   // committed posts.json with identical {slug, title, date, type}.
