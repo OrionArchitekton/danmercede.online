@@ -1,0 +1,39 @@
+# CI gate (Spec 4b D4). No secrets. Runs the test suite, the inbox-drift gate
+# (Spec 4b D5), and the exact production build path: with VERCEL=1 the prebuild
+# compile skips via the D1 guard and vite builds the committed bundle.
+#
+# Action versions stay at v4 — bumps are deferred to a separate housekeeping PR
+# (Spec 4b D6).
+name: CI
+
+on: pull_request
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Inbox-drift gate (Spec 4b D5)
+        run: npm run drift-check
+        env:
+          TZ: America/Los_Angeles
+
+      - name: Production build path (prebuild skips via D1 guard)
+        run: npm run build
+        env:
+          VERCEL: "1"
