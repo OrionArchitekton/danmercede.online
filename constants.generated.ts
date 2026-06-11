@@ -5,6 +5,54 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-06-08-authority-gate-made-runnable",
+    slug: "2026-06-08-authority-gate-made-runnable",
+    title: "The Authority Gate, Made Runnable: Fail-Closed Merge Admission for Agent-Written Code",
+    date: "2026-06-08",
+    timestamp: "07:00 AM PT",
+    type: EntryType.ShortEssay,
+    context: "Governance",
+    tags: ["governance","execution"],
+    claim: "An advisory reviewer that relays an AI's own verdict fails open; fail-closed merge admission applies the pre-execution authority gate to the merge boundary by refusing MERGE_READY on unparseable, schema-invalid, or self-contradictory output.",
+    content: `Part I — The Gate, Made Runnable
+
+Every argument for runtime governance eventually meets the same objection: show me. The pre-execution authority gate is a clean idea — evaluate authority before state mutation, halt on ambiguity, never fall back to probabilistic scoring — but an idea is not an artifact. failclosed is the artifact: the authority gate applied to one narrow, high-frequency mutation boundary, the merge.
+
+The choice of boundary is deliberate. A merge is small, concrete, and constant, and it is where AI-written code crosses from proposal into production state. It is also where the current generation of tooling fails in a specific, instructive way.
+
+Part II — Why Advisory Review Fails Open
+
+The dominant pattern in AI code review relays the model's own verdict. A reviewer model reads a diff, decides whether it looks acceptable, and the surrounding tool treats that decision as the gate. When the model says "looks good," the change is mergeable. This is advisory governance, and advisory governance fails open by construction.
+
+Consider the failure that matters most: the reviewer's output is not clean. It is truncated by a token limit, malformed by a formatting slip, or internally contradictory — a verdict of "needs fixes" attached to a findings list where not one finding cites a file or a line. A human reading that output distrusts it immediately. An advisory tool does the opposite. With no clean verdict to relay, it defaults to permitting the merge, because permitting is the path of least resistance and no deterministic rule forces a stop. The reviewer becomes a single point of silent failure precisely when its output is least trustworthy.
+
+The cost is not abstract. A merge is a state mutation. An ungoverned merge of agent-written code is an irreversible state change with no attestation of who, or what, authorized it. In a regulated environment, that is audit indefensibility — the inability to prove, after the fact, that a change was admitted under an enforced rule rather than a model's good mood.
+
+Part III — Distrust the Reviewer
+
+failclosed treats the reviewer the way the control plane treats an agent: as an untrusted compute node whose output is inadmissible until proven. It runs the reviewer, and then it refuses to trust the verdict.
+
+The output passes through a deterministic parser. The gate refuses to report MERGE_READY when that output is unparseable, schema-invalid, or self-contradictory. Take the contradictory case: verdict "fix," no finding citing a file. An advisory tool, finding no actionable findings, reports the change clean and admits it. failclosed reads the same output, recognizes that a "fix" verdict with no located finding is an indeterminate state, and halts. Ambiguity translates to a stop. There is no fallback to "probably fine," because a fallback to "probably fine" is the precise mechanism by which ungoverned actions execute.
+
+This is the posture of the pre-execution authority gate, narrowed to the merge boundary: enforcement precedes the mutation, the default is deny, and a merge that cannot be deterministically evaluated does not proceed. The reviewer's confidence is an input to be checked, not an authority to be obeyed.
+
+Part IV — Receipts Over Logs
+
+A decision that cannot be inspected is not enforcement; it is a side effect. Every failclosed run emits a structured, inspectable record — what was reviewed, what failed the gate, and why the final status is what it is. This is attestation, not telemetry. A log says an event happened. A receipt says a decision was made, on this input, under this rule, with this outcome, and it can be read back and reproduced.
+
+That distinction is what makes the gate auditable. An auditor does not have to trust that failclosed ran, or that it ran correctly. They read what it decided. The verdict and its grounds are durable artifacts, not transient console output discarded after the build.
+
+Part V — The Boundary Is the Example, Not the Point
+
+The merge is a small case, chosen because it is public and runnable in two minutes. The principle does not depend on the case. Anywhere an AI system's output gates a state mutation — a deployment, a payment, a configuration change, a database write — the same structure holds. The model proposes. A deterministic gate disposes. The gate distrusts the model's own confidence and defaults to deny when the input is ambiguous. Capability is removed at the boundary, not requested politely from a system free to ignore the request.
+
+failclosed is not a novel reviewer; better reviewers keep arriving. It is the discipline around the reviewer — the parser, the fail-closed gate, the receipt — and that discipline is the part that does not depend on which model reads the diff this quarter. The model is replaceable. The gate is the product.
+
+That is the difference between governance and hope. failclosed is public and runnable: github.com/OrionArchitekton/failclosed. The same enforcement model, applied across an enterprise agent stack rather than a single merge gate, is a Runtime Governance Readiness Scan at danmercede.com.`,
+    implication: "The merge boundary is a runnable instance of the [[authority-gate]] - anywhere AI output gates a state mutation, a deterministic gate must distrust the model's verdict and default-deny on ambiguity, producing an [[immutable-receipts]]-class record.",
+  }
+,
+  {
     id: "2026-05-20-pre-execution-authority-gates",
     slug: "2026-05-20-pre-execution-authority-gates",
     title: "Pre-Execution Authority Gates: Why Governance Must Be Evaluated Before State Mutation",

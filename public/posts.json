@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-09T00:41:12.766Z",
-  "count": 18,
+  "generated": "2026-06-11T23:00:07.253Z",
+  "count": 19,
   "posts": [
+    {
+      "slug": "2026-06-08-authority-gate-made-runnable",
+      "title": "The Authority Gate, Made Runnable: Fail-Closed Merge Admission for Agent-Written Code",
+      "type": "short-essay",
+      "date": "2026-06-08"
+    },
     {
       "slug": "2026-05-20-pre-execution-authority-gates",
       "title": "Pre-Execution Authority Gates: Why Governance Must Be Evaluated Before State Mutation",
