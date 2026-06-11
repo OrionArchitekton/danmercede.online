@@ -7,6 +7,11 @@ on:
         description: 'Specific raw file to process (optional, processes newest if empty)'
         required: false
         type: string
+      allow_removals:
+        description: 'Admit a compiled bundle that drops posts present in the committed bundle (intentional substrate removal/rename). Scheduled runs are always fail-closed.'
+        required: false
+        type: boolean
+        default: false
   schedule:
     # Weekly: Mondays at 8:10 AM PT (15:10 UTC during PST, 16:10 UTC during PDT)
     - cron: '10 16 * * 1'
@@ -233,7 +238,12 @@ jobs:
         #    compile would silently unpublish every substrate-only post in the
         #    committed bundle. Any slug present in the committed public/posts.json
         #    but absent from the fresh compile fails this run loudly instead.
-        #    Intentional removals ship via a human-authored PR, not this workflow.
+        #    Intentional removals/renames have an explicit, auditable override:
+        #    dispatch this workflow manually with allow_removals=true, which
+        #    admits the deletion as ::warning lines and lets the PR carry it for
+        #    human review. Scheduled runs never set inputs, so the cron path
+        #    stays fail-closed and one intentional removal cannot wedge
+        #    automation longer than the next manual dispatch.
         #
         # 2. Timestamp-churn suppression. generateJsonOutput stamps posts.json
         #    with a volatile `generated` timestamp on every compile, so even a
@@ -241,6 +251,10 @@ jobs:
         #    unchanged (posts.json modulo `generated`, constants.generated.ts
         #    byte-identical), restore posts.json from HEAD so create-pull-request
         #    sees a clean tree and no-drift runs do not open or touch a PR.
+        env:
+          # Empty on schedule-triggered runs (inputs context unset), so the cron
+          # path can never admit removals.
+          ALLOW_REMOVALS: ${{ inputs.allow_removals }}
         run: |
           set -euo pipefail
 
@@ -249,11 +263,18 @@ jobs:
 
           MISSING=$(comm -23 /tmp/slugs_committed.txt /tmp/slugs_compiled.txt)
           if [ -n "$MISSING" ]; then
-            while IFS= read -r slug; do
-              echo "::error::Compiled bundle drops committed post: $slug"
-            done <<< "$MISSING"
-            echo "::error::Fail-closed guard: the fresh compile is missing posts that exist in the committed bundle. Likely a substrate read regression (missing/renamed canonical dir, status/surface drift, schema change). Refusing to open a PR that would unpublish content."
-            exit 1
+            if [ "$ALLOW_REMOVALS" = "true" ]; then
+              while IFS= read -r slug; do
+                echo "::warning::Removal admitted via allow_removals=true: $slug"
+              done <<< "$MISSING"
+              echo "Operator-dispatched run with allow_removals=true: bundle removals proceed to PR for human review."
+            else
+              while IFS= read -r slug; do
+                echo "::error::Compiled bundle drops committed post: $slug"
+              done <<< "$MISSING"
+              echo "::error::Fail-closed guard: the fresh compile is missing posts that exist in the committed bundle. Likely a substrate read regression (missing/renamed canonical dir, status/surface drift, schema change). Refusing to open a PR that would unpublish content. If the removal is intentional, re-run via workflow_dispatch with allow_removals=true."
+              exit 1
+            fi
           fi
 
           if git diff --quiet -- constants.generated.ts && \
@@ -328,7 +349,33 @@ jobs:
           add-paths: |
             constants.generated.ts
             public/posts.json
+          # Deliberately NOT the `draft` label: github-label-fallback.yml's
+          # approve+draft auto-merge contract is scoped to conductor-admitted
+          # draft posts, and post-publish verification keys off the draft flow's
+          # `published` label. Sync PRs are reviewed and merged by a human on
+          # GitHub; the distinct label keeps them out of that automation on
+          # purpose and makes them filterable.
+          labels: substrate-sync
           delete-branch: true
+
+      - name: Post to Slack (substrate sync)
+        # Sync PRs sit outside the Slack button approval flow (approve_post /
+        # reject_post drive the draft publish path), but without any notification
+        # a scheduled drift PR would sit invisible until someone happens to check
+        # GitHub. Plain-text notice only — no interactive buttons — so the
+        # existing Slack handler and label automation contracts stay untouched.
+        # Gated on created/updated so a stale sync PR auto-closed by a later
+        # no-diff run does not ping the channel.
+        if: steps.create-sync-pr.outputs.pull-request-number && (steps.create-sync-pr.outputs.pull-request-operation == 'created' || steps.create-sync-pr.outputs.pull-request-operation == 'updated')
+        run: |
+          PR_NUMBER="${{ steps.create-sync-pr.outputs.pull-request-number }}"
+          PR_URL="${{ steps.create-sync-pr.outputs.pull-request-url }}"
+          OPERATION="${{ steps.create-sync-pr.outputs.pull-request-operation }}"
+
+          curl -s -X POST "https://slack.com/api/chat.postMessage" \
+            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"channel\": \"$SLACK_CHANNEL_ID\", \"text\": \"Substrate sync PR $OPERATION: <$PR_URL|#$PR_NUMBER> — compiled bundle drift from dan-mercede-substrate awaiting review. Merge on GitHub to publish.\"}"
 
       - name: Post to Slack
         if: steps.create-pr.outputs.pull-request-number
