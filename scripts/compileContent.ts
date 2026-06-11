@@ -747,6 +747,14 @@ export function readInboxEntries(
 // ============================================================================
 
 function main() {
+  // Spec 4b D1: Vercel never compiles. The committed bundle is the deploy truth;
+  // CI owns compilation. Guard must run before any filesystem writes so the
+  // Vercel prebuild hook cannot overwrite the committed bundle.
+  if (process.env.VERCEL) {
+    console.log('VERCEL build environment detected — skipping compile; the committed bundle is served (Spec 4b D1).');
+    process.exit(0);
+  }
+
   const projectRoot = path.resolve(__dirname, '..');
   const inboxDir = path.join(projectRoot, 'inbox');
   const outputTs = path.join(projectRoot, 'constants.generated.ts');
