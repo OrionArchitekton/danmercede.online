@@ -7,6 +7,11 @@ on:
         description: 'Specific raw file to process (optional, processes newest if empty)'
         required: false
         type: string
+      allow_removals:
+        description: 'Admit a compiled bundle that drops posts present in the committed bundle (intentional substrate removal/rename). Scheduled runs are always fail-closed.'
+        required: false
+        type: boolean
+        default: false
   schedule:
     # Weekly: Mondays at 8:10 AM PT (15:10 UTC during PST, 16:10 UTC during PDT)
     - cron: '10 16 * * 1'
@@ -171,30 +176,31 @@ jobs:
           cp /tmp/conductor_output.md "inbox/${SLUG}.md"
       
       - name: Checkout dan-mercede-substrate
-        if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true'
-        # FAIL-OPEN: a substrate-side outage (token denial, repo deleted, network
-        # error) must not abort the job. compileContent.ts already falls back to
-        # inbox-only when SUBSTRATE_PATH can't be resolved, so let this step fail
-        # silently and let the compile step honor the documented fail-open posture.
-        continue-on-error: true
+        # FAIL-LOUD (Spec 4b D9): the live site serves the committed bundle —
+        # Vercel never recompiles (Spec 4b D1, PR #20) — so production no longer
+        # depends on this workflow. A substrate checkout failure (revoked deploy
+        # key, repo moved, network error) must fail this run visibly instead of
+        # fail-opening into an inbox-only compile that would open a PR regressing
+        # the committed bundle. The previous continue-on-error posture is retired.
+        # Runs on every invocation (Spec 4b D3): substrate drift propagates even
+        # when no raw draft exists.
         uses: actions/checkout@v4
         with:
           repository: OrionArchitekton/dan-mercede-substrate
           # Pinning to default branch (main); switch to a SHA pin when substrate
-          # publishes versioned releases. Token defaults to GITHUB_TOKEN which has
-          # public read access for OrionArchitekton repos; if substrate is private,
-          # supply a PAT via the SUBSTRATE_READ_TOKEN secret.
+          # publishes versioned releases. dan-mercede-substrate is PRIVATE: access
+          # is via a read-only, single-repo deploy key (Spec 4b D2) whose private
+          # half lives in the SUBSTRATE_SSH_KEY actions secret.
           ref: main
           path: vendor/substrate
-          token: ${{ secrets.SUBSTRATE_READ_TOKEN || secrets.GITHUB_TOKEN }}
+          ssh-key: ${{ secrets.SUBSTRATE_SSH_KEY }}
+          persist-credentials: false
           fetch-depth: 1
 
       - name: Compile content
-        if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true'
         id: compile
         env:
-          # Points compileContent.ts at the substrate checkout above. If the checkout
-          # step failed (e.g. token denial), compileContent falls back to inbox-only.
+          # Points compileContent.ts at the substrate checkout above.
           SUBSTRATE_PATH: ${{ github.workspace }}/vendor/substrate
           # GitHub Actions ubuntu-latest runs in UTC. formatTimestamp/formatDate in
           # compileContent.ts use new Date().getHours()/getFullYear() (local-timezone
@@ -214,15 +220,80 @@ jobs:
           echo "compile_failed=false" >> $GITHUB_OUTPUT
       
       - name: Remove vendor/substrate before PR creation
-        if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true' && steps.compile.outputs.compile_failed != 'true'
         # The substrate checkout above places an external repo at vendor/substrate.
         # Without explicit removal, create-pull-request (which stages ALL modified
         # and untracked files by default) would include the embedded checkout as
-        # either a gitlink or a bulk file tree in the draft PR. Strip it before PR
-        # creation; add-paths below provides defense in depth.
+        # either a gitlink or a bulk file tree in the PR. Strip it before PR
+        # creation; the add-paths whitelists below provide defense in depth.
         run: rm -rf vendor/substrate
 
-      - name: Create Pull Request
+      - name: Guard compiled bundle before PR creation
+        # Two workflow-level guards on the freshly compiled bundle, applied before
+        # EITHER PR step below can stage it:
+        #
+        # 1. FAIL-CLOSED deletion guard. The compiler's substrate reader is
+        #    fail-open: a missing/renamed publishing/canonical directory, or
+        #    canonicals filtered out by status/surface validation, yield an EMPTY
+        #    substrate entry set rather than an error. A PR cut from such a
+        #    compile would silently unpublish every substrate-only post in the
+        #    committed bundle. Any slug present in the committed public/posts.json
+        #    but absent from the fresh compile fails this run loudly instead.
+        #    Intentional removals/renames have an explicit, auditable override:
+        #    dispatch this workflow manually with allow_removals=true, which
+        #    admits the deletion as ::warning lines and lets the PR carry it for
+        #    human review. Scheduled runs never set inputs, so the cron path
+        #    stays fail-closed and one intentional removal cannot wedge
+        #    automation longer than the next manual dispatch.
+        #
+        # 2. Timestamp-churn suppression. generateJsonOutput stamps posts.json
+        #    with a volatile `generated` timestamp on every compile, so even a
+        #    no-drift run dirties the file. If the bundle is semantically
+        #    unchanged (posts.json modulo `generated`, constants.generated.ts
+        #    byte-identical), restore posts.json from HEAD so create-pull-request
+        #    sees a clean tree and no-drift runs do not open or touch a PR.
+        env:
+          # Empty on schedule-triggered runs (inputs context unset), so the cron
+          # path can never admit removals.
+          ALLOW_REMOVALS: ${{ inputs.allow_removals }}
+          # True when this run will take the draft PR path below. Removals may
+          # NOT ride that path: the draft PR carries the `draft` label, whose
+          # approve+auto-merge contract (github-label-fallback.yml) would let a
+          # deletion publish via one Slack click instead of distinct review of
+          # the deletion diff. Removals are only admitted on the sync path,
+          # whose substrate-sync PR is human-merged on GitHub.
+          DRAFT_PATH_ACTIVE: ${{ steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true' }}
+        run: |
+          set -euo pipefail
+
+          git show HEAD:public/posts.json | jq -r '.posts[].slug' | sort > /tmp/slugs_committed.txt
+          jq -r '.posts[].slug' public/posts.json | sort > /tmp/slugs_compiled.txt
+
+          MISSING=$(comm -23 /tmp/slugs_committed.txt /tmp/slugs_compiled.txt)
+          if [ -n "$MISSING" ]; then
+            if [ "$ALLOW_REMOVALS" = "true" ] && [ "$DRAFT_PATH_ACTIVE" = "true" ]; then
+              echo "::error::allow_removals=true cannot be combined with an admitted raw draft: the removal would ride the draft PR's approve+auto-merge path instead of receiving distinct review. Process (or relocate) the pending raw draft first, then re-dispatch with allow_removals=true so the removal ships via the human-merged substrate-sync PR."
+              exit 1
+            elif [ "$ALLOW_REMOVALS" = "true" ]; then
+              while IFS= read -r slug; do
+                echo "::warning::Removal admitted via allow_removals=true: $slug"
+              done <<< "$MISSING"
+              echo "Operator-dispatched run with allow_removals=true: bundle removals proceed to the substrate-sync PR for human review."
+            else
+              while IFS= read -r slug; do
+                echo "::error::Compiled bundle drops committed post: $slug"
+              done <<< "$MISSING"
+              echo "::error::Fail-closed guard: the fresh compile is missing posts that exist in the committed bundle. Likely a substrate read regression (missing/renamed canonical dir, status/surface drift, schema change). Refusing to open a PR that would unpublish content. If the removal is intentional, re-run via workflow_dispatch with allow_removals=true."
+              exit 1
+            fi
+          fi
+
+          if git diff --quiet -- constants.generated.ts && \
+             [ "$(jq -S 'del(.generated)' public/posts.json)" = "$(git show HEAD:public/posts.json | jq -S 'del(.generated)')" ]; then
+            git checkout -- public/posts.json
+            echo "No semantic bundle drift (only the volatile 'generated' timestamp changed). Restored public/posts.json; no PR will be opened or updated."
+          fi
+
+      - name: Create Pull Request (draft post)
         if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true' && steps.compile.outputs.compile_failed != 'true'
         id: create-pr
         uses: peter-evans/create-pull-request@v6
@@ -254,7 +325,68 @@ jobs:
             public/posts.json
           labels: draft
           delete-branch: true
-      
+
+      - name: Create Pull Request (substrate sync)
+        # Spec 4b D3/D8: when this run carries no admissible draft (no raw file,
+        # or the conductor rejected it), pure substrate drift still ships. Fires
+        # mutually exclusively with the draft PR above: the draft PR requires
+        # found=true AND not-rejected; this one fires on the complement, so no run
+        # opens two PRs proposing the same bundle.
+        if: steps.find-raw.outputs.found != 'true' || steps.conductor.outputs.rejected == 'true'
+        id: create-sync-pr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # STABLE branch (Spec 4b D8): no run-id suffix, so subsequent runs update
+          # the same branch and PR in place instead of accumulating per-run PRs
+          # that propose identical drift.
+          branch: substrate-sync
+          title: "Substrate sync: refresh content bundle"
+          body: |
+            ## Substrate sync
+
+            No raw draft was admitted this run, but the compiled bundle picked up
+            canonical drift from `dan-mercede-substrate` (Spec 4b D3/D8). This PR
+            carries only the bundle artifacts compiled by CI from substrate
+            canonicals targeting `danmercede.online` — review and merge to publish
+            them to the live site.
+
+            This branch is stable: later runs with further drift update this PR in
+            place. No-drift runs do not open or touch a PR.
+          # Sync PRs may mutate ONLY the compiled bundle artifacts. Narrower than
+          # the draft whitelist on purpose: no inbox/ here — a sync run admits no
+          # draft, so any inbox change showing up would be a bug worth surfacing.
+          add-paths: |
+            constants.generated.ts
+            public/posts.json
+          # Deliberately NOT the `draft` label: github-label-fallback.yml's
+          # approve+draft auto-merge contract is scoped to conductor-admitted
+          # draft posts, and post-publish verification keys off the draft flow's
+          # `published` label. Sync PRs are reviewed and merged by a human on
+          # GitHub; the distinct label keeps them out of that automation on
+          # purpose and makes them filterable.
+          labels: substrate-sync
+          delete-branch: true
+
+      - name: Post to Slack (substrate sync)
+        # Sync PRs sit outside the Slack button approval flow (approve_post /
+        # reject_post drive the draft publish path), but without any notification
+        # a scheduled drift PR would sit invisible until someone happens to check
+        # GitHub. Plain-text notice only — no interactive buttons — so the
+        # existing Slack handler and label automation contracts stay untouched.
+        # Gated on created/updated so a stale sync PR auto-closed by a later
+        # no-diff run does not ping the channel.
+        if: steps.create-sync-pr.outputs.pull-request-number && (steps.create-sync-pr.outputs.pull-request-operation == 'created' || steps.create-sync-pr.outputs.pull-request-operation == 'updated')
+        run: |
+          PR_NUMBER="${{ steps.create-sync-pr.outputs.pull-request-number }}"
+          PR_URL="${{ steps.create-sync-pr.outputs.pull-request-url }}"
+          OPERATION="${{ steps.create-sync-pr.outputs.pull-request-operation }}"
+
+          curl -s -X POST "https://slack.com/api/chat.postMessage" \
+            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"channel\": \"$SLACK_CHANNEL_ID\", \"text\": \"Substrate sync PR $OPERATION: <$PR_URL|#$PR_NUMBER> — compiled bundle drift from dan-mercede-substrate awaiting review. Merge on GitHub to publish.\"}"
+
       - name: Post to Slack
         if: steps.create-pr.outputs.pull-request-number
         run: |
