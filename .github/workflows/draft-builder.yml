@@ -255,6 +255,13 @@ jobs:
           # Empty on schedule-triggered runs (inputs context unset), so the cron
           # path can never admit removals.
           ALLOW_REMOVALS: ${{ inputs.allow_removals }}
+          # True when this run will take the draft PR path below. Removals may
+          # NOT ride that path: the draft PR carries the `draft` label, whose
+          # approve+auto-merge contract (github-label-fallback.yml) would let a
+          # deletion publish via one Slack click instead of distinct review of
+          # the deletion diff. Removals are only admitted on the sync path,
+          # whose substrate-sync PR is human-merged on GitHub.
+          DRAFT_PATH_ACTIVE: ${{ steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true' }}
         run: |
           set -euo pipefail
 
@@ -263,11 +270,14 @@ jobs:
 
           MISSING=$(comm -23 /tmp/slugs_committed.txt /tmp/slugs_compiled.txt)
           if [ -n "$MISSING" ]; then
-            if [ "$ALLOW_REMOVALS" = "true" ]; then
+            if [ "$ALLOW_REMOVALS" = "true" ] && [ "$DRAFT_PATH_ACTIVE" = "true" ]; then
+              echo "::error::allow_removals=true cannot be combined with an admitted raw draft: the removal would ride the draft PR's approve+auto-merge path instead of receiving distinct review. Process (or relocate) the pending raw draft first, then re-dispatch with allow_removals=true so the removal ships via the human-merged substrate-sync PR."
+              exit 1
+            elif [ "$ALLOW_REMOVALS" = "true" ]; then
               while IFS= read -r slug; do
                 echo "::warning::Removal admitted via allow_removals=true: $slug"
               done <<< "$MISSING"
-              echo "Operator-dispatched run with allow_removals=true: bundle removals proceed to PR for human review."
+              echo "Operator-dispatched run with allow_removals=true: bundle removals proceed to the substrate-sync PR for human review."
             else
               while IFS= read -r slug; do
                 echo "::error::Compiled bundle drops committed post: $slug"
