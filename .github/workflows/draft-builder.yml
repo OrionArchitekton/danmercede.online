@@ -222,6 +222,46 @@ jobs:
         # creation; the add-paths whitelists below provide defense in depth.
         run: rm -rf vendor/substrate
 
+      - name: Guard compiled bundle before PR creation
+        # Two workflow-level guards on the freshly compiled bundle, applied before
+        # EITHER PR step below can stage it:
+        #
+        # 1. FAIL-CLOSED deletion guard. The compiler's substrate reader is
+        #    fail-open: a missing/renamed publishing/canonical directory, or
+        #    canonicals filtered out by status/surface validation, yield an EMPTY
+        #    substrate entry set rather than an error. A PR cut from such a
+        #    compile would silently unpublish every substrate-only post in the
+        #    committed bundle. Any slug present in the committed public/posts.json
+        #    but absent from the fresh compile fails this run loudly instead.
+        #    Intentional removals ship via a human-authored PR, not this workflow.
+        #
+        # 2. Timestamp-churn suppression. generateJsonOutput stamps posts.json
+        #    with a volatile `generated` timestamp on every compile, so even a
+        #    no-drift run dirties the file. If the bundle is semantically
+        #    unchanged (posts.json modulo `generated`, constants.generated.ts
+        #    byte-identical), restore posts.json from HEAD so create-pull-request
+        #    sees a clean tree and no-drift runs do not open or touch a PR.
+        run: |
+          set -euo pipefail
+
+          git show HEAD:public/posts.json | jq -r '.posts[].slug' | sort > /tmp/slugs_committed.txt
+          jq -r '.posts[].slug' public/posts.json | sort > /tmp/slugs_compiled.txt
+
+          MISSING=$(comm -23 /tmp/slugs_committed.txt /tmp/slugs_compiled.txt)
+          if [ -n "$MISSING" ]; then
+            while IFS= read -r slug; do
+              echo "::error::Compiled bundle drops committed post: $slug"
+            done <<< "$MISSING"
+            echo "::error::Fail-closed guard: the fresh compile is missing posts that exist in the committed bundle. Likely a substrate read regression (missing/renamed canonical dir, status/surface drift, schema change). Refusing to open a PR that would unpublish content."
+            exit 1
+          fi
+
+          if git diff --quiet -- constants.generated.ts && \
+             [ "$(jq -S 'del(.generated)' public/posts.json)" = "$(git show HEAD:public/posts.json | jq -S 'del(.generated)')" ]; then
+            git checkout -- public/posts.json
+            echo "No semantic bundle drift (only the volatile 'generated' timestamp changed). Restored public/posts.json; no PR will be opened or updated."
+          fi
+
       - name: Create Pull Request (draft post)
         if: steps.find-raw.outputs.found == 'true' && steps.conductor.outputs.rejected != 'true' && steps.compile.outputs.compile_failed != 'true'
         id: create-pr
