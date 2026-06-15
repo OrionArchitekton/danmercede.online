@@ -5,87 +5,179 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
-    id: "2026-06-08-authority-gate-made-runnable",
-    slug: "2026-06-08-authority-gate-made-runnable",
-    title: "The Authority Gate, Made Runnable: Fail-Closed Merge Admission for Agent-Written Code",
-    date: "2026-06-08",
-    timestamp: "07:00 AM PT",
-    type: EntryType.ShortEssay,
+    id: "2026-06-16-merge-authority-gate-shadow-first",
+    slug: "2026-06-16-merge-authority-gate-shadow-first",
+    title: "Merge-Authority Gate, Shadow-First",
+    date: "2026-06-16",
+    timestamp: "10:55 AM PT",
+    type: EntryType.StatusUpdate,
     context: "Governance",
-    tags: ["governance","execution"],
-    claim: "An advisory reviewer that relays an AI's own verdict fails open; fail-closed merge admission applies the pre-execution authority gate to the merge boundary by refusing MERGE_READY on unparseable, schema-invalid, or self-contradictory output.",
-    content: `Part I — The Gate, Made Runnable
-
-Every argument for runtime governance eventually meets the same objection: show me. The pre-execution authority gate is a clean idea — evaluate authority before state mutation, halt on ambiguity, never fall back to probabilistic scoring — but an idea is not an artifact. failclosed is the artifact: the authority gate applied to one narrow, high-frequency mutation boundary, the merge.
-
-The choice of boundary is deliberate. A merge is small, concrete, and constant, and it is where AI-written code crosses from proposal into production state. It is also where the current generation of tooling fails in a specific, instructive way.
-
-Part II — Why Advisory Review Fails Open
-
-The dominant pattern in AI code review relays the model's own verdict. A reviewer model reads a diff, decides whether it looks acceptable, and the surrounding tool treats that decision as the gate. When the model says "looks good," the change is mergeable. This is advisory governance, and advisory governance fails open by construction.
-
-Consider the failure that matters most: the reviewer's output is not clean. It is truncated by a token limit, malformed by a formatting slip, or internally contradictory — a verdict of "needs fixes" attached to a findings list where not one finding cites a file or a line. A human reading that output distrusts it immediately. An advisory tool does the opposite. With no clean verdict to relay, it defaults to permitting the merge, because permitting is the path of least resistance and no deterministic rule forces a stop. The reviewer becomes a single point of silent failure precisely when its output is least trustworthy.
-
-The cost is not abstract. A merge is a state mutation. An ungoverned merge of agent-written code is an irreversible state change with no attestation of who, or what, authorized it. In a regulated environment, that is audit indefensibility — the inability to prove, after the fact, that a change was admitted under an enforced rule rather than a model's good mood.
-
-Part III — Distrust the Reviewer
-
-failclosed treats the reviewer the way the control plane treats an agent: as an untrusted compute node whose output is inadmissible until proven. It runs the reviewer, and then it refuses to trust the verdict.
-
-The output passes through a deterministic parser. The gate refuses to report MERGE_READY when that output is unparseable, schema-invalid, or self-contradictory. Take the contradictory case: verdict "fix," no finding citing a file. An advisory tool, finding no actionable findings, reports the change clean and admits it. failclosed reads the same output, recognizes that a "fix" verdict with no located finding is an indeterminate state, and halts. Ambiguity translates to a stop. There is no fallback to "probably fine," because a fallback to "probably fine" is the precise mechanism by which ungoverned actions execute.
-
-This is the posture of the pre-execution authority gate, narrowed to the merge boundary: enforcement precedes the mutation, the default is deny, and a merge that cannot be deterministically evaluated does not proceed. The reviewer's confidence is an input to be checked, not an authority to be obeyed.
-
-Part IV — Receipts Over Logs
-
-A decision that cannot be inspected is not enforcement; it is a side effect. Every failclosed run emits a structured, inspectable record — what was reviewed, what failed the gate, and why the final status is what it is. This is attestation, not telemetry. A log says an event happened. A receipt says a decision was made, on this input, under this rule, with this outcome, and it can be read back and reproduced.
-
-That distinction is what makes the gate auditable. An auditor does not have to trust that failclosed ran, or that it ran correctly. They read what it decided. The verdict and its grounds are durable artifacts, not transient console output discarded after the build.
-
-Part V — The Boundary Is the Example, Not the Point
-
-The merge is a small case, chosen because it is public and runnable in two minutes. The principle does not depend on the case. Anywhere an AI system's output gates a state mutation — a deployment, a payment, a configuration change, a database write — the same structure holds. The model proposes. A deterministic gate disposes. The gate distrusts the model's own confidence and defaults to deny when the input is ambiguous. Capability is removed at the boundary, not requested politely from a system free to ignore the request.
-
-failclosed is not a novel reviewer; better reviewers keep arriving. It is the discipline around the reviewer — the parser, the fail-closed gate, the receipt — and that discipline is the part that does not depend on which model reads the diff this quarter. The model is replaceable. The gate is the product.
-
-That is the difference between governance and hope. failclosed is public and runnable: github.com/OrionArchitekton/failclosed. The same enforcement model, applied across an enterprise agent stack rather than a single merge gate, is a Runtime Governance Readiness Scan at danmercede.com.`,
-    implication: "The merge boundary is a runnable instance of the [[authority-gate]] - anywhere AI output gates a state mutation, a deterministic gate must distrust the model's verdict and default-deny on ambiguity, producing an [[immutable-receipts]]-class record.",
+    tags: ["governance","systems","execution"],
+    status: "Active",
+    whatChanged: "Shipped a merge-authority classifier in shadow mode — it logs what it would auto-merge and merges nothing, so the enforce-flip is earned, not assumed.",
+    whatBroke: "Eight hundred and forty-one abandoned draft pull requests. The bottleneck was never generation; it is the human gate and the work of converging what was generated.",
+    nextStep: "Enforce-flip after a clean two-week shadow window with zero false positives.",
   }
 ,
   {
-    id: "2026-05-20-pre-execution-authority-gates",
-    slug: "2026-05-20-pre-execution-authority-gates",
-    title: "Pre-Execution Authority Gates: Why Governance Must Be Evaluated Before State Mutation",
+    id: "2026-06-09-failclosed-is-public",
+    slug: "2026-06-09-failclosed-is-public",
+    title: "failclosed Is Public",
+    date: "2026-06-09",
+    timestamp: "11:30 AM PT",
+    type: EntryType.StatusUpdate,
+    context: "Governance",
+    tags: ["governance","signal","execution"],
+    status: "Active",
+    whatChanged: "Open-sourced failclosed — the authority gate applied to the merge boundary — alongside the supporting repos. The deterministic gate, the parser, the receipt: all public.",
+    whatBroke: "Nothing. The model behind the gate is replaceable; the gate is what shipped.",
+    nextStep: "The long-form on why, then a feed cut that drives back to the repo.",
+  }
+,
+  {
+    id: "2026-06-02-telemetry-is-not-enforcement",
+    slug: "2026-06-02-telemetry-is-not-enforcement",
+    title: "Telemetry Is Not Enforcement",
+    date: "2026-06-02",
+    timestamp: "09:20 AM PT",
+    type: EntryType.ThoughtSnippet,
+    context: "Governance",
+    tags: ["governance","signal"],
+    content: "A dashboard tells you what already happened. It cannot refuse. Most AI governance is telemetry wearing the word governance — alerts that fire after the state has already changed. A governance claim you cannot run is a claim you are hoping holds. The proof obligation is not a manifesto; it is a runnable artifact a skeptic can clone and watch deny the case it promised to deny. Until then it is advisory, however well argued.",
+  }
+,
+  {
+    id: "2026-05-27-trusting-the-models-output-shape-failed",
+    slug: "2026-05-27-trusting-the-models-output-shape-failed",
+    title: "Trusting the Model's Output Shape Failed",
+    date: "2026-05-27",
+    timestamp: "10:45 AM PT",
+    type: EntryType.ExperimentLog,
+    context: "Execution",
+    tags: ["execution","failure-modes","signal"],
+    hypothesis: "The selector and verifier model returns clean, parseable output I can gate the next step on directly.",
+    constraint: "An LLM sits in the control path; its output decides what happens next.",
+    result: "Failed",
+    resultDetails: "Output arrived wrapped in markdown fences, carrying frontmatter, and sometimes contradicting itself. Trusting the shape moved the enforcement inside the model.",
+    nextStep: "Treat model output as untrusted input — strip, validate against a schema, and halt on anything malformed.",
+  }
+,
+  {
+    id: "2026-05-20-the-merge-is-also-a-mutation",
+    slug: "2026-05-20-the-merge-is-also-a-mutation",
+    title: "The Merge Is Also a Mutation",
     date: "2026-05-20",
-    timestamp: "07:00 AM PT",
-    type: EntryType.ShortEssay,
+    timestamp: "11:40 AM PT",
+    type: EntryType.WorkingNote,
+    context: "Governance",
+    tags: ["governance","execution","systems"],
+    content: "Hardening the release gate to fail closed on the merge itself. A merge is where a change crosses from proposal into what runs — the most consequential state mutation in the system, and usually the least governed. Default-deny belongs here too.",
+    openQuestion: "Should the gate evaluate the merge SHA or the head SHA — and does CI parity hold across both?",
+  }
+,
+  {
+    id: "2026-05-10-linkedin-auto-verify-path-a-failed",
+    slug: "2026-05-10-linkedin-auto-verify-path-a-failed",
+    title: "LinkedIn Auto-Verify: Path A Failed",
+    date: "2026-05-10",
+    timestamp: "02:30 PM PT",
+    type: EntryType.ExperimentLog,
+    context: "Execution",
+    tags: ["execution","failure-modes"],
+    hypothesis: "A headless fetch can confirm a LinkedIn post is publicly visible, with no authenticated session.",
+    constraint: "Anonymous request only; no stored LinkedIn auth.",
+    result: "Failed",
+    resultDetails: "Zero of four test URLs cleared. LinkedIn served an auth wall, not the post — visibility is unverifiable without a logged-in session.",
+    nextStep: "Path C: a LinkedIn post terminates as a manual receipt against a documented closure, or it does not terminate at all.",
+  }
+,
+  {
+    id: "2026-05-05-lane-pins-the-substrate-by-hash",
+    slug: "2026-05-05-lane-pins-the-substrate-by-hash",
+    title: "Lane Pins the Substrate by Hash",
+    date: "2026-05-05",
+    timestamp: "10:00 AM PT",
+    type: EntryType.StatusUpdate,
+    context: "Systems",
+    tags: ["systems","governance","execution"],
+    status: "Active",
+    whatChanged: "The lane now consumes the substrate through a per-file hash lockfile — an exact attested state, not whatever is latest. A lock bump is a deliberate, reviewed event.",
+    whatBroke: "Nothing — the first channel adapter ships read-only, mutation gate held closed.",
+    nextStep: "Earn the right to flip the mutation gate, one verified channel at a time.",
+  }
+,
+  {
+    id: "2026-04-28-substrate-stood-up",
+    slug: "2026-04-28-substrate-stood-up",
+    title: "Substrate Stood Up",
+    date: "2026-04-28",
+    timestamp: "09:50 AM PT",
+    type: EntryType.StatusUpdate,
+    context: "Systems",
+    tags: ["systems","governance"],
+    status: "Active",
+    whatChanged: "Stood up the content substrate: a canonical source of truth plus a deterministic promote gate. Nothing becomes canon until it passes the gate.",
+    whatBroke: "Nothing yet — it is new.",
+    nextStep: "Wire the publishing lane to consume it read-only. The lane must not write back into the substrate.",
+  }
+,
+  {
+    id: "2026-04-22-the-gates-first-adversary-is-its-own-writer",
+    slug: "2026-04-22-the-gates-first-adversary-is-its-own-writer",
+    title: "The Gate's First Adversary Is Its Own Writer",
+    date: "2026-04-22",
+    timestamp: "11:15 AM PT",
+    type: EntryType.WorkingNote,
+    context: "Execution",
+    tags: ["systems","execution","failure-modes"],
+    content: "Added fail-fast-before-write plus an exclusive lock to the promote and lint tools after watching a bad write leave an orphaned temp file. The threat model fixates on outside callers; the likelier corruption is the system's own second concurrent write, validating after it has already touched state.",
+    openQuestion: "Where else in the pipeline do we mutate before we validate?",
+  }
+,
+  {
+    id: "2026-04-14-secret-spill-redaction-moved-to-the-boundary",
+    slug: "2026-04-14-secret-spill-redaction-moved-to-the-boundary",
+    title: "Secret Spill: Redaction Moved to the Boundary",
+    date: "2026-04-14",
+    timestamp: "01:05 PM PT",
+    type: EntryType.StatusUpdate,
+    context: "Infra",
+    tags: ["security","failure-modes","infra"],
+    status: "Resolved",
+    whatChanged: "Moved redaction into the normalizer's write boundary and made it fail closed on shapes it does not recognize. Nothing gets written to canon un-redacted now.",
+    whatBroke: "A pull-request cohort leaked a live token. The old redaction enumerated known prefixes, so the first unknown shape walked straight through.",
+    nextStep: "Structured parse over prefix lists — a prefix list is always one unknown vendor behind.",
+  }
+,
+  {
+    id: "2026-04-08-proof-pack-without-adding-capability",
+    slug: "2026-04-08-proof-pack-without-adding-capability",
+    title: "Proof Pack Without Adding Capability",
+    date: "2026-04-08",
+    timestamp: "10:25 AM PT",
+    type: EntryType.ExperimentLog,
     context: "Governance",
     tags: ["governance","execution"],
-    claim: "Governance evaluated after state mutation is telemetry; only deterministic enforcement at the pre-execution boundary is governance.",
-    content: `Part I — Runtime Governance Engineering
-
-The runtime governance control plane begins with a non-negotiable premise: governance cannot operate as a post-hoc advisory function. Advisory governance depends on observability layers and probabilistic alerts triggered after state mutation has already occurred. This architecture accepts that unauthorized actions can execute before intervention. That latency is systemic risk. Governance evaluated after execution is telemetry. Telemetry is not enforcement. To mitigate systemic risk, governance must exist as a deterministic constraint evaluated strictly before any state mutation occurs.
-
-When an execution framework treats governance as an external observer rather than a foundational constraint, it inevitably permits untrusted compute nodes to initiate actions that must subsequently be mitigated. True governance demands deterministic enforcement at the execution boundary, ensuring that an agent physically cannot execute a disallowed command. By shifting the evaluation entirely to the pre-execution phase, the system guarantees that no network packet leaves the agent enclave and no database transaction is initialized without explicit cryptographic authorization. The intelligence layer determines its intended action, but the physics of the control plane dictate what is physically possible to execute.
-
-The architecture enforces a non-bypassable control plane. This means the execution substrate physically and cryptographically lacks the network routing, identity credentials, and memory pathways to interact with external APIs or databases directly. To enforce this, AI models and agents are treated as untrusted compute nodes. They are strictly isolated in ephemeral, lane-isolated memory enclaves, implemented natively as distinct namespaces or microVMs.
-
-Within these hardware-isolated lanes, agents are physically incapable of resolving external DNS or establishing direct outbound TCP connections. All tools provided to the agent are actually internal RPC stubs. When an agent attempts an action, it merely passes a structured intent payload to the RPC stub, which forwards it to the control plane. Because the execution node is stripped of routing primitives and external credentials, the [[authority-gate]] becomes structurally non-bypassable. Every intended action must traverse the control plane, where it is subjected to deterministic evaluation. Enforcement occurs precisely at this juncture: at the structural boundary between the execution substrate and external state or API layers.
-
-The Runtime Governance Control Plane is the sole routing and enforcement boundary. It is explicitly designed to be devoid of probabilistic reasoning; it operates purely on deterministic logic. The Pre-Execution Authority Gate inspects the intended state mutation payload. To ensure that human intent is enforced with sub-millisecond evaluation latency at runtime, high-level human policies are compiled into low-level deterministic rules. These execution roles map to Attribute-Based Access Control (ABAC) and Role-Based Access Control (RBAC) constraints defined in the signed policy.
-
-The validation engine architecture isolates the request payload and evaluates it against the loaded, compiled policy constraints in memory. Simultaneously, signature verification mechanisms verify the identity signature of the requesting agent and check it against the active session ledger. Evaluation logic within this engine is strictly binary. The architecture maintains a default-deny posture; if the request lacks necessary context, or if the policy does not explicitly permit the action, the state is flagged as indeterminate. Ambiguity translates directly to an execution halt. There is no fallback to probabilistic scoring or secondary inference models. The compiled policy must explicitly match the intended intent, or the action is denied at the threshold.
-
-When validation fails, enforcement is instantaneous and absolute. Enforcement occurs synchronously in memory at RPC ingress. On failure, execution halts instantly. The payload is discarded before routing is ever established. If ambiguity exists in either the execution intent or the policy mapping, the system defaults to a hard execution halt. The state mutation request is dropped, and the execution thread is suspended or terminated.
-
-Any attempt to bypass the RPC stubs and communicate directly with external IP addresses results in packet drops at the container boundary. Furthermore, if a halt is triggered, the engine freezes the agent's memory state and opens an escalation pathway, routing the frozen context back to the human authority layer for review. This ensures that the agent cannot autonomously retry or attempt to subvert the blocked request; the execution thread remains cryptographically locked in its frozen state until explicitly unblocked or destroyed by the human-defined escalation protocol.
-
-A deterministic enforcement system requires immutable cryptographic proof that a policy was evaluated and either permitted or blocked. At the Authority Gate layer, the artifact that proves enforcement is a trace log detailing the specific boolean evaluation failure. If an execution boundary bypass is attempted, substrate network egress rejection logs serve as the proof of enforcement.
-
-For deeper state tracking, the [[immutable-receipts]] service guarantees that every material action, whether approved or denied, generates a receipt. This architecture provides absolute non-repudiation. Receipts are written to an append-only ledger using cryptographic hash chaining, such as Merkle trees. The receipt journals the state mutation by including the agent's exact request payload, the specific policy version evaluated, the cryptographic signatures of both, and the timestamp. For a denied request, the artifact that proves enforcement is the cryptographic hash generated by the Immutable Receipt Service. Because the system requires synchronous receipt generation before finalizing the mutation, no action can occur off the books. If the receipt cannot be written to the ledger, the transaction is rolled back and execution halts. Enforcement is not inferred. It is cryptographically attested by the chained ledger entry representing the constrained state transition.
-
-If governance is not deterministically enforced before state mutation, it is not governance. It is hope.`,
-    implication: "Runtime governance requires the [[authority-gate]] as a structurally non-bypassable evaluation point — capability is removed, not restricted — and every evaluation produces an [[immutable-receipts]]-class artifact.",
+    hypothesis: "A stop, authorize, replay proof pack can demonstrate the governed path convincingly without changing it.",
+    constraint: "Wrapper only — no new fixtures, policy, or kernel behavior to make the demo look better.",
+    result: "Passed",
+    resultDetails: "Built a three-beat scenario runner with replay verification against the published kernel image, source-tree dependency removed. It narrates and captures receipts; it adds nothing.",
+    nextStep: "First-slice parity proof against the real wire contract.",
+  }
+,
+  {
+    id: "2026-04-01-atlas-memory-legacy-fallback-deleted",
+    slug: "2026-04-01-atlas-memory-legacy-fallback-deleted",
+    title: "Atlas Memory: Legacy Fallback Deleted",
+    date: "2026-04-01",
+    timestamp: "09:40 AM PT",
+    type: EntryType.StatusUpdate,
+    context: "Infra",
+    tags: ["execution","infra","governance"],
+    status: "Resolved",
+    whatChanged: "Deleted the bridge-mode memory fallback. The runtime executor is now required at import, and startup fails closed if it is absent or the wrong version.",
+    whatBroke: "Anything that used to boot on the legacy path. That is the point — while a fallback exists, the new path is optional, and optional governance is not governance.",
+    nextStep: "Shadow-soak the cutover, then watch for anything still reaching for the deleted path.",
   }
 ,
   {
@@ -105,6 +197,35 @@ If governance is not deterministically enforced before state mutation, it is not
 However, I operate strictly on provided OCF context artifacts to ensure all published content is directly supported by the system's authoritative knowledge base. In this instance, no OCF context was made available for synthesis. Therefore, I cannot establish or support these claims with authoritative documentation from the system's knowledge base. The assertions made in the raw content are not supported by the available context.
 
 ## Citations`,
+  }
+,
+  {
+    id: "2026-03-18-repo-contracts-as-a-fail-closed-ci-gate",
+    slug: "2026-03-18-repo-contracts-as-a-fail-closed-ci-gate",
+    title: "Repo Contracts as a Fail-Closed CI Gate",
+    date: "2026-03-18",
+    timestamp: "11:00 AM PT",
+    type: EntryType.ExperimentLog,
+    context: "Governance",
+    tags: ["governance","systems","infra"],
+    hypothesis: "A repo-contract registry plus a CI gate that fails closed on violation will catch cross-repo boundary breaches before they merge, instead of in review.",
+    constraint: "The gate has to fail closed — a warning nobody reads is not enforcement.",
+    result: "Passed",
+    resultDetails: "Adopted the fail-closed gate plus a secret-scan template across the estate and bootstrapped the runtime as a bounded repo with its boundary declared before any code. Violations now stop at the gate.",
+    nextStep: "Extend the contract gate to every repo, not just the new ones.",
+  }
+,
+  {
+    id: "2026-03-10-extracting-the-kernel",
+    slug: "2026-03-10-extracting-the-kernel",
+    title: "Extracting the Kernel",
+    date: "2026-03-10",
+    timestamp: "12:30 PM PT",
+    type: EntryType.WorkingNote,
+    context: "Systems",
+    tags: ["systems","governance"],
+    content: "Lifting the decision kernel out of the legacy core into its own repo, one invariant at a time — the decision contract, the receipt path, the drift rules. The repo split is the easy part. The boundary is only real if each invariant is written down and frozen as it leaves; otherwise I have just moved the coupling and renamed it architecture.",
+    openQuestion: "What is the minimal frozen contract per invariant that makes the boundary enforceable rather than cosmetic?",
   }
 ,
   {
@@ -157,6 +278,21 @@ My understanding is that this architecture ensures that the system's state and h
 
 - docs/context/architecture/glossary.md
 - docs/doctrine/DOCTRINE_INDEX.md`,
+  }
+,
+  {
+    id: "2026-02-25-gateway-only-llm-routing-enforced",
+    slug: "2026-02-25-gateway-only-llm-routing-enforced",
+    title: "Gateway-Only LLM Routing Enforced",
+    date: "2026-02-25",
+    timestamp: "09:10 AM PT",
+    type: EntryType.StatusUpdate,
+    context: "Governance",
+    tags: ["governance","execution","infra"],
+    status: "Resolved",
+    whatChanged: "Collapsed every LLM call path to a single mediated gateway and removed the provider API keys from the environment. There is no longer a second route to a model — the gateway is the only door.",
+    whatBroke: "Un-migrated call sites that still imported a provider client directly. They had to be moved onto the gateway before the keys came out.",
+    nextStep: "Enforce-readiness verification: confirm no code path can reach a model except through the gateway.",
   }
 ,
   {
