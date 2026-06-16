@@ -102,7 +102,7 @@ const App: React.FC = () => {
                 <div className="shrink-0 pt-1 sm:pt-0">
                     <img
                         src="/dan-mercede-founder-working-avatar.webp"
-                        alt={getImageMeta("/dan-mercede-founder-working-portrait.png").alt}
+                        alt={getImageMeta("/dan-mercede-founder-working-avatar.webp").alt}
                         width={80}
                         height={80}
                         loading="lazy"

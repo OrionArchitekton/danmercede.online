@@ -195,6 +195,11 @@ export const IMAGE_METADATA = {
     description:
       "Portrait of Dan Mercede in a focused working setting, emphasizing hands-on system building and AI governance.",
   },
+  "dan-mercede-founder-working-avatar.webp": {
+    alt: "Dan Mercede working as founder and systems architect on governed AI systems",
+    description:
+      "Avatar of Dan Mercede in a focused working setting, emphasizing hands-on system building and AI governance.",
+  },
 } as const satisfies Record<string, ImageMeta>;
 
 const basename = (src: string) => src.split("/").pop() || src;
