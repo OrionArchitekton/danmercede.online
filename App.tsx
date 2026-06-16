@@ -61,9 +61,9 @@ const App: React.FC = () => {
                 <div className="flex-1">
                     {/* Line 1: Identity + Micro-links (responsive) */}
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
-                        <div className="text-base font-bold tracking-tight text-gray-900">
+                        <h1 className="text-base font-bold tracking-tight text-gray-900">
                             danmercede.online <span className="text-gray-400 font-normal ml-2">— Living Signal Surface</span>
-                        </div>
+                        </h1>
                         {/* Micro-links - below on mobile, inline on desktop */}
                         <div className="flex items-center gap-4 text-xs font-mono text-gray-400">
                             <a href="/rss" className="hover:text-black transition-colors flex items-center gap-1">
@@ -101,8 +101,12 @@ const App: React.FC = () => {
 
                 <div className="shrink-0 pt-1 sm:pt-0">
                     <img
-                        src="/dan-mercede-founder-working-portrait.png"
+                        src="/dan-mercede-founder-working-avatar.webp"
                         alt={getImageMeta("/dan-mercede-founder-working-portrait.png").alt}
+                        width={80}
+                        height={80}
+                        loading="lazy"
+                        decoding="async"
                         className="w-20 h-20 rounded-full border border-gray-100 object-cover grayscale hover:grayscale-0 transition-all duration-500"
                     />
                 </div>

@@ -168,8 +168,8 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, onTagClick }) => {
         </div>
         
         <div className="flex items-center gap-4">
-             <a href={`#${entry.slug}`} className="text-gray-300 hover:text-black transition-colors" title="Permalink">
-                <LinkIcon size={12} />
+             <a href={`#${entry.slug}`} className="text-gray-300 hover:text-black transition-colors" title="Permalink" aria-label="Permalink to this entry">
+                <LinkIcon size={12} aria-hidden="true" />
              </a>
         </div>
       </div>
