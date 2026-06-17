@@ -23,16 +23,19 @@ export function bodyBakePlugin(): Plugin {
       order: 'pre',
       handler(html: string) {
         const baked = renderPrerenderBody();
-        // Inject the prerender block as the children of the existing root div.
-        // Matches `<div id="root"></div>` (with optional whitespace).
-        const rootRe = /<div id="root">\s*<\/div>/;
+        // Inject the prerender block as the children of the existing empty root div.
+        // Capture the (possibly attribute-bearing) open tag and re-emit it via a
+        // replacer FUNCTION — a string second arg to replace() would treat `$&`,
+        // `$1`, `$$` in `baked` as replacement patterns and corrupt entry text
+        // that contains `$` (prices, shell/template snippets).
+        const rootRe = /(<div\b[^>]*\bid="root"[^>]*>)\s*<\/div>/i;
         if (!rootRe.test(html)) {
           throw new Error(
             'bodyBakePlugin: could not find empty `<div id="root"></div>` to bake into; ' +
               'index.html structure changed.',
           );
         }
-        return html.replace(rootRe, `<div id="root">${baked}</div>`);
+        return html.replace(rootRe, (_match, openTag: string) => `${openTag}${baked}</div>`);
       },
     },
   };

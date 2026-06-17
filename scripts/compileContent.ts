@@ -889,9 +889,11 @@ const SITE_ORIGIN = 'https://www.danmercede.online';
  * today only when there are no entries.
  */
 function generateSitemap(entries: ParsedEntry[]): string {
-  // Newest content date (entries carry YYYY-MM-DD `date`); fall back to today.
+  // Newest content date (entries carry YYYY-MM-DD `date`); fall back to today in
+  // PT (America/Los_Angeles) to match the rest of this file's TZ discipline —
+  // UTC slice could roll to tomorrow on a late-evening PT build.
   const dates = entries.map(e => e.date).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d));
-  const newest = dates.length > 0 ? dates.sort().reverse()[0] : new Date().toISOString().slice(0, 10);
+  const newest = dates.length > 0 ? dates.sort().reverse()[0] : PT_DATE_FORMATTER.format(new Date());
 
   const lines: string[] = [];
   lines.push('<?xml version="1.0" encoding="UTF-8"?>');

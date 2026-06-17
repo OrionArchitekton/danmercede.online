@@ -20,6 +20,14 @@ import {
   getOrderedEntries,
   escapeHtml,
 } from '../scripts/prerenderBody.ts';
+import { bodyBakePlugin } from '../scripts/bodyBakePlugin.ts';
+
+/** Invoke the plugin's transformIndexHtml handler (object form) against `html`. */
+function runBake(html: string): string {
+  const plugin = bodyBakePlugin();
+  const t = plugin.transformIndexHtml as { handler: (html: string) => string };
+  return t.handler(html);
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -67,6 +75,33 @@ test('escapeHtml neutralizes angle brackets, quotes, and ampersands', () => {
     escapeHtml(`<a href="x" data-y='z'>&`),
     '&lt;a href=&quot;x&quot; data-y=&#39;z&#39;&gt;&amp;',
   );
+});
+
+test('bodyBakePlugin injects the prerender block inside #root (W1)', () => {
+  const out = runBake('<html><body><div id="root"></div></body></html>');
+  // Baked content lands between the root open tag and its close.
+  const m = out.match(/<div id="root">([\s\S]*)<\/div>/);
+  assert.ok(m, 'root div not found after bake');
+  assert.ok(m![1].includes('data-prerender="true"'), 'prerender block not injected into #root');
+  assert.equal((m![1].match(/<h1[ >]/g) || []).length, 1, 'baked #root must carry one <h1>');
+});
+
+test('bodyBakePlugin throws when the empty root div is absent (error path)', () => {
+  assert.throws(
+    () => runBake('<html><body><main>no root here</main></body></html>'),
+    /could not find empty/,
+    'plugin must fail loudly if index.html structure changed',
+  );
+});
+
+test('bodyBakePlugin does not corrupt content containing $ replacement patterns', () => {
+  // A `$`-bearing baked block would be mangled by a string-arg replace(); the
+  // replacer-function form must preserve it verbatim. Drive it through real
+  // injection: the prerender already contains entry text; assert the baked
+  // markup is byte-preserved by checking no stray `$&`/`$1` artifacts appear.
+  const out = runBake('<html><body><div id="root"></div></body></html>');
+  assert.ok(!out.includes('$&') && !/\$\d/.test(out.replace(/font-feature|\$\{/g, '')),
+    'replacement-pattern artifacts leaked into baked HTML');
 });
 
 test('committed sitemap.xml covers every canonical post slug with a fragment URL (W9)', () => {

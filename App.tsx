@@ -209,9 +209,14 @@ const App: React.FC = () => {
                                                     href={`#${entry.slug}`}
                                                     onClick={() => {
                                                         // Return to the feed so the target entry is rendered, then
-                                                        // let the #slug anchor (EntryCard id={slug}) scroll into view.
+                                                        // scroll to its #slug anchor (EntryCard id={slug}). The element
+                                                        // is not in the DOM until React commits the feed view, so defer
+                                                        // the scroll a tick rather than relying on native hash jump.
                                                         setViewMode('feed');
                                                         setActiveTag(null);
+                                                        setTimeout(() => {
+                                                            document.getElementById(entry.slug)?.scrollIntoView();
+                                                        }, 0);
                                                     }}
                                                     className="text-gray-900 font-medium hover:underline text-left"
                                                 >

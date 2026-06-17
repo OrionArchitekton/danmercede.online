@@ -96,6 +96,10 @@ function main(): void {
     fs.writeFileSync(postsJsonPath, committedJsonBytes);
     if (committedSitemapBytes !== null) {
       fs.writeFileSync(sitemapPath, committedSitemapBytes);
+    } else if (fs.existsSync(sitemapPath)) {
+      // No committed sitemap before the run — the recompile created one; remove it
+      // so the gate leaves no untracked file behind.
+      fs.rmSync(sitemapPath, { force: true });
     }
     fs.rmSync(emptySubstrateDir, { recursive: true, force: true });
   }
