@@ -12,7 +12,7 @@
  */
 
 import type { Plugin } from 'vite';
-import { renderPrerenderBody } from './prerenderBody.ts';
+import { renderPrerenderBody, renderFeedJsonLd } from './prerenderBody.ts';
 
 export function bodyBakePlugin(): Plugin {
   return {
@@ -35,7 +35,24 @@ export function bodyBakePlugin(): Plugin {
               'index.html structure changed.',
           );
         }
-        return html.replace(rootRe, (_match, openTag: string) => `${openTag}${baked}</div>`);
+        let out = html.replace(rootRe, (_match, openTag: string) => `${openTag}${baked}</div>`);
+
+        // Replace the static WebPage-only JSON-LD with the build-time feed graph
+        // (CollectionPage + Blog + BlogPosting[] from the same entry source, W19).
+        // Replacer FUNCTION again so `$` in serialized data stays literal.
+        const ldRe = /<script type="application\/ld\+json">[\s\S]*?<\/script>/i;
+        if (!ldRe.test(out)) {
+          throw new Error(
+            'bodyBakePlugin: could not find the JSON-LD <script> block to replace; ' +
+              'index.html structure changed.',
+          );
+        }
+        const ld = renderFeedJsonLd();
+        out = out.replace(
+          ldRe,
+          () => `<script type="application/ld+json">\n${ld}\n  </script>`,
+        );
+        return out;
       },
     },
   };

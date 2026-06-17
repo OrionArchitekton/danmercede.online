@@ -144,3 +144,63 @@ export function renderPrerenderBody(entries: LogEntry[] = getOrderedEntries()): 
   const articles = entries.map(entryArticleHtml).join('');
   return `<div data-prerender="true">${header}${articles}</div>`;
 }
+
+// ---------------------------------------------------------------------------
+// Feed JSON-LD (W19) — build-time structured data for the feed surface.
+// ---------------------------------------------------------------------------
+
+const SITE = 'https://www.danmercede.online';
+const PERSON = 'https://www.danmercede.com/#person';
+
+/**
+ * The feed's JSON-LD @graph: a CollectionPage whose mainEntity is a Blog, with one
+ * BlogPosting per entry (same source as the bake, so the structured data can't
+ * drift from the rendered feed). Replaces the static WebPage-only block in
+ * index.html at build time (see scripts/bodyBakePlugin.ts). Returns the serialized
+ * graph with `<` escaped so an entry title containing `</script>` cannot break out
+ * of the embedding <script> tag.
+ */
+export function renderFeedJsonLd(entries: LogEntry[] = getOrderedEntries()): string {
+  const blogPost = entries.map((e) => ({
+    '@type': 'BlogPosting',
+    '@id': `${SITE}/#${e.slug}`,
+    headline: e.title,
+    datePublished: e.date,
+    url: `${SITE}/#${e.slug}`,
+    author: { '@id': PERSON },
+    publisher: { '@id': PERSON },
+    mainEntityOfPage: { '@id': `${SITE}/#webpage` },
+  }));
+
+  const graph = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': ['CollectionPage', 'WebPage'],
+        '@id': `${SITE}/#webpage`,
+        url: `${SITE}/`,
+        name: 'danmercede.online — Working Notes',
+        about: { '@id': PERSON },
+        isPartOf: { '@id': `${SITE}/#website` },
+        mainEntity: { '@id': `${SITE}/#blog` },
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${SITE}/#website`,
+        url: `${SITE}/`,
+        publisher: { '@id': PERSON },
+      },
+      {
+        '@type': 'Blog',
+        '@id': `${SITE}/#blog`,
+        url: `${SITE}/`,
+        name: 'danmercede.online — Living Signal Surface',
+        publisher: { '@id': PERSON },
+        author: { '@id': PERSON },
+        blogPost,
+      },
+    ],
+  };
+
+  return JSON.stringify(graph, null, 2).replace(/</g, '\\u003c');
+}

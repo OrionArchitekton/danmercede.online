@@ -78,7 +78,7 @@ test('escapeHtml neutralizes angle brackets, quotes, and ampersands', () => {
 });
 
 test('bodyBakePlugin injects the prerender block inside #root (W1)', () => {
-  const out = runBake('<html><body><div id="root"></div></body></html>');
+  const out = runBake('<html><head><script type="application/ld+json">{"@context":"https://schema.org","@graph":[]}</script></head><body><div id="root"></div></body></html>');
   // Baked content lands between the root open tag and its close.
   const m = out.match(/<div id="root">([\s\S]*)<\/div>/);
   assert.ok(m, 'root div not found after bake');
@@ -99,7 +99,7 @@ test('bodyBakePlugin does not corrupt content containing $ replacement patterns'
   // replacer-function form must preserve it verbatim. Drive it through real
   // injection: the prerender already contains entry text; assert the baked
   // markup is byte-preserved by checking no stray `$&`/`$1` artifacts appear.
-  const out = runBake('<html><body><div id="root"></div></body></html>');
+  const out = runBake('<html><head><script type="application/ld+json">{"@context":"https://schema.org","@graph":[]}</script></head><body><div id="root"></div></body></html>');
   assert.ok(!out.includes('$&') && !/\$\d/.test(out.replace(/font-feature|\$\{/g, '')),
     'replacement-pattern artifacts leaked into baked HTML');
 });
