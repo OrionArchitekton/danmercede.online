@@ -205,15 +205,18 @@ const App: React.FC = () => {
                                         <div key={entry.id} className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-8 group">
                                             <span className="font-mono text-xs text-gray-500 w-24 shrink-0">{entry.date}</span>
                                             <div className="flex-grow">
-                                                <button
+                                                <a
+                                                    href={`#${entry.slug}`}
                                                     onClick={() => {
-                                                        // Ideally navigate to single post, here we just filter to it or show it
-                                                        alert(`Navigate to ${entry.slug}`);
+                                                        // Return to the feed so the target entry is rendered, then
+                                                        // let the #slug anchor (EntryCard id={slug}) scroll into view.
+                                                        setViewMode('feed');
+                                                        setActiveTag(null);
                                                     }}
                                                     className="text-gray-900 font-medium hover:underline text-left"
                                                 >
                                                     {entry.title}
-                                                </button>
+                                                </a>
                                                 <span className="ml-3 text-xs font-mono text-gray-500 uppercase border border-gray-100 px-1 rounded-sm">
                                                     {entry.type}
                                                 </span>
