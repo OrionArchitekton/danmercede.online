@@ -30,6 +30,7 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 const generatedTsPath = path.join(projectRoot, 'constants.generated.ts');
 const postsJsonPath = path.join(projectRoot, 'public', 'posts.json');
+const sitemapPath = path.join(projectRoot, 'public', 'sitemap.xml');
 
 interface Post {
   slug: string;
@@ -54,6 +55,9 @@ function main(): void {
   // Snapshot the committed bytes before the recompile touches anything.
   const committedTsBytes = fs.readFileSync(generatedTsPath);
   const committedJsonBytes = fs.readFileSync(postsJsonPath);
+  // The compiler also writes public/sitemap.xml (W9); snapshot it so the gate's
+  // inbox-only recompile cannot leave a drifted sitemap behind.
+  const committedSitemapBytes = fs.existsSync(sitemapPath) ? fs.readFileSync(sitemapPath) : null;
 
   let compileStatus: number | null = null;
   let compileStderr = '';
@@ -90,6 +94,13 @@ function main(): void {
     // ALWAYS restore the committed bytes — the gate must leave the tree clean.
     fs.writeFileSync(generatedTsPath, committedTsBytes);
     fs.writeFileSync(postsJsonPath, committedJsonBytes);
+    if (committedSitemapBytes !== null) {
+      fs.writeFileSync(sitemapPath, committedSitemapBytes);
+    } else if (fs.existsSync(sitemapPath)) {
+      // No committed sitemap before the run — the recompile created one; remove it
+      // so the gate leaves no untracked file behind.
+      fs.rmSync(sitemapPath, { force: true });
+    }
     fs.rmSync(emptySubstrateDir, { recursive: true, force: true });
   }
 

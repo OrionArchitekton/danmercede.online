@@ -124,7 +124,7 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, onTagClick }) => {
   };
 
   return (
-    <article className="group mb-20 pb-12 border-b border-gray-100 last:border-0 relative">
+    <article id={entry.slug} className="group mb-20 pb-12 border-b border-gray-100 last:border-0 relative scroll-mt-24">
       {/* Meta Row */}
       <div className="flex flex-col sm:flex-row sm:items-baseline justify-between mb-3 font-mono text-xs uppercase tracking-wider text-gray-500">
         <div className="flex items-center gap-3">
@@ -133,7 +133,7 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, onTagClick }) => {
             </span>
             {entry.context && (
                 <>
-                    <span className="text-gray-300">/</span>
+                    <span className="text-gray-400" aria-hidden="true">/</span>
                     <span className="text-gray-500 normal-case tracking-normal font-sans italic">
                         {entry.context}
                     </span>

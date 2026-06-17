@@ -205,15 +205,23 @@ const App: React.FC = () => {
                                         <div key={entry.id} className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-8 group">
                                             <span className="font-mono text-xs text-gray-500 w-24 shrink-0">{entry.date}</span>
                                             <div className="flex-grow">
-                                                <button
+                                                <a
+                                                    href={`#${entry.slug}`}
                                                     onClick={() => {
-                                                        // Ideally navigate to single post, here we just filter to it or show it
-                                                        alert(`Navigate to ${entry.slug}`);
+                                                        // Return to the feed so the target entry is rendered, then
+                                                        // scroll to its #slug anchor (EntryCard id={slug}). The element
+                                                        // is not in the DOM until React commits the feed view, so defer
+                                                        // the scroll a tick rather than relying on native hash jump.
+                                                        setViewMode('feed');
+                                                        setActiveTag(null);
+                                                        setTimeout(() => {
+                                                            document.getElementById(entry.slug)?.scrollIntoView();
+                                                        }, 0);
                                                     }}
                                                     className="text-gray-900 font-medium hover:underline text-left"
                                                 >
                                                     {entry.title}
-                                                </button>
+                                                </a>
                                                 <span className="ml-3 text-xs font-mono text-gray-500 uppercase border border-gray-100 px-1 rounded-sm">
                                                     {entry.type}
                                                 </span>
