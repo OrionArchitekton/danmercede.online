@@ -35,15 +35,15 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, onTagClick }) => {
         return (
           <div className="bg-gray-50 border border-gray-200 p-5 rounded-sm font-mono text-sm my-2">
             <div className="grid grid-cols-1 md:grid-cols-[100px_1fr] gap-2 mb-3">
-                <span className="text-gray-500 uppercase tracking-widest text-xs pt-1">Hypothesis</span>
+                <span className="text-gray-600 uppercase tracking-widest text-xs pt-1">Hypothesis</span>
                 <span className="text-gray-900">{entry.hypothesis}</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-[100px_1fr] gap-2 mb-3">
-                <span className="text-gray-500 uppercase tracking-widest text-xs pt-1">Constraint</span>
+                <span className="text-gray-600 uppercase tracking-widest text-xs pt-1">Constraint</span>
                 <span className="text-gray-900">{entry.constraint}</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-[100px_1fr] gap-2 mb-3">
-                <span className="text-gray-500 uppercase tracking-widest text-xs pt-1">Result</span>
+                <span className="text-gray-600 uppercase tracking-widest text-xs pt-1">Result</span>
                 <span className={`font-bold uppercase ${
                     entry.result === 'Passed' ? 'text-emerald-700' : 
                     entry.result === 'Failed' ? 'text-red-700' : 'text-amber-700'
@@ -53,11 +53,11 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, onTagClick }) => {
             </div>
             {/* Result Details inline if needed, or part of result */}
             <div className="grid grid-cols-1 md:grid-cols-[100px_1fr] gap-2 mb-3">
-                <span className="text-gray-500 uppercase tracking-widest text-xs pt-1">Details</span>
+                <span className="text-gray-600 uppercase tracking-widest text-xs pt-1">Details</span>
                 <span className="text-gray-800">{entry.resultDetails}</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-[100px_1fr] gap-2">
-                <span className="text-gray-500 uppercase tracking-widest text-xs pt-1">Next Step</span>
+                <span className="text-gray-600 uppercase tracking-widest text-xs pt-1">Next Step</span>
                 <span className="text-blue-700">{entry.nextStep}</span>
             </div>
           </div>
@@ -140,7 +140,7 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, onTagClick }) => {
                 </>
             )}
         </div>
-        <div className="mt-1 sm:mt-0 opacity-60">
+        <div className="mt-1 sm:mt-0">
             {entry.date} • {entry.timestamp}
         </div>
       </div>
