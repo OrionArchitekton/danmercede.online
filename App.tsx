@@ -62,10 +62,10 @@ const App: React.FC = () => {
                     {/* Line 1: Identity + Micro-links (responsive) */}
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
                         <h1 className="text-base font-bold tracking-tight text-gray-900">
-                            danmercede.online <span className="text-gray-400 font-normal ml-2">— Living Signal Surface</span>
+                            danmercede.online <span className="text-gray-500 font-normal ml-2">— Living Signal Surface</span>
                         </h1>
                         {/* Micro-links - below on mobile, inline on desktop */}
-                        <div className="flex items-center gap-4 text-xs font-mono text-gray-400">
+                        <div className="flex items-center gap-4 text-xs font-mono text-gray-500">
                             <a href="/rss" className="hover:text-black transition-colors flex items-center gap-1">
                                 RSS <Rss size={10} />
                             </a>
@@ -90,7 +90,7 @@ const App: React.FC = () => {
 
                     {/* Line 4: Focus */}
                     <div className="text-xs font-mono flex items-center gap-2">
-                        <span className="text-gray-400 uppercase tracking-wider">Current Focus:</span>
+                        <span className="text-gray-500 uppercase tracking-wider">Current Focus:</span>
                         <div className="flex gap-2">
                             <span className="text-black bg-gray-100 px-1.5 py-0.5 rounded-sm">Runtime Governance</span>
                             <span className="text-black bg-gray-100 px-1.5 py-0.5 rounded-sm">Control Planes</span>
@@ -172,9 +172,9 @@ const App: React.FC = () => {
                                         onClick={() => setActiveTag(tag)}
                                         className="text-left border border-gray-200 p-4 hover:border-black hover:bg-gray-50 transition-all group"
                                     >
-                                        <span className="font-mono text-xs text-gray-400 block mb-1">Tag</span>
+                                        <span className="font-mono text-xs text-gray-500 block mb-1">Tag</span>
                                         <span className="font-medium text-gray-900 group-hover:underline uppercase tracking-wider text-sm">#{tag}</span>
-                                        <span className="font-mono text-xs text-gray-400 mt-2 block">
+                                        <span className="font-mono text-xs text-gray-500 mt-2 block">
                                             {ENTRIES.filter(e => e.tags.includes(tag)).length} entries
                                         </span>
                                     </button>
@@ -199,11 +199,11 @@ const App: React.FC = () => {
                     <div className="space-y-12">
                         {Object.entries(archiveByMonth).map(([month, entries]) => (
                             <div key={month}>
-                                <h3 className="font-mono text-sm text-gray-400 uppercase tracking-widest mb-6 border-b border-gray-100 pb-2">{month}</h3>
+                                <h3 className="font-mono text-sm text-gray-500 uppercase tracking-widest mb-6 border-b border-gray-100 pb-2">{month}</h3>
                                 <div className="space-y-4">
                                     {entries.map(entry => (
                                         <div key={entry.id} className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-8 group">
-                                            <span className="font-mono text-xs text-gray-400 w-24 shrink-0">{entry.date}</span>
+                                            <span className="font-mono text-xs text-gray-500 w-24 shrink-0">{entry.date}</span>
                                             <div className="flex-grow">
                                                 <button
                                                     onClick={() => {
@@ -214,7 +214,7 @@ const App: React.FC = () => {
                                                 >
                                                     {entry.title}
                                                 </button>
-                                                <span className="ml-3 text-xs font-mono text-gray-400 uppercase border border-gray-100 px-1 rounded-sm">
+                                                <span className="ml-3 text-xs font-mono text-gray-500 uppercase border border-gray-100 px-1 rounded-sm">
                                                     {entry.type}
                                                 </span>
                                             </div>
@@ -228,7 +228,7 @@ const App: React.FC = () => {
             </main>
 
             {/* Minimal Footer (Locked Structure) */}
-            <footer className="mt-32 pt-12 border-t border-gray-100 flex flex-col gap-6 text-sm text-gray-400 font-mono">
+            <footer className="mt-32 pt-12 border-t border-gray-100 flex flex-col gap-6 text-sm text-gray-500 font-mono">
                 <div className="flex flex-col items-center gap-1">
                     <a
                         href="https://www.orionintelligenceagency.com/book"
@@ -238,7 +238,7 @@ const App: React.FC = () => {
                     >
                         Book a Runtime Governance Readiness Scan &rarr;
                     </a>
-                    <span className="text-gray-400 text-[10px] tracking-wide font-normal normal-case">
+                    <span className="text-gray-500 text-[10px] tracking-wide font-normal normal-case">
                         Gap map &bull; Failure heatmap &bull; Enforcement checklist &bull; 30/60/90 plan
                     </span>
                 </div>

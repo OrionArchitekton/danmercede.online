@@ -35,15 +35,15 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, onTagClick }) => {
         return (
           <div className="bg-gray-50 border border-gray-200 p-5 rounded-sm font-mono text-sm my-2">
             <div className="grid grid-cols-1 md:grid-cols-[100px_1fr] gap-2 mb-3">
-                <span className="text-gray-400 uppercase tracking-widest text-xs pt-1">Hypothesis</span>
+                <span className="text-gray-600 uppercase tracking-widest text-xs pt-1">Hypothesis</span>
                 <span className="text-gray-900">{entry.hypothesis}</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-[100px_1fr] gap-2 mb-3">
-                <span className="text-gray-400 uppercase tracking-widest text-xs pt-1">Constraint</span>
+                <span className="text-gray-600 uppercase tracking-widest text-xs pt-1">Constraint</span>
                 <span className="text-gray-900">{entry.constraint}</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-[100px_1fr] gap-2 mb-3">
-                <span className="text-gray-400 uppercase tracking-widest text-xs pt-1">Result</span>
+                <span className="text-gray-600 uppercase tracking-widest text-xs pt-1">Result</span>
                 <span className={`font-bold uppercase ${
                     entry.result === 'Passed' ? 'text-emerald-700' : 
                     entry.result === 'Failed' ? 'text-red-700' : 'text-amber-700'
@@ -53,11 +53,11 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, onTagClick }) => {
             </div>
             {/* Result Details inline if needed, or part of result */}
             <div className="grid grid-cols-1 md:grid-cols-[100px_1fr] gap-2 mb-3">
-                <span className="text-gray-400 uppercase tracking-widest text-xs pt-1">Details</span>
+                <span className="text-gray-600 uppercase tracking-widest text-xs pt-1">Details</span>
                 <span className="text-gray-800">{entry.resultDetails}</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-[100px_1fr] gap-2">
-                <span className="text-gray-400 uppercase tracking-widest text-xs pt-1">Next Step</span>
+                <span className="text-gray-600 uppercase tracking-widest text-xs pt-1">Next Step</span>
                 <span className="text-blue-700">{entry.nextStep}</span>
             </div>
           </div>
@@ -134,13 +134,13 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, onTagClick }) => {
             {entry.context && (
                 <>
                     <span className="text-gray-300">/</span>
-                    <span className="text-gray-400 normal-case tracking-normal font-sans italic">
+                    <span className="text-gray-500 normal-case tracking-normal font-sans italic">
                         {entry.context}
                     </span>
                 </>
             )}
         </div>
-        <div className="mt-1 sm:mt-0 opacity-60">
+        <div className="mt-1 sm:mt-0">
             {entry.date} • {entry.timestamp}
         </div>
       </div>
@@ -160,7 +160,7 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, onTagClick }) => {
                 <button
                     key={tag}
                     onClick={() => onTagClick(tag)}
-                    className="text-[10px] font-mono text-gray-400 hover:text-black hover:bg-gray-100 px-1.5 py-0.5 rounded-sm transition-all duration-200 uppercase tracking-wider"
+                    className="text-[10px] font-mono text-gray-500 hover:text-black hover:bg-gray-100 px-1.5 py-0.5 rounded-sm transition-all duration-200 uppercase tracking-wider"
                 >
                     #{tag}
                 </button>
@@ -168,7 +168,7 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, onTagClick }) => {
         </div>
         
         <div className="flex items-center gap-4">
-             <a href={`#${entry.slug}`} className="text-gray-300 hover:text-black transition-colors" title="Permalink" aria-label={`Permalink to: ${entry.title}`}>
+             <a href={`#${entry.slug}`} className="text-gray-500 hover:text-black transition-colors" title="Permalink" aria-label={`Permalink to: ${entry.title}`}>
                 <LinkIcon size={12} aria-hidden="true" />
              </a>
         </div>
