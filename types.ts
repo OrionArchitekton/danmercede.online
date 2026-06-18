@@ -3,7 +3,8 @@ export enum EntryType {
   ExperimentLog = "Experiment Log",
   StatusUpdate = "Status Update",
   ThoughtSnippet = "Thought Snippet",
-  WorkingNote = "Working Note"
+  WorkingNote = "Working Note",
+  Diagram = "Diagram"
 }
 
 export type Tag = 
@@ -63,4 +64,12 @@ export interface WorkingNote extends BaseEntry {
   openQuestion: string; // Mandatory open question
 }
 
-export type LogEntry = ShortEssay | ExperimentLog | StatusUpdate | ThoughtSnippet | WorkingNote;
+export interface Diagram extends BaseEntry {
+  type: EntryType.Diagram;
+  src: string;
+  alt: string;
+  caption: string;
+  content?: string;
+}
+
+export type LogEntry = ShortEssay | ExperimentLog | StatusUpdate | ThoughtSnippet | WorkingNote | Diagram;
