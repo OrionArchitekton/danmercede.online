@@ -14,6 +14,7 @@ import {
   resolveSubstratePath,
   readSubstrateCanonicals,
   mapSubstrateToEntry,
+  readInboxEntries,
   deriveTagsFromLayer,
   deriveTagsFromSubstrate,
   deriveContextFromLayer,
@@ -287,6 +288,139 @@ test('mapSubstrateToEntry fails closed on branded diagram metadata', () => {
   } finally {
     fs.rmSync(substrateRoot, { recursive: true, force: true });
     fs.rmSync(projectRoot, { recursive: true, force: true });
+  }
+});
+
+test('mapSubstrateToEntry fails closed on branded diagram title', () => {
+  const substrateRoot = mkTempDir('diagram-title-brand-substrate-');
+  const projectRoot = mkTempDir('diagram-title-brand-project-');
+  const assetRel = path.join('publishing', 'assets', 'diagram-entry', 'diagram.svg');
+  const assetPath = path.join(substrateRoot, assetRel);
+  fs.mkdirSync(path.dirname(assetPath), { recursive: true });
+  fs.writeFileSync(assetPath, '<svg xmlns="http://www.w3.org/2000/svg"></svg>');
+
+  try {
+    assert.throws(
+      () =>
+        mapSubstrateToEntry(
+          {
+            slug: 'diagram-entry',
+            title: 'Cosmocrat Control Plane',
+            date: '2026-03-13T08:00:00-07:00',
+            type: 'diagram',
+            surface_targets: ['danmercede.online'],
+            layer: 'authority-gate',
+            alt_text: 'A clean diagram.',
+            caption: 'A clean caption.',
+            asset_path: assetRel,
+            status: 'canonical',
+          },
+          'diagram body',
+          'diagram-entry.md',
+          substrateRoot,
+          projectRoot,
+        ),
+      /Forbidden brand token detected in substrate diagram metadata/,
+    );
+  } finally {
+    fs.rmSync(substrateRoot, { recursive: true, force: true });
+    fs.rmSync(projectRoot, { recursive: true, force: true });
+  }
+});
+
+test('mapSubstrateToEntry rejects unsafe diagram slug before asset copy', () => {
+  const substrateRoot = mkTempDir('diagram-unsafe-slug-substrate-');
+  const projectRoot = mkTempDir('diagram-unsafe-slug-project-');
+  const assetRel = path.join('publishing', 'assets', 'diagram-entry', 'diagram.svg');
+  const assetPath = path.join(substrateRoot, assetRel);
+  fs.mkdirSync(path.dirname(assetPath), { recursive: true });
+  fs.writeFileSync(assetPath, '<svg xmlns="http://www.w3.org/2000/svg"></svg>');
+
+  try {
+    const entry = mapSubstrateToEntry(
+      {
+        slug: '../../bad',
+        title: 'Diagram Entry',
+        date: '2026-03-13T08:00:00-07:00',
+        type: 'diagram',
+        surface_targets: ['danmercede.online'],
+        layer: 'authority-gate',
+        alt_text: 'A clean diagram.',
+        caption: 'A clean caption.',
+        asset_path: assetRel,
+        status: 'canonical',
+      },
+      'diagram body',
+      'bad.md',
+      substrateRoot,
+      projectRoot,
+    );
+
+    assert.equal(entry, null);
+    assert.equal(
+      fs.existsSync(path.join(projectRoot, 'public', 'assets', 'diagrams')),
+      false,
+      'unsafe slug must not create the public diagram directory',
+    );
+  } finally {
+    fs.rmSync(substrateRoot, { recursive: true, force: true });
+    fs.rmSync(projectRoot, { recursive: true, force: true });
+  }
+});
+
+test('readInboxEntries rejects unsafe slug format', () => {
+  const inboxDir = mkTempDir('inbox-unsafe-slug-');
+  try {
+    fs.writeFileSync(
+      path.join(inboxDir, 'bad.md'),
+      `---
+slug: "../bad"
+title: "Unsafe Slug"
+date: "2026-03-13T08:00:00-07:00"
+type: "diagram"
+tags: ["systems"]
+src: "/assets/diagrams/diagram-entry.svg"
+alt: "A clean diagram."
+caption: "A clean caption."
+---
+`,
+    );
+
+    const result = readInboxEntries(inboxDir);
+    assert.equal(result.entries.length, 0);
+    assert.equal(result.errors.length, 1);
+    assert.equal(result.errors[0].field, 'slug');
+    assert.match(result.errors[0].message, /Invalid slug format/);
+  } finally {
+    fs.rmSync(inboxDir, { recursive: true, force: true });
+  }
+});
+
+test('readInboxEntries rejects branded diagram title', () => {
+  const inboxDir = mkTempDir('inbox-branded-title-');
+  try {
+    fs.writeFileSync(
+      path.join(inboxDir, 'branded.md'),
+      `---
+slug: "branded-title"
+title: "Cosmocrat Control Plane"
+date: "2026-03-13T08:00:00-07:00"
+type: "diagram"
+tags: ["systems"]
+src: "/assets/diagrams/diagram-entry.svg"
+alt: "A clean diagram."
+caption: "A clean caption."
+---
+`,
+    );
+
+    const result = readInboxEntries(inboxDir);
+    assert.equal(result.entries.length, 0);
+    assert.equal(result.errors.length, 1);
+    assert.equal(result.errors[0].field, 'brand');
+    assert.match(result.errors[0].message, /forbidden brand token in title/);
+  } finally {
+    fs.rmSync(inboxDir, { recursive: true, force: true });
   }
 });
 

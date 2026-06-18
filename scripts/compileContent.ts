@@ -142,6 +142,8 @@ const LAYER_TO_CONTEXT: Record<string, ContextLabel> = {
   'gated-substrate': 'Infra',
 };
 
+const SAFE_SLUG_RE = /^[a-z0-9-]+$/;
+
 // The surface this consumer publishes for. Canonicals not targeting this surface
 // are silently filtered out (substrate is multi-surface; consumer is single-surface).
 const THIS_SURFACE = 'danmercede.online';
@@ -512,6 +514,10 @@ function isSafeRelativePath(value: string): boolean {
   return !value.split(/[\\/]+/).some(part => part === '..' || part === '');
 }
 
+function isSafeSlug(value: string): boolean {
+  return SAFE_SLUG_RE.test(value);
+}
+
 function copyDiagramAsset(
   assetPath: unknown,
   slug: string,
@@ -525,6 +531,10 @@ function copyDiagramAsset(
   }
   if (!substratePath) {
     console.log(`   ⚠️  substrate diagram skipped (no substrate root for asset copy): ${file}`);
+    return null;
+  }
+  if (!isSafeSlug(slug)) {
+    console.log(`   ⚠️  substrate diagram skipped (invalid slug format "${slug}"): ${file}`);
     return null;
   }
   if (!isSafeRelativePath(assetPath)) {
@@ -608,6 +618,10 @@ export function mapSubstrateToEntry(
 
   const slugValue = slug as string;
   const titleValue = title as string;
+  if (!isSafeSlug(slugValue)) {
+    console.log(`   ⚠️  substrate canonical skipped (invalid slug format "${slugValue}"): ${filename}`);
+    return null;
+  }
 
   // Date validation (substrate always emits full ISO 8601 with timezone)
   const dateStr = validateDate(dateRaw, filename);
@@ -637,6 +651,7 @@ export function mapSubstrateToEntry(
     const brandViolations = validateNoBrandTokens(
       {
         slug: slugValue,
+        title: titleValue,
         src,
         alt: altText,
         caption,
@@ -808,6 +823,14 @@ export function readInboxEntries(
       allErrors.push({ file, field: 'slug', message: 'Missing or invalid slug' });
       continue;
     }
+    if (!isSafeSlug(data.slug)) {
+      allErrors.push({
+        file,
+        field: 'slug',
+        message: `Invalid slug format: "${data.slug}". Slugs must only contain lowercase alphanumeric characters and hyphens.`,
+      });
+      continue;
+    }
 
     if (!data.title || typeof data.title !== 'string') {
       allErrors.push({ file, field: 'title', message: 'Missing or invalid title' });
@@ -863,6 +886,7 @@ export function readInboxEntries(
       const brandViolations = validateNoBrandTokens(
         {
           slug: data.slug,
+          title: data.title,
           src: data.src,
           alt: data.alt,
           caption: data.caption,
