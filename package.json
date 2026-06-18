@@ -9,7 +9,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "tsx --test tests/compileContent.test.ts tests/vercelGuard.test.ts tests/bodyBake.test.ts",
+    "test": "tsx --test tests/compileContent.test.ts tests/vercelGuard.test.ts tests/bodyBake.test.ts tests/feedJsonLd.test.ts",
     "drift-check": "tsx scripts/checkInboxDrift.ts"
   },
   "dependencies": {
@@ -20,7 +20,10 @@
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "autoprefixer": "^10.5.0",
     "gray-matter": "^4.0.3",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^3.4.19",
     "tsx": "^4.7.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"

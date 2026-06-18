@@ -55,7 +55,14 @@ const App: React.FC = () => {
     return (
         <div className="min-h-screen flex flex-col max-w-3xl mx-auto px-6 py-12 selection:bg-black selection:text-white">
 
-            {/* 1. Header Hardening (Fixed lines) */}
+            {/* Skip link: visually hidden until keyboard-focused, then jumps to main content (a11y parity with the other brand sites). */}
+            <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-4 focus:left-4 focus:rounded focus:bg-black focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white focus:no-underline"
+            >
+                Skip to main content
+            </a>
+
             {/* 1. Header Hardening (Fixed lines) */}
             <header className="mb-20 pb-8 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start gap-8">
                 <div className="flex-1">
@@ -113,21 +120,24 @@ const App: React.FC = () => {
             </header>
 
             {/* 4. Navigation Hardening */}
-            <nav className="flex items-center gap-6 mb-16 text-sm font-medium text-gray-500 border-b border-gray-50 pb-4">
+            <nav aria-label="Views" className="flex items-center gap-6 mb-16 text-sm font-medium text-gray-500 border-b border-gray-50 pb-4">
                 <button
                     onClick={() => { setViewMode('feed'); setActiveTag(null); }}
+                    aria-pressed={viewMode === 'feed' && !activeTag}
                     className={`${viewMode === 'feed' && !activeTag ? 'text-black' : 'hover:text-gray-800'} transition-colors`}
                 >
                     Feed
                 </button>
                 <button
                     onClick={() => setViewMode('tags')}
+                    aria-pressed={viewMode === 'tags' || activeTag !== null}
                     className={`${viewMode === 'tags' || activeTag ? 'text-black' : 'hover:text-gray-800'} transition-colors`}
                 >
                     Tags
                 </button>
                 <button
                     onClick={() => setViewMode('archive')}
+                    aria-pressed={viewMode === 'archive'}
                     className={`${viewMode === 'archive' ? 'text-black' : 'hover:text-gray-800'} transition-colors`}
                 >
                     Archive
@@ -135,7 +145,7 @@ const App: React.FC = () => {
             </nav>
 
             {/* Content Area */}
-            <main className="flex-grow">
+            <main id="main-content" tabIndex={-1} className="flex-grow outline-none">
                 {activeTag && (
                     <div className="mb-12 flex items-center gap-2 bg-black text-white px-3 py-2 text-xs font-mono uppercase w-fit rounded-sm">
                         <span>Filtering by: #{activeTag}</span>
