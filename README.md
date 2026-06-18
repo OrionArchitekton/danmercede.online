@@ -44,6 +44,7 @@ The site publishes the following entry types:
 | Status Update | `status-update` | `status`, `whatChanged`, `whatBroke`, `nextStep` |
 | Thought Snippet | `thought-snippet` | `content` (max 200 words) |
 | Working Note | `working-note` | `content`, `openQuestion` |
+| Diagram | `diagram` | `src`, `alt`, `caption` |
 
 Each post is timestamped and tagged. No retroactive editing.
 
@@ -113,6 +114,11 @@ implication: "Closing line"         # Optional for short-essay
 ---
 Optional body content (rarely used).
 ```
+
+Diagram entries are normally compiled from `dan-mercede-substrate` canonicals.
+The compiler copies approved substrate assets into `public/assets/diagrams/`,
+emits figure markup, adds `ImageObject` JSON-LD, and fails closed on branded
+diagram metadata.
 
 The `context` field also accepts extended classifier values (`docs`, `project`, `general`, `track`, `track:*`) in addition to the standard set above.
 

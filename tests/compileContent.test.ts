@@ -15,7 +15,9 @@ import {
   readSubstrateCanonicals,
   mapSubstrateToEntry,
   deriveTagsFromLayer,
+  deriveTagsFromSubstrate,
   deriveContextFromLayer,
+  generateSitemap,
   mergeEntriesDedupBySlug,
   type ParsedEntry,
 } from '../scripts/compileContent.ts';
@@ -206,6 +208,88 @@ test('mapSubstrateToEntry: layer authority-gate → tags [governance, execution]
   assert.equal(entry!.context, 'Governance');
 });
 
+test('deriveTagsFromSubstrate prefers valid substrate tags over layer defaults', () => {
+  const tags = deriveTagsFromSubstrate('authority-gate', ['economics', 'governance', 'systems']);
+  assert.deepEqual(tags, ['economics', 'governance', 'systems']);
+});
+
+test('mapSubstrateToEntry maps diagram and copies its asset', () => {
+  const substrateRoot = mkTempDir('diagram-substrate-');
+  const projectRoot = mkTempDir('diagram-project-');
+  const assetRel = path.join('publishing', 'assets', 'diagram-entry', 'diagram.svg');
+  const assetPath = path.join(substrateRoot, assetRel);
+  fs.mkdirSync(path.dirname(assetPath), { recursive: true });
+  fs.writeFileSync(assetPath, '<svg xmlns="http://www.w3.org/2000/svg"></svg>');
+
+  try {
+    const data = {
+      slug: 'diagram-entry',
+      title: 'Diagram Entry',
+      date: '2026-03-13T08:00:00-07:00',
+      type: 'diagram',
+      surface_targets: ['danmercede.online'],
+      layer: 'authority-gate',
+      tags: ['governance', 'systems', 'execution'],
+      alt_text: 'A clean execution diagram.',
+      caption: 'The gate sits before the mutation.',
+      asset_path: assetRel,
+      status: 'canonical',
+    };
+    const entry = mapSubstrateToEntry(data, 'diagram body', 'diagram-entry.md', substrateRoot, projectRoot);
+    assert.ok(entry, 'diagram should be admitted');
+    assert.equal(entry!.type, 'diagram');
+    assert.equal(entry!.typeEnum, 'EntryType.Diagram');
+    assert.deepEqual(entry!.tags, ['governance', 'systems', 'execution']);
+    assert.equal(entry!.fields.src, '/assets/diagrams/diagram-entry.svg');
+    assert.equal(entry!.fields.alt, 'A clean execution diagram.');
+    assert.equal(entry!.fields.caption, 'The gate sits before the mutation.');
+    assert.ok(
+      fs.existsSync(path.join(projectRoot, 'public', 'assets', 'diagrams', 'diagram-entry.svg')),
+      'diagram asset should be copied to public assets',
+    );
+  } finally {
+    fs.rmSync(substrateRoot, { recursive: true, force: true });
+    fs.rmSync(projectRoot, { recursive: true, force: true });
+  }
+});
+
+test('mapSubstrateToEntry fails closed on branded diagram metadata', () => {
+  const substrateRoot = mkTempDir('diagram-brand-substrate-');
+  const projectRoot = mkTempDir('diagram-brand-project-');
+  const assetRel = path.join('publishing', 'assets', 'diagram-entry', 'diagram.svg');
+  const assetPath = path.join(substrateRoot, assetRel);
+  fs.mkdirSync(path.dirname(assetPath), { recursive: true });
+  fs.writeFileSync(assetPath, '<svg xmlns="http://www.w3.org/2000/svg"></svg>');
+
+  try {
+    assert.throws(
+      () =>
+        mapSubstrateToEntry(
+          {
+            slug: 'diagram-entry',
+            title: 'Diagram Entry',
+            date: '2026-03-13T08:00:00-07:00',
+            type: 'diagram',
+            surface_targets: ['danmercede.online'],
+            layer: 'authority-gate',
+            alt_text: 'A clean diagram.',
+            caption: 'Cosmocrat-branded control plane.',
+            asset_path: assetRel,
+            status: 'canonical',
+          },
+          'diagram body',
+          'diagram-entry.md',
+          substrateRoot,
+          projectRoot,
+        ),
+      /Forbidden brand token detected in substrate diagram metadata/,
+    );
+  } finally {
+    fs.rmSync(substrateRoot, { recursive: true, force: true });
+    fs.rmSync(projectRoot, { recursive: true, force: true });
+  }
+});
+
 test('mapSubstrateToEntry filters wrong surface_targets', () => {
   const data = {
     slug: 'linkedin-only',
@@ -376,6 +460,31 @@ test('formatTimestamp/formatDate: PT label correct regardless of host TZ', () =>
       process.env.TZ = priorTZ;
     }
   }
+});
+
+test('generateSitemap emits image sitemap node for diagram entries', () => {
+  const xml = generateSitemap([
+    {
+      slug: 'diagram-entry',
+      title: 'Diagram Entry',
+      date: '2026-03-13',
+      timestamp: '08:00 AM PT',
+      type: 'diagram',
+      typeEnum: 'EntryType.Diagram',
+      tags: ['governance'],
+      fields: {
+        src: '/assets/diagrams/diagram-entry.svg',
+        alt: 'A diagram',
+        caption: 'The gate sits before the mutation.',
+      },
+      body: 'body',
+      source: 'substrate',
+    },
+  ]);
+  assert.ok(xml.includes('xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"'));
+  assert.ok(xml.includes('<image:loc>https://www.danmercede.online/assets/diagrams/diagram-entry.svg</image:loc>'));
+  assert.ok(xml.includes('<image:caption>The gate sits before the mutation.</image:caption>'));
+  assert.ok(xml.includes('<lastmod>2026-03-13</lastmod>'));
 });
 
 // ---------------------------------------------------------------------------

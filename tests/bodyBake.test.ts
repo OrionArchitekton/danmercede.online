@@ -22,6 +22,7 @@ import {
   escapeHtml,
 } from '../scripts/prerenderBody.ts';
 import { bodyBakePlugin, findJsonLdScripts } from '../scripts/bodyBakePlugin.ts';
+import { EntryType, type Diagram } from '../types.ts';
 
 /** Invoke the plugin's transformIndexHtml handler (object form) against `html`. */
 function runBake(html: string): string {
@@ -69,6 +70,26 @@ test('every entry title appears in the baked body (crawlable text)', () => {
       `baked body missing title for ${entry.slug}: ${entry.title}`,
     );
   }
+});
+
+test('diagram entries render crawlable figure markup', () => {
+  const diagram: Diagram = {
+    id: 'diagram-entry',
+    slug: 'diagram-entry',
+    title: 'Diagram Entry',
+    date: '2026-03-13',
+    timestamp: '08:00 AM PT',
+    type: EntryType.Diagram,
+    tags: ['governance'],
+    src: '/assets/diagrams/diagram-entry.svg',
+    alt: 'A diagram.',
+    caption: 'The gate sits before the mutation.',
+  };
+  const html = renderPrerenderBody([diagram]);
+  assert.ok(html.includes('<figure><img'));
+  assert.ok(html.includes('src="/assets/diagrams/diagram-entry.svg"'));
+  assert.ok(html.includes('alt="A diagram."'));
+  assert.ok(html.includes('<figcaption>The gate sits before the mutation.</figcaption>'));
 });
 
 test('escapeHtml neutralizes angle brackets, quotes, and ampersands', () => {

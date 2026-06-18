@@ -44,7 +44,8 @@ export type TypeSlug =
   | "experiment-log"
   | "status-update"
   | "thought-snippet"
-  | "working-note";
+  | "working-note"
+  | "diagram";
 
 type ContextSlug =
   | "governance"
@@ -72,6 +73,7 @@ const TYPE_SLUG_TO_ENUM: Record<TypeSlug, string> = {
   'status-update': 'EntryType.StatusUpdate',
   'thought-snippet': 'EntryType.ThoughtSnippet',
   'working-note': 'EntryType.WorkingNote',
+  'diagram': 'EntryType.Diagram',
 };
 
 const TYPE_SLUG_TO_DISPLAY: Record<TypeSlug, string> = {
@@ -80,6 +82,7 @@ const TYPE_SLUG_TO_DISPLAY: Record<TypeSlug, string> = {
   'status-update': 'Status Update',
   'thought-snippet': 'Thought Snippet',
   'working-note': 'Working Note',
+  'diagram': 'Diagram',
 };
 
 const CONTEXT_SLUG_TO_LABEL: Record<ContextSlug, ContextLabel> = {
@@ -99,6 +102,18 @@ const FORBIDDEN_PATTERNS = [
   /\b(limited time|act now|don't miss)\b/i,
 ];
 
+const BRAND_TOKEN_PATTERNS = [
+  /\bcosmocrat\b/i,
+  /\boia\b/i,
+  /\boac\b/i,
+  /\boam\b/i,
+  /\boiac\b/i,
+  /\borion[- ]?intelligence\b/i,
+  /\breplyby\b/i,
+  /\bauxo\b/i,
+  /\bats\b/i,
+];
+
 // ============================================================================
 // Substrate Mapping Tables
 // ============================================================================
@@ -107,6 +122,7 @@ const FORBIDDEN_PATTERNS = [
 // Known follow-up: introduce EssayLong UI if substrate long-form volume warrants it (revisit when 3+ canonicals exist).
 const SUBSTRATE_TYPE_TO_CONSUMER: Record<string, TypeSlug> = {
   'essay-long': 'short-essay',
+  'diagram': 'diagram',
 };
 
 // Substrate `layer` → consumer Tag[] (max 3, matches compiler enforcement).
@@ -146,7 +162,14 @@ function validateType(type: unknown, file: string): TypeSlug | null {
   }
   // Normalize: accept underscores and convert to hyphens (e.g., short_essay → short-essay)
   const normalized = type.replace(/_/g, '-') as TypeSlug;
-  const valid: TypeSlug[] = ['short-essay', 'experiment-log', 'status-update', 'thought-snippet', 'working-note'];
+  const valid: TypeSlug[] = [
+    'short-essay',
+    'experiment-log',
+    'status-update',
+    'thought-snippet',
+    'working-note',
+    'diagram',
+  ];
   return valid.includes(normalized) ? normalized : null;
 }
 
@@ -263,6 +286,23 @@ function validateForbiddenContent(content: string, file: string): string[] {
   return violations;
 }
 
+function validateNoBrandTokens(fields: Record<string, unknown>, file: string): string[] {
+  const violations: string[] = [];
+  for (const [field, value] of Object.entries(fields)) {
+    if (typeof value !== 'string') continue;
+    for (const pattern of BRAND_TOKEN_PATTERNS) {
+      if (pattern.test(value)) {
+        violations.push(`${file}: forbidden brand token in ${field}: ${pattern.source}`);
+      }
+    }
+  }
+  return violations;
+}
+
+function formatBrandTokenViolations(violations: string[]): string {
+  return violations.map(v => `   ${v}`).join('\n');
+}
+
 function validateRequiredFields(
   type: TypeSlug,
   data: Record<string, unknown>,
@@ -276,6 +316,7 @@ function validateRequiredFields(
     'status-update': ['status', 'whatChanged', 'whatBroke', 'nextStep'],
     'thought-snippet': ['content'],
     'working-note': ['content', 'openQuestion'],
+    'diagram': ['src', 'alt', 'caption'],
   };
 
   const required = requiredByType[type] || [];
@@ -452,6 +493,11 @@ export function deriveTagsFromLayer(layer: unknown): Tag[] {
   return tags ? [...tags] : [...DEFAULT_SUBSTRATE_TAGS];
 }
 
+export function deriveTagsFromSubstrate(layer: unknown, tags: unknown): Tag[] {
+  const direct = validateTags(tags, 'substrate canonical');
+  return direct ?? deriveTagsFromLayer(layer);
+}
+
 /**
  * Derive consumer context from a substrate `layer`. Returns undefined if unmapped
  * (the consumer treats `context` as optional).
@@ -459,6 +505,55 @@ export function deriveTagsFromLayer(layer: unknown): Tag[] {
 export function deriveContextFromLayer(layer: unknown): ContextLabel | undefined {
   if (typeof layer !== 'string') return undefined;
   return LAYER_TO_CONTEXT[layer];
+}
+
+function isSafeRelativePath(value: string): boolean {
+  if (path.isAbsolute(value)) return false;
+  return !value.split(/[\\/]+/).some(part => part === '..' || part === '');
+}
+
+function copyDiagramAsset(
+  assetPath: unknown,
+  slug: string,
+  substratePath: string | undefined,
+  projectRoot: string,
+  file: string
+): string | null {
+  if (typeof assetPath !== 'string' || !assetPath.trim()) {
+    console.log(`   ⚠️  substrate diagram skipped (missing asset_path): ${file}`);
+    return null;
+  }
+  if (!substratePath) {
+    console.log(`   ⚠️  substrate diagram skipped (no substrate root for asset copy): ${file}`);
+    return null;
+  }
+  if (!isSafeRelativePath(assetPath)) {
+    console.log(`   ⚠️  substrate diagram skipped (unsafe asset_path "${assetPath}"): ${file}`);
+    return null;
+  }
+
+  const ext = path.extname(assetPath).toLowerCase();
+  if (!['.jpg', '.jpeg', '.png', '.webp', '.svg'].includes(ext)) {
+    console.log(`   ⚠️  substrate diagram skipped (unsupported asset extension "${ext}"): ${file}`);
+    return null;
+  }
+
+  const substrateRoot = path.resolve(substratePath);
+  const source = path.resolve(substrateRoot, assetPath);
+  if (!source.startsWith(substrateRoot + path.sep)) {
+    console.log(`   ⚠️  substrate diagram skipped (asset_path escapes substrate root): ${file}`);
+    return null;
+  }
+  if (!fs.existsSync(source) || !fs.statSync(source).isFile()) {
+    console.log(`   ⚠️  substrate diagram skipped (asset missing at ${assetPath}): ${file}`);
+    return null;
+  }
+
+  const publicDir = path.join(projectRoot, 'public', 'assets', 'diagrams');
+  fs.mkdirSync(publicDir, { recursive: true });
+  const publicName = `${slug}${ext}`;
+  fs.copyFileSync(source, path.join(publicDir, publicName));
+  return `/assets/diagrams/${publicName}`;
 }
 
 /**
@@ -470,7 +565,9 @@ export function deriveContextFromLayer(layer: unknown): ContextLabel | undefined
 export function mapSubstrateToEntry(
   data: Record<string, unknown>,
   body: string,
-  filename: string
+  filename: string,
+  substratePath?: string,
+  projectRoot: string = path.resolve(__dirname, '..')
 ): ParsedEntry | null {
   // Surface-targets filter
   const surfaceTargets = data['surface_targets'];
@@ -491,18 +588,12 @@ export function mapSubstrateToEntry(
   const title = data['title'];
   const dateRaw = data['date'];
   const typeRaw = data['type'];
-  const claim = data['claim'];
-  const implication = data['implication'];
   const missing: string[] = [];
   if (typeof slug !== 'string' || !slug.trim()) missing.push('slug');
   if (typeof title !== 'string' || !title.trim()) missing.push('title');
   // gray-matter parses unquoted YAML dates as Date objects; allow both Date and non-empty string.
   if (!(dateRaw instanceof Date) && (typeof dateRaw !== 'string' || !dateRaw.trim())) missing.push('date');
   if (typeof typeRaw !== 'string' || !typeRaw.trim()) missing.push('type');
-  if (typeof claim !== 'string' || !claim.trim()) missing.push('claim');
-  // `implication` is OPTIONAL per the consumer contract (validateRequiredFields treats
-  // it as optional for short-essay — only 'claim' is required). Substrate canonicals
-  // missing implication should still be admitted, not silent-dropped.
   if (missing.length > 0) {
     console.log(`   ⚠️  substrate canonical skipped (missing required: ${missing.join(', ')}): ${filename}`);
     return null;
@@ -515,6 +606,9 @@ export function mapSubstrateToEntry(
     return null;
   }
 
+  const slugValue = slug as string;
+  const titleValue = title as string;
+
   // Date validation (substrate always emits full ISO 8601 with timezone)
   const dateStr = validateDate(dateRaw, filename);
   if (!dateStr) {
@@ -523,8 +617,66 @@ export function mapSubstrateToEntry(
   }
 
   const layer = data['layer'];
-  const tags = deriveTagsFromLayer(layer);
+  const tags = deriveTagsFromSubstrate(layer, data['tags']);
   const context = deriveContextFromLayer(layer);
+
+  if (consumerType === 'diagram') {
+    const altText = data['alt_text'];
+    const caption = data['caption'];
+    const diagramMissing: string[] = [];
+    if (typeof altText !== 'string' || !altText.trim()) diagramMissing.push('alt_text');
+    if (typeof caption !== 'string' || !caption.trim()) diagramMissing.push('caption');
+    if (diagramMissing.length > 0) {
+      console.log(`   ⚠️  substrate diagram skipped (missing required: ${diagramMissing.join(', ')}): ${filename}`);
+      return null;
+    }
+
+    const src = copyDiagramAsset(data['asset_path'], slugValue, substratePath, projectRoot, filename);
+    if (!src) return null;
+
+    const brandViolations = validateNoBrandTokens(
+      {
+        slug: slugValue,
+        src,
+        alt: altText,
+        caption,
+        asset_path: data['asset_path'],
+        filename,
+      },
+      filename
+    );
+    if (brandViolations.length > 0) {
+      throw new Error(
+        `Forbidden brand token detected in substrate diagram metadata:\n${formatBrandTokenViolations(brandViolations)}`
+      );
+    }
+
+    return {
+      slug: slugValue,
+      title: titleValue,
+      date: formatDate(dateStr),
+      timestamp: formatTimestamp(dateStr),
+      type: consumerType,
+      typeEnum: TYPE_SLUG_TO_ENUM[consumerType],
+      context,
+      tags,
+      fields: {
+        src,
+        alt: altText as string,
+        caption: caption as string,
+        content: body,
+      },
+      body,
+      source: 'substrate',
+    };
+  }
+
+  const claim = data['claim'];
+  const implication = data['implication'];
+  if (typeof claim !== 'string' || !claim.trim()) {
+    console.log(`   ⚠️  substrate canonical skipped (missing required: claim): ${filename}`);
+    return null;
+  }
 
   const fields: Record<string, unknown> = {
     claim: claim as string,
@@ -536,8 +688,8 @@ export function mapSubstrateToEntry(
   }
 
   return {
-    slug: slug as string,
-    title: title as string,
+    slug: slugValue,
+    title: titleValue,
     date: formatDate(dateStr),
     timestamp: formatTimestamp(dateStr),
     type: consumerType,
@@ -585,7 +737,7 @@ export function readSubstrateCanonicals(substratePath: string): ParsedEntry[] {
 
     const data = parsed.data as Record<string, unknown>;
     const body = parsed.content.trim();
-    const entry = mapSubstrateToEntry(data, body, file);
+    const entry = mapSubstrateToEntry(data, body, file, substratePath);
     if (entry) {
       entries.push(entry);
     }
@@ -664,7 +816,7 @@ export function readInboxEntries(
 
     const type = validateType(data.type, file);
     if (!type) {
-      allErrors.push({ file, field: 'type', message: `Invalid type: ${data.type}. Must be: short-essay, experiment-log, status-update, thought-snippet, working-note` });
+      allErrors.push({ file, field: 'type', message: `Invalid type: ${data.type}. Must be: short-essay, experiment-log, status-update, thought-snippet, working-note, diagram` });
       continue;
     }
 
@@ -707,6 +859,25 @@ export function readInboxEntries(
       continue;
     }
 
+    if (type === 'diagram') {
+      const brandViolations = validateNoBrandTokens(
+        {
+          slug: data.slug,
+          src: data.src,
+          alt: data.alt,
+          caption: data.caption,
+          filename: file,
+        },
+        file
+      );
+      if (brandViolations.length > 0) {
+        for (const v of brandViolations) {
+          allErrors.push({ file, field: 'brand', message: v });
+        }
+        continue;
+      }
+    }
+
     const fields: Record<string, unknown> = {};
     const baseFields = ['slug', 'title', 'date', 'type', 'context', 'tags'];
 
@@ -716,7 +887,7 @@ export function readInboxEntries(
       }
     }
 
-    if (body && (type === 'short-essay' || type === 'thought-snippet' || type === 'working-note')) {
+    if (body && (type === 'short-essay' || type === 'thought-snippet' || type === 'working-note' || type === 'diagram')) {
       if (!fields['content'] && body) {
         fields['content'] = body;
       }
@@ -880,6 +1051,21 @@ export const ENTRIES: LogEntry[] = [];
 
 const SITE_ORIGIN = 'https://www.danmercede.online';
 
+function absoluteSiteUrl(src: string): string {
+  if (/^https?:\/\//i.test(src)) return src;
+  if (src.startsWith('/')) return `${SITE_ORIGIN}${src}`;
+  return `${SITE_ORIGIN}/${src}`;
+}
+
+function escapeXml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
 /**
  * Generate sitemap.xml from compiled entries. One <url> per entry as a
  * `/#<slug>` fragment (entries are anchor-addressable on the single-page feed,
@@ -888,7 +1074,7 @@ const SITE_ORIGIN = 'https://www.danmercede.online';
  * practice is to track REAL change). Root <lastmod> = newest entry date, or
  * today only when there are no entries.
  */
-function generateSitemap(entries: ParsedEntry[]): string {
+export function generateSitemap(entries: ParsedEntry[]): string {
   // Newest content date (entries carry YYYY-MM-DD `date`); fall back to today in
   // PT (America/Los_Angeles) to match the rest of this file's TZ discipline —
   // UTC slice could roll to tomorrow on a late-evening PT build.
@@ -897,7 +1083,7 @@ function generateSitemap(entries: ParsedEntry[]): string {
 
   const lines: string[] = [];
   lines.push('<?xml version="1.0" encoding="UTF-8"?>');
-  lines.push('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
+  lines.push('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">');
   // Root.
   lines.push('  <url>');
   lines.push(`    <loc>${SITE_ORIGIN}/</loc>`);
@@ -909,8 +1095,18 @@ function generateSitemap(entries: ParsedEntry[]): string {
   for (const entry of entries) {
     const lastmod = /^\d{4}-\d{2}-\d{2}$/.test(entry.date) ? entry.date : newest;
     lines.push('  <url>');
-    lines.push(`    <loc>${SITE_ORIGIN}/#${entry.slug}</loc>`);
+    lines.push(`    <loc>${SITE_ORIGIN}/#${escapeXml(entry.slug)}</loc>`);
     lines.push(`    <lastmod>${lastmod}</lastmod>`);
+    if (entry.type === 'diagram') {
+      const src = entry.fields.src;
+      const caption = entry.fields.caption;
+      if (typeof src === 'string' && typeof caption === 'string') {
+        lines.push('    <image:image>');
+        lines.push(`      <image:loc>${escapeXml(absoluteSiteUrl(src))}</image:loc>`);
+        lines.push(`      <image:caption>${escapeXml(caption)}</image:caption>`);
+        lines.push('    </image:image>');
+      }
+    }
     lines.push('    <changefreq>monthly</changefreq>');
     lines.push('    <priority>0.7</priority>');
     lines.push('  </url>');
