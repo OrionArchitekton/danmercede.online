@@ -14,6 +14,12 @@
 import type { Plugin } from 'vite';
 import { renderPrerenderBody, renderFeedJsonLd } from './prerenderBody.ts';
 
+const JSON_LD_SCRIPT_PATTERN = String.raw`<script\b(?=[^>]*\btype\s*=\s*["']application\/ld\+json["'])[^>]*>[\s\S]*?<\/script>`;
+
+export function findJsonLdScripts(html: string): string[] {
+  return html.match(new RegExp(JSON_LD_SCRIPT_PATTERN, 'gi')) || [];
+}
+
 export function bodyBakePlugin(): Plugin {
   return {
     name: 'danmercede-body-bake',
@@ -40,17 +46,16 @@ export function bodyBakePlugin(): Plugin {
         // Replace the static WebPage-only JSON-LD with the build-time feed graph
         // (CollectionPage + Blog + BlogPosting[] from the same entry source, W19).
         // Replacer FUNCTION again so `$` in serialized data stays literal.
-        const ldRe =
-          /<script\b(?=[^>]*\btype\s*=\s*["']application\/ld\+json["'])[^>]*>[\s\S]*?<\/script>/i;
-        if (!ldRe.test(out)) {
+        const ldScripts = findJsonLdScripts(out);
+        if (ldScripts.length !== 1) {
           throw new Error(
-            'bodyBakePlugin: could not find the JSON-LD <script> block to replace; ' +
+            `bodyBakePlugin: expected exactly one JSON-LD <script> block to replace; found ${ldScripts.length}. ` +
               'index.html structure changed.',
           );
         }
         const ld = renderFeedJsonLd();
         out = out.replace(
-          ldRe,
+          new RegExp(JSON_LD_SCRIPT_PATTERN, 'i'),
           () => `<script type="application/ld+json">\n${ld}\n  </script>`,
         );
         return out;

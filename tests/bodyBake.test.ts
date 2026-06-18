@@ -21,7 +21,7 @@ import {
   getOrderedEntries,
   escapeHtml,
 } from '../scripts/prerenderBody.ts';
-import { bodyBakePlugin } from '../scripts/bodyBakePlugin.ts';
+import { bodyBakePlugin, findJsonLdScripts } from '../scripts/bodyBakePlugin.ts';
 
 /** Invoke the plugin's transformIndexHtml handler (object form) against `html`. */
 function runBake(html: string): string {
@@ -93,10 +93,7 @@ test('bodyBakePlugin replaces JSON-LD script contents and leaves one script', ()
   const out = runBake(
     '<html><head><script data-feed="placeholder" type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Dummy"}]}</script></head><body><div id="root"></div></body></html>',
   );
-  const scripts =
-    out.match(
-      /<script\b(?=[^>]*\btype\s*=\s*["']application\/ld\+json["'])[^>]*>[\s\S]*?<\/script>/gi,
-    ) || [];
+  const scripts = findJsonLdScripts(out);
   assert.equal(scripts.length, 1, 'expected one JSON-LD script after bake');
   assert.ok(!out.includes('"@type":"Dummy"'), 'placeholder JSON-LD was not replaced');
   assert.ok(out.includes(renderFeedJsonLd().trim()), 'baked feed JSON-LD not injected');
@@ -112,8 +109,19 @@ test('bodyBakePlugin accepts JSON-LD type attributes with different quoting/orde
 test('bodyBakePlugin throws when the JSON-LD script is absent', () => {
   assert.throws(
     () => runBake('<html><head></head><body><div id="root"></div></body></html>'),
-    /JSON-LD/,
+    /expected exactly one JSON-LD .* found 0/,
     'plugin must fail loudly if the JSON-LD script is missing',
+  );
+});
+
+test('bodyBakePlugin throws when multiple JSON-LD scripts are present', () => {
+  assert.throws(
+    () =>
+      runBake(
+        '<html><head><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage"}</script><script data-feed="placeholder" type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Dummy"}]}</script></head><body><div id="root"></div></body></html>',
+      ),
+    /expected exactly one JSON-LD .* found 2/,
+    'plugin must fail loudly if index.html has duplicate JSON-LD scripts',
   );
 });
 
