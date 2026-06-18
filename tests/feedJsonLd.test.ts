@@ -17,6 +17,24 @@ test('serialized JSON-LD is valid and escapes < for safe embedding', () => {
   assert.ok(!raw.includes('</script'), 'must not contain a raw </script sequence');
 });
 
+test('entry titles containing </script are escaped and remain parseable', () => {
+  const base = entries[0];
+  const rawWithScriptTitle = renderFeedJsonLd([
+    {
+      ...base,
+      slug: `${base.slug}-script-escape-test`,
+      title: 'Synthetic title with </script in text',
+    },
+  ]);
+
+  assert.ok(!rawWithScriptTitle.includes('</script'), 'must not contain a raw </script sequence');
+  assert.ok(
+    rawWithScriptTitle.includes('\\u003c/script'),
+    'must contain the escaped \\u003c/script sequence',
+  );
+  assert.doesNotThrow(() => JSON.parse(rawWithScriptTitle), 'escaped JSON-LD must still parse');
+});
+
 test('webpage node is a CollectionPage', () => {
   const webpage = graph['@graph'].find((n) => String(n['@id']).endsWith('#webpage'));
   assert.ok(webpage, 'webpage node present');
@@ -35,6 +53,9 @@ test('Blog node lists one BlogPosting per entry, backlinking the hub Person', ()
   for (const post of blog.blogPost) {
     assert.equal(post['@type'], 'BlogPosting');
     assert.ok(post.headline && post.datePublished && post.url, 'BlogPosting has headline/date/url');
+    assert.equal(post.author['@id'], 'https://www.danmercede.com/#person');
+    assert.equal(post.publisher['@id'], 'https://www.danmercede.com/#person');
+    assert.equal(post.mainEntityOfPage['@id'], 'https://www.danmercede.online/#webpage');
   }
   // Sync check: first BlogPosting matches the newest ordered entry.
   assert.equal(blog.blogPost[0].headline, entries[0].title);

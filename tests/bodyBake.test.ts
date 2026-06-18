@@ -17,10 +17,11 @@ import { fileURLToPath } from 'url';
 
 import {
   renderPrerenderBody,
+  renderFeedJsonLd,
   getOrderedEntries,
   escapeHtml,
 } from '../scripts/prerenderBody.ts';
-import { bodyBakePlugin } from '../scripts/bodyBakePlugin.ts';
+import { bodyBakePlugin, findJsonLdScripts } from '../scripts/bodyBakePlugin.ts';
 
 /** Invoke the plugin's transformIndexHtml handler (object form) against `html`. */
 function runBake(html: string): string {
@@ -78,12 +79,50 @@ test('escapeHtml neutralizes angle brackets, quotes, and ampersands', () => {
 });
 
 test('bodyBakePlugin injects the prerender block inside #root (W1)', () => {
-  const out = runBake('<html><head><script type="application/ld+json">{"@context":"https://schema.org","@graph":[]}</script></head><body><div id="root"></div></body></html>');
+  const out = runBake(
+    '<html><head><script type="application/ld+json">{"@context":"https://schema.org","@graph":[]}</script></head><body><div id="root"></div></body></html>',
+  );
   // Baked content lands between the root open tag and its close.
   const m = out.match(/<div id="root">([\s\S]*)<\/div>/);
   assert.ok(m, 'root div not found after bake');
   assert.ok(m![1].includes('data-prerender="true"'), 'prerender block not injected into #root');
   assert.equal((m![1].match(/<h1[ >]/g) || []).length, 1, 'baked #root must carry one <h1>');
+});
+
+test('bodyBakePlugin replaces JSON-LD script contents and leaves one script', () => {
+  const out = runBake(
+    '<html><head><script data-feed="placeholder" type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Dummy"}]}</script></head><body><div id="root"></div></body></html>',
+  );
+  const scripts = findJsonLdScripts(out);
+  assert.equal(scripts.length, 1, 'expected one JSON-LD script after bake');
+  assert.ok(!out.includes('"@type":"Dummy"'), 'placeholder JSON-LD was not replaced');
+  assert.ok(out.includes(renderFeedJsonLd().trim()), 'baked feed JSON-LD not injected');
+});
+
+test('bodyBakePlugin accepts JSON-LD type attributes with different quoting/order', () => {
+  const out = runBake(
+    '<html><head><script data-feed="placeholder" type=\'application/ld+json\'>{"@context":"https://schema.org","@graph":[]}</script></head><body><div id="root"></div></body></html>',
+  );
+  assert.ok(out.includes(renderFeedJsonLd().trim()), 'single-quoted JSON-LD type was not replaced');
+});
+
+test('bodyBakePlugin throws when the JSON-LD script is absent', () => {
+  assert.throws(
+    () => runBake('<html><head></head><body><div id="root"></div></body></html>'),
+    /expected exactly one JSON-LD .* found 0/,
+    'plugin must fail loudly if the JSON-LD script is missing',
+  );
+});
+
+test('bodyBakePlugin throws when multiple JSON-LD scripts are present', () => {
+  assert.throws(
+    () =>
+      runBake(
+        '<html><head><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage"}</script><script data-feed="placeholder" type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Dummy"}]}</script></head><body><div id="root"></div></body></html>',
+      ),
+    /expected exactly one JSON-LD .* found 2/,
+    'plugin must fail loudly if index.html has duplicate JSON-LD scripts',
+  );
 });
 
 test('bodyBakePlugin throws when the empty root div is absent (error path)', () => {
@@ -99,9 +138,13 @@ test('bodyBakePlugin does not corrupt content containing $ replacement patterns'
   // replacer-function form must preserve it verbatim. Drive it through real
   // injection: the prerender already contains entry text; assert the baked
   // markup is byte-preserved by checking no stray `$&`/`$1` artifacts appear.
-  const out = runBake('<html><head><script type="application/ld+json">{"@context":"https://schema.org","@graph":[]}</script></head><body><div id="root"></div></body></html>');
-  assert.ok(!out.includes('$&') && !/\$\d/.test(out.replace(/font-feature|\$\{/g, '')),
-    'replacement-pattern artifacts leaked into baked HTML');
+  const out = runBake(
+    '<html><head><script type="application/ld+json">{"@context":"https://schema.org","@graph":[]}</script></head><body><div id="root"></div></body></html>',
+  );
+  assert.ok(
+    !out.includes('$&') && !/\$\d/.test(out.replace(/font-feature|\$\{/g, '')),
+    'replacement-pattern artifacts leaked into baked HTML',
+  );
 });
 
 test('committed sitemap.xml covers every canonical post slug with a fragment URL (W9)', () => {
