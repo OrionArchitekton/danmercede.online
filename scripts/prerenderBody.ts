@@ -109,6 +109,11 @@ function entryBodyHtml(entry: LogEntry): string {
         paragraphs(entry.content) +
         `<p>Open question: ${escapeHtml(entry.openQuestion)}</p>`
       );
+    case EntryType.Diagram:
+      return (
+        `<figure><img src="${escapeHtml(entry.src)}" alt="${escapeHtml(entry.alt)}" loading="lazy" width="1200" height="675" />` +
+        `<figcaption>${escapeHtml(entry.caption)}</figcaption></figure>`
+      );
     default:
       return '';
   }
@@ -152,6 +157,12 @@ export function renderPrerenderBody(entries: LogEntry[] = getOrderedEntries()): 
 const SITE = 'https://www.danmercede.online';
 const PERSON = 'https://www.danmercede.com/#person';
 
+function absoluteUrl(src: string): string {
+  if (/^https?:\/\//i.test(src)) return src;
+  if (src.startsWith('/')) return `${SITE}${src}`;
+  return `${SITE}/${src}`;
+}
+
 /**
  * The feed's JSON-LD @graph: a CollectionPage whose mainEntity is a Blog, with one
  * BlogPosting per entry (same source as the bake, so the structured data can't
@@ -161,16 +172,30 @@ const PERSON = 'https://www.danmercede.com/#person';
  * of the embedding <script> tag.
  */
 export function renderFeedJsonLd(entries: LogEntry[] = getOrderedEntries()): string {
-  const blogPost = entries.map((e) => ({
-    '@type': 'BlogPosting',
-    '@id': `${SITE}/#${e.slug}`,
-    headline: e.title,
-    datePublished: e.date,
-    url: `${SITE}/#${e.slug}`,
-    author: { '@id': PERSON },
-    publisher: { '@id': PERSON },
-    mainEntityOfPage: { '@id': `${SITE}/#webpage` },
-  }));
+  const blogPost = entries.map((e) => {
+    const post: Record<string, unknown> = {
+      '@type': 'BlogPosting',
+      '@id': `${SITE}/#${e.slug}`,
+      headline: e.title,
+      datePublished: e.date,
+      url: `${SITE}/#${e.slug}`,
+      author: { '@id': PERSON },
+      publisher: { '@id': PERSON },
+      mainEntityOfPage: { '@id': `${SITE}/#webpage` },
+    };
+
+    if (e.type === EntryType.Diagram) {
+      const url = absoluteUrl(e.src);
+      post.image = {
+        '@type': 'ImageObject',
+        url,
+        contentUrl: url,
+        caption: e.caption,
+      };
+    }
+
+    return post;
+  });
 
   const graph = {
     '@context': 'https://schema.org',

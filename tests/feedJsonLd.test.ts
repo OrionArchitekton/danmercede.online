@@ -6,6 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { renderFeedJsonLd, getOrderedEntries } from '../scripts/prerenderBody.ts';
+import { EntryType, type Diagram } from '../types.ts';
 
 const entries = getOrderedEntries();
 const raw = renderFeedJsonLd();
@@ -60,4 +61,28 @@ test('Blog node lists one BlogPosting per entry, backlinking the hub Person', ()
   // Sync check: first BlogPosting matches the newest ordered entry.
   assert.equal(blog.blogPost[0].headline, entries[0].title);
   assert.equal(blog.blogPost[0].url, `https://www.danmercede.online/#${entries[0].slug}`);
+});
+
+test('diagram BlogPosting carries ImageObject without minting a local Person', () => {
+  const diagram: Diagram = {
+    id: 'diagram-entry',
+    slug: 'diagram-entry',
+    title: 'Diagram Entry',
+    date: '2026-03-13',
+    timestamp: '08:00 AM PT',
+    type: EntryType.Diagram,
+    tags: ['governance'],
+    src: '/assets/diagrams/diagram-entry.svg',
+    alt: 'A diagram.',
+    caption: 'The gate sits before the mutation.',
+  };
+  const payload = JSON.parse(renderFeedJsonLd([diagram])) as { '@graph': any[] };
+  const blog = payload['@graph'].find((n) => n['@type'] === 'Blog');
+  const post = blog.blogPost[0];
+  assert.equal(post.author['@id'], 'https://www.danmercede.com/#person');
+  assert.equal(post.publisher['@id'], 'https://www.danmercede.com/#person');
+  assert.equal(post.image['@type'], 'ImageObject');
+  assert.equal(post.image.url, 'https://www.danmercede.online/assets/diagrams/diagram-entry.svg');
+  assert.equal(post.image.contentUrl, post.image.url);
+  assert.equal(post.image.caption, 'The gate sits before the mutation.');
 });

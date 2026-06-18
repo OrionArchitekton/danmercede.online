@@ -109,6 +109,24 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, onTagClick }) => {
              </div>
           </div>
         );
+
+      case EntryType.Diagram:
+        return (
+          <figure className="space-y-3">
+            <img
+              src={entry.src}
+              alt={entry.alt}
+              loading="lazy"
+              decoding="async"
+              width={1200}
+              height={675}
+              className="w-full h-auto border border-gray-200 bg-white"
+            />
+            <figcaption className="text-sm text-gray-600 leading-relaxed">
+              {entry.caption}
+            </figcaption>
+          </figure>
+        );
     }
   };
 
@@ -119,6 +137,7 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, onTagClick }) => {
           case EntryType.ShortEssay: return 'text-gray-900';
           case EntryType.ThoughtSnippet: return 'text-purple-600';
           case EntryType.ExperimentLog: return 'text-amber-600';
+          case EntryType.Diagram: return 'text-slate-700';
           default: return 'text-gray-500';
       }
   };
