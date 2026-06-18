@@ -114,6 +114,8 @@ const BRAND_TOKEN_PATTERNS = [
   /\bats\b/i,
 ];
 
+const SAFE_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 // ============================================================================
 // Substrate Mapping Tables
 // ============================================================================
@@ -301,6 +303,10 @@ function validateNoBrandTokens(fields: Record<string, unknown>, file: string): s
 
 function formatBrandTokenViolations(violations: string[]): string {
   return violations.map(v => `   ${v}`).join('\n');
+}
+
+function isSafeSlug(value: string): boolean {
+  return SAFE_SLUG_PATTERN.test(value);
 }
 
 function validateRequiredFields(
@@ -507,9 +513,24 @@ export function deriveContextFromLayer(layer: unknown): ContextLabel | undefined
   return LAYER_TO_CONTEXT[layer];
 }
 
+function normalizeSafeRelativePath(value: string): string | null {
+  const normalizedInput = value.trim().replace(/\\/g, '/');
+  if (!normalizedInput || path.posix.isAbsolute(normalizedInput) || /^[A-Za-z]:\//.test(normalizedInput)) {
+    return null;
+  }
+  if (normalizedInput.split('/').some(part => part === '..' || part === '')) {
+    return null;
+  }
+
+  const normalized = path.posix.normalize(normalizedInput);
+  if (normalized === '.' || normalized === '..' || normalized.startsWith('../')) {
+    return null;
+  }
+  return normalized;
+}
+
 function isSafeRelativePath(value: string): boolean {
-  if (path.isAbsolute(value)) return false;
-  return !value.split(/[\\/]+/).some(part => part === '..' || part === '');
+  return normalizeSafeRelativePath(value) !== null;
 }
 
 function copyDiagramAsset(
@@ -531,29 +552,37 @@ function copyDiagramAsset(
     console.log(`   ⚠️  substrate diagram skipped (unsafe asset_path "${assetPath}"): ${file}`);
     return null;
   }
+  const safeAssetPath = normalizeSafeRelativePath(assetPath) as string;
 
-  const ext = path.extname(assetPath).toLowerCase();
+  const ext = path.extname(safeAssetPath).toLowerCase();
   if (!['.jpg', '.jpeg', '.png', '.webp', '.svg'].includes(ext)) {
     console.log(`   ⚠️  substrate diagram skipped (unsupported asset extension "${ext}"): ${file}`);
     return null;
   }
 
   const substrateRoot = path.resolve(substratePath);
-  const source = path.resolve(substrateRoot, assetPath);
-  if (!source.startsWith(substrateRoot + path.sep)) {
+  const source = path.resolve(substrateRoot, safeAssetPath);
+  const relativeSource = path.relative(substrateRoot, source);
+  if (relativeSource.startsWith('..') || path.isAbsolute(relativeSource)) {
     console.log(`   ⚠️  substrate diagram skipped (asset_path escapes substrate root): ${file}`);
     return null;
   }
-  if (!fs.existsSync(source) || !fs.statSync(source).isFile()) {
-    console.log(`   ⚠️  substrate diagram skipped (asset missing at ${assetPath}): ${file}`);
+
+  try {
+    if (!fs.existsSync(source) || !fs.statSync(source).isFile()) {
+      console.log(`   ⚠️  substrate diagram skipped (asset missing at ${safeAssetPath}): ${file}`);
+      return null;
+    }
+
+    const publicDir = path.join(projectRoot, 'public', 'assets', 'diagrams');
+    fs.mkdirSync(publicDir, { recursive: true });
+    const publicName = `${slug}${ext}`;
+    fs.copyFileSync(source, path.join(publicDir, publicName));
+    return `/assets/diagrams/${publicName}`;
+  } catch (e) {
+    console.log(`   ⚠️  substrate diagram skipped (failed to copy asset): ${file} (${e})`);
     return null;
   }
-
-  const publicDir = path.join(projectRoot, 'public', 'assets', 'diagrams');
-  fs.mkdirSync(publicDir, { recursive: true });
-  const publicName = `${slug}${ext}`;
-  fs.copyFileSync(source, path.join(publicDir, publicName));
-  return `/assets/diagrams/${publicName}`;
 }
 
 /**
@@ -608,6 +637,10 @@ export function mapSubstrateToEntry(
 
   const slugValue = slug as string;
   const titleValue = title as string;
+  if (!isSafeSlug(slugValue)) {
+    console.log(`   ⚠️  substrate canonical skipped (unsafe slug "${slugValue}"): ${filename}`);
+    return null;
+  }
 
   // Date validation (substrate always emits full ISO 8601 with timezone)
   const dateStr = validateDate(dateRaw, filename);
@@ -637,6 +670,7 @@ export function mapSubstrateToEntry(
     const brandViolations = validateNoBrandTokens(
       {
         slug: slugValue,
+        title: titleValue,
         src,
         alt: altText,
         caption,
@@ -808,6 +842,10 @@ export function readInboxEntries(
       allErrors.push({ file, field: 'slug', message: 'Missing or invalid slug' });
       continue;
     }
+    if (!isSafeSlug(data.slug)) {
+      allErrors.push({ file, field: 'slug', message: `Invalid slug format: ${data.slug}. Must contain only lowercase letters, numbers, and single hyphens.` });
+      continue;
+    }
 
     if (!data.title || typeof data.title !== 'string') {
       allErrors.push({ file, field: 'title', message: 'Missing or invalid title' });
@@ -863,6 +901,7 @@ export function readInboxEntries(
       const brandViolations = validateNoBrandTokens(
         {
           slug: data.slug,
+          title: data.title,
           src: data.src,
           alt: data.alt,
           caption: data.caption,
@@ -1098,8 +1137,8 @@ export function generateSitemap(entries: ParsedEntry[]): string {
     lines.push(`    <loc>${SITE_ORIGIN}/#${escapeXml(entry.slug)}</loc>`);
     lines.push(`    <lastmod>${lastmod}</lastmod>`);
     if (entry.type === 'diagram') {
-      const src = entry.fields.src;
-      const caption = entry.fields.caption;
+      const src = entry.fields['src'];
+      const caption = entry.fields['caption'];
       if (typeof src === 'string' && typeof caption === 'string') {
         lines.push('    <image:image>');
         lines.push(`      <image:loc>${escapeXml(absoluteSiteUrl(src))}</image:loc>`);

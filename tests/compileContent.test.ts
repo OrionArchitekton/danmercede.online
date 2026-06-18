@@ -13,6 +13,7 @@ import { fileURLToPath } from 'url';
 import {
   resolveSubstratePath,
   readSubstrateCanonicals,
+  readInboxEntries,
   mapSubstrateToEntry,
   deriveTagsFromLayer,
   deriveTagsFromSubstrate,
@@ -253,7 +254,24 @@ test('mapSubstrateToEntry maps diagram and copies its asset', () => {
   }
 });
 
-test('mapSubstrateToEntry fails closed on branded diagram metadata', () => {
+test('mapSubstrateToEntry skips unsafe substrate slugs before asset copy', () => {
+  const data = {
+    slug: '../diagram-entry',
+    title: 'Diagram Entry',
+    date: '2026-03-13T08:00:00-07:00',
+    type: 'diagram',
+    surface_targets: ['danmercede.online'],
+    layer: 'authority-gate',
+    alt_text: 'A clean diagram.',
+    caption: 'The gate sits before the mutation.',
+    asset_path: 'publishing/assets/diagram-entry/diagram.svg',
+    status: 'canonical',
+  };
+  const entry = mapSubstrateToEntry(data, 'diagram body', 'diagram-entry.md', '/tmp/substrate-root', '/tmp/project-root');
+  assert.equal(entry, null);
+});
+
+test('mapSubstrateToEntry fails closed on branded diagram title metadata', () => {
   const substrateRoot = mkTempDir('diagram-brand-substrate-');
   const projectRoot = mkTempDir('diagram-brand-project-');
   const assetRel = path.join('publishing', 'assets', 'diagram-entry', 'diagram.svg');
@@ -267,13 +285,13 @@ test('mapSubstrateToEntry fails closed on branded diagram metadata', () => {
         mapSubstrateToEntry(
           {
             slug: 'diagram-entry',
-            title: 'Diagram Entry',
+            title: 'Cosmocrat Diagram Entry',
             date: '2026-03-13T08:00:00-07:00',
             type: 'diagram',
             surface_targets: ['danmercede.online'],
             layer: 'authority-gate',
             alt_text: 'A clean diagram.',
-            caption: 'Cosmocrat-branded control plane.',
+            caption: 'The gate sits before the mutation.',
             asset_path: assetRel,
             status: 'canonical',
           },
@@ -287,6 +305,42 @@ test('mapSubstrateToEntry fails closed on branded diagram metadata', () => {
   } finally {
     fs.rmSync(substrateRoot, { recursive: true, force: true });
     fs.rmSync(projectRoot, { recursive: true, force: true });
+  }
+});
+
+test('readInboxEntries fails closed on unsafe slugs', () => {
+  const inboxDir = mkTempDir('inbox-bad-slug-');
+  try {
+    fs.writeFileSync(
+      path.join(inboxDir, 'bad-slug.md'),
+      `---\nslug: "../bad-slug"\ntitle: "Bad Slug"\ndate: "2026-03-13T08:00:00-07:00"\ntype: "diagram"\ntags: ["governance"]\nsrc: "/assets/diagrams/bad.svg"\nalt: "A clean diagram."\ncaption: "The gate sits before the mutation."\n---\n`,
+    );
+
+    const result = readInboxEntries(inboxDir);
+    assert.deepEqual(result.entries, []);
+    assert.equal(result.errors.length, 1);
+    assert.equal(result.errors[0].field, 'slug');
+    assert.match(result.errors[0].message, /Invalid slug format/);
+  } finally {
+    fs.rmSync(inboxDir, { recursive: true, force: true });
+  }
+});
+
+test('readInboxEntries fails closed on branded diagram titles', () => {
+  const inboxDir = mkTempDir('inbox-brand-title-');
+  try {
+    fs.writeFileSync(
+      path.join(inboxDir, 'brand-title.md'),
+      `---\nslug: "brand-title"\ntitle: "Cosmocrat Diagram"\ndate: "2026-03-13T08:00:00-07:00"\ntype: "diagram"\ntags: ["governance"]\nsrc: "/assets/diagrams/brand-title.svg"\nalt: "A clean diagram."\ncaption: "The gate sits before the mutation."\n---\n`,
+    );
+
+    const result = readInboxEntries(inboxDir);
+    assert.deepEqual(result.entries, []);
+    assert.equal(result.errors.length, 1);
+    assert.equal(result.errors[0].field, 'brand');
+    assert.match(result.errors[0].message, /forbidden brand token in title/);
+  } finally {
+    fs.rmSync(inboxDir, { recursive: true, force: true });
   }
 });
 

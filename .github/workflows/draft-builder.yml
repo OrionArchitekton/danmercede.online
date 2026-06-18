@@ -322,7 +322,9 @@ jobs:
           add-paths: |
             inbox/**
             constants.generated.ts
+            public/assets/diagrams/**
             public/posts.json
+            public/sitemap.xml
           labels: draft
           delete-branch: true
 
@@ -358,7 +360,9 @@ jobs:
           # draft, so any inbox change showing up would be a bug worth surfacing.
           add-paths: |
             constants.generated.ts
+            public/assets/diagrams/**
             public/posts.json
+            public/sitemap.xml
           # Deliberately NOT the `draft` label: github-label-fallback.yml's
           # approve+draft auto-merge contract is scoped to conductor-admitted
           # draft posts, and post-publish verification keys off the draft flow's
