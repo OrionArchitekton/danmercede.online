@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { ENTRIES as LEGACY_ENTRIES, getImageMeta } from './constants';
 import { ENTRIES as GENERATED_ENTRIES } from './constants.generated';
 import { Tag, EntryType } from './types';
@@ -31,6 +31,7 @@ type ViewMode = 'feed' | 'archive' | 'tags';
 const App: React.FC = () => {
     const [activeTag, setActiveTag] = useState<Tag | null>(null);
     const [viewMode, setViewMode] = useState<ViewMode>('feed');
+    const mainRef = useRef<HTMLElement>(null);
 
     // Filter logic
     const filteredEntries = useMemo(() => {
@@ -58,6 +59,7 @@ const App: React.FC = () => {
             {/* Skip link: visually hidden until keyboard-focused, then jumps to main content (a11y parity with the other brand sites). */}
             <a
                 href="#main-content"
+                onClick={() => mainRef.current?.focus()}
                 className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-4 focus:left-4 focus:rounded focus:bg-black focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white focus:no-underline"
             >
                 Skip to main content
@@ -145,7 +147,7 @@ const App: React.FC = () => {
             </nav>
 
             {/* Content Area */}
-            <main id="main-content" tabIndex={-1} className="flex-grow outline-none">
+            <main id="main-content" ref={mainRef} tabIndex={-1} className="flex-grow outline-none">
                 {activeTag && (
                     <div className="mb-12 flex items-center gap-2 bg-black text-white px-3 py-2 text-xs font-mono uppercase w-fit rounded-sm">
                         <span>Filtering by: #{activeTag}</span>

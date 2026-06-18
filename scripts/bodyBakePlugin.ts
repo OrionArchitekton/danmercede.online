@@ -40,7 +40,8 @@ export function bodyBakePlugin(): Plugin {
         // Replace the static WebPage-only JSON-LD with the build-time feed graph
         // (CollectionPage + Blog + BlogPosting[] from the same entry source, W19).
         // Replacer FUNCTION again so `$` in serialized data stays literal.
-        const ldRe = /<script type="application\/ld\+json">[\s\S]*?<\/script>/i;
+        const ldRe =
+          /<script\b(?=[^>]*\btype\s*=\s*["']application\/ld\+json["'])[^>]*>[\s\S]*?<\/script>/i;
         if (!ldRe.test(out)) {
           throw new Error(
             'bodyBakePlugin: could not find the JSON-LD <script> block to replace; ' +
