@@ -37,3 +37,27 @@ jobs:
         run: npm run build
         env:
           VERCEL: "1"
+
+      # Round-2 R9 — assert the BUILT/served DOM body, not just the emitter string.
+      # The bodyBake test (tests/bodyBake.test.ts) asserts the emitter/template; it
+      # would still pass if a build-config change stopped the bake from landing in
+      # the served index.html (the passing-test-masks-prod-bug class — the exact
+      # failure that let an empty served <body> ship green). vite's build.outDir is
+      # the default `dist/` (no override in vite.config.ts), so the baked feed lands
+      # in dist/index.html. Fail closed if the built body lost its <h1> or <p>.
+      - name: Assert built DOM body (round-2 R9)
+        run: |
+          set -euo pipefail
+          BUILT="dist/index.html"
+          if [ ! -f "$BUILT" ]; then
+            echo "R9 FAIL: built file $BUILT not found (build.outDir changed?)" >&2
+            exit 1
+          fi
+          h1=$(grep -o '<h1[ >]' "$BUILT" | wc -l | tr -d ' ')
+          p=$(grep -o '<p[ >]' "$BUILT" | wc -l | tr -d ' ')
+          echo "R9 built-DOM body counts for $BUILT: h1=$h1 p=$p"
+          if [ "$h1" -lt 1 ] || [ "$p" -lt 1 ]; then
+            echo "R9 FAIL: served body is blank — expected h1>=1 and p>=1, got h1=$h1 p=$p" >&2
+            exit 1
+          fi
+          echo "R9 OK: served body carries real crawlable content (h1=$h1 p=$p)"
