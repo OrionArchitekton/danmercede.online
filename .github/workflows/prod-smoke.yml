@@ -1,0 +1,60 @@
+# Round-2 R5 — post-deploy synthetic smoke (creds-free).
+#
+# Catches the "empty body survives CI because CI tests the BUILD not the SERVED
+# output" class: ci.yml asserts the BUILT dist/index.html (round-2 R9), but a
+# deploy/config regression at Vercel could serve an empty or JS-only shell that
+# CI never sees. This curls the LIVE production URL and asserts the served HTML
+# carries real crawlable content + structured data.
+#
+# Mirrors ci.yml's "Assert built DOM body (round-2 R9)" grep idiom (it counts
+# `<h1`/`<p` via grep -o) and ADDS the JSON-LD assertion. The JSON-LD grep is
+# tolerant of attribute order. No secrets — pure curl + grep.
+name: Prod Smoke
+
+on:
+  schedule:
+    # Daily at a repo-unique minute.
+    - cron: '29 13 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Curl live prod and assert served DOM + JSON-LD
+        run: |
+          set -euo pipefail
+          URL="https://danmercede.online"
+          BODY="$(curl -sL "$URL")"
+
+          if [ -z "$BODY" ]; then
+            echo "R5 FAIL: empty response body from $URL" >&2
+            exit 1
+          fi
+
+          # Count served <h1> and <p> the same way ci.yml's R9 step does for the
+          # built file, but against the LIVE served HTML.
+          h1=$(printf '%s' "$BODY" | grep -o '<h1[ >]' | wc -l | tr -d ' ')
+          p=$(printf '%s' "$BODY" | grep -o '<p[ >]' | wc -l | tr -d ' ')
+          # JSON-LD: tolerant of attribute order/quoting around type=application/ld+json.
+          ld=$(printf '%s' "$BODY" | grep -oiE '<script[^>]*type[[:space:]]*=[[:space:]]*["'"'"']application/ld\+json["'"'"']' | wc -l | tr -d ' ')
+
+          echo "R5 served counts for $URL: h1=$h1 p=$p jsonld=$ld"
+
+          if [ "$h1" -lt 1 ]; then
+            echo "R5 FAIL: served body has no <h1> (h1=$h1) — empty/JS-only shell shipped to prod" >&2
+            exit 1
+          fi
+          if [ "$p" -lt 1 ]; then
+            echo "R5 FAIL: served body has no <p> (p=$p) — empty/JS-only shell shipped to prod" >&2
+            exit 1
+          fi
+          if [ "$ld" -lt 1 ]; then
+            echo "R5 FAIL: served body has no <script type=\"application/ld+json\"> block (jsonld=$ld) — structured data lost" >&2
+            exit 1
+          fi
+
+          echo "R5 OK: $URL serves crawlable content (h1=$h1 p=$p jsonld=$ld)"
