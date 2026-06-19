@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-18T20:25:13.205Z",
-  "count": 55,
+  "generated": "2026-06-19T03:02:14.741Z",
+  "count": 35,
   "posts": [
+    {
+      "slug": "2026-06-18-budget-your-mcp-tool-surface",
+      "title": "Budget Your MCP Tool Surface",
+      "type": "thought-snippet",
+      "date": "2026-06-18"
+    },
     {
       "slug": "2026-06-18-verify-bot-suggestions",
       "title": "Verify Bot Suggestions",
@@ -18,12 +24,6 @@
       "slug": "2026-06-16-merge-authority-gate-shadow-first",
       "title": "Merge-Authority Gate, Shadow-First",
       "type": "status-update",
-      "date": "2026-06-16"
-    },
-    {
-      "slug": "2026-06-16-fail-closed-merge-admission",
-      "title": "Fail-Closed Merge Admission",
-      "type": "diagram",
       "date": "2026-06-16"
     },
     {
@@ -69,28 +69,10 @@
       "date": "2026-04-28"
     },
     {
-      "slug": "2026-04-24-the-missing-execution-boundary",
-      "title": "The Missing Execution Boundary",
-      "type": "diagram",
-      "date": "2026-04-24"
-    },
-    {
       "slug": "2026-04-22-the-gates-first-adversary-is-its-own-writer",
       "title": "The Gate's First Adversary Is Its Own Writer",
       "type": "working-note",
       "date": "2026-04-22"
-    },
-    {
-      "slug": "2026-04-21-the-map-is-not-the-territory",
-      "title": "The Map Is Not the Territory",
-      "type": "diagram",
-      "date": "2026-04-21"
-    },
-    {
-      "slug": "2026-04-17-translating-reasonable-care-into-code",
-      "title": "Translating Reasonable Care Into Code",
-      "type": "diagram",
-      "date": "2026-04-17"
     },
     {
       "slug": "2026-04-14-secret-spill-redaction-moved-to-the-boundary",
@@ -99,34 +81,10 @@
       "date": "2026-04-14"
     },
     {
-      "slug": "2026-04-14-the-enterprise-ai-market-divide",
-      "title": "The Enterprise AI Market Divide",
-      "type": "diagram",
-      "date": "2026-04-14"
-    },
-    {
-      "slug": "2026-04-10-the-fallacy-of-monitoring",
-      "title": "The Fallacy of Monitoring",
-      "type": "diagram",
-      "date": "2026-04-10"
-    },
-    {
       "slug": "2026-04-08-proof-pack-without-adding-capability",
       "title": "Proof Pack Without Adding Capability",
       "type": "experiment-log",
       "date": "2026-04-08"
-    },
-    {
-      "slug": "2026-04-07-the-equation-of-liability",
-      "title": "The Equation of Liability",
-      "type": "diagram",
-      "date": "2026-04-07"
-    },
-    {
-      "slug": "2026-04-03-governance-is-not-hope",
-      "title": "Governance Is Not Hope",
-      "type": "diagram",
-      "date": "2026-04-03"
     },
     {
       "slug": "2026-04-01-atlas-memory-legacy-fallback-deleted",
@@ -135,34 +93,10 @@
       "date": "2026-04-01"
     },
     {
-      "slug": "2026-03-31-the-physics-of-ai-isolation",
-      "title": "The Physics of AI Isolation",
-      "type": "diagram",
-      "date": "2026-03-31"
-    },
-    {
-      "slug": "2026-03-27-from-policy-to-runtime-proof",
-      "title": "From Policy to Runtime Proof",
-      "type": "diagram",
-      "date": "2026-03-27"
-    },
-    {
       "slug": "2026-03-24-ai-regulation-is-quietly-pushing-the",
       "title": "AI Regulation and Runtime Governance: Context Not Available",
       "type": "short-essay",
       "date": "2026-03-24"
-    },
-    {
-      "slug": "2026-03-24-monitoring-vs-enforcement-architecture",
-      "title": "Monitoring vs Enforcement Architecture",
-      "type": "diagram",
-      "date": "2026-03-24"
-    },
-    {
-      "slug": "2026-03-20-governance-converts-risk-into-economics",
-      "title": "Governance Converts Risk Into Economics",
-      "type": "diagram",
-      "date": "2026-03-20"
     },
     {
       "slug": "2026-03-18-repo-contracts-as-a-fail-closed-ci-gate",
@@ -171,27 +105,9 @@
       "date": "2026-03-18"
     },
     {
-      "slug": "2026-03-17-runtime-governance-control-plane",
-      "title": "Runtime Governance Control Plane",
-      "type": "diagram",
-      "date": "2026-03-17"
-    },
-    {
-      "slug": "2026-03-13-the-gated-execution-pipeline",
-      "title": "The Gated Execution Pipeline",
-      "type": "diagram",
-      "date": "2026-03-13"
-    },
-    {
       "slug": "2026-03-10-extracting-the-kernel",
       "title": "Extracting the Kernel",
       "type": "working-note",
-      "date": "2026-03-10"
-    },
-    {
-      "slug": "2026-03-10-advisory-vs-deterministic-boundary",
-      "title": "Advisory vs Deterministic Boundary",
-      "type": "diagram",
       "date": "2026-03-10"
     },
     {
@@ -201,52 +117,16 @@
       "date": "2026-03-06"
     },
     {
-      "slug": "2026-03-06-the-substrate-walls",
-      "title": "The Substrate Walls",
-      "type": "diagram",
-      "date": "2026-03-06"
-    },
-    {
-      "slug": "2026-03-03-the-rpc-stub-airlock",
-      "title": "The RPC Stub Airlock",
-      "type": "diagram",
-      "date": "2026-03-03"
-    },
-    {
       "slug": "2026-03-03-governed-memory-as-infrastructure-in-a",
       "title": "Governed Memory as Infrastructure in the Control Plan",
       "type": "short-essay",
       "date": "2026-03-02"
     },
     {
-      "slug": "2026-02-27-monitor-after-vs-constrain-before",
-      "title": "Monitor After vs Constrain Before",
-      "type": "diagram",
-      "date": "2026-02-27"
-    },
-    {
       "slug": "2026-02-25-gateway-only-llm-routing-enforced",
       "title": "Gateway-Only LLM Routing Enforced",
       "type": "status-update",
       "date": "2026-02-25"
-    },
-    {
-      "slug": "2026-02-24-authority-decay-over-a-session",
-      "title": "Authority Decay Over a Session",
-      "type": "diagram",
-      "date": "2026-02-24"
-    },
-    {
-      "slug": "2026-02-20-anatomy-of-non-repudiation",
-      "title": "Anatomy of Non-Repudiation",
-      "type": "diagram",
-      "date": "2026-02-20"
-    },
-    {
-      "slug": "2026-02-17-audit-logs-vs-immutable-receipts",
-      "title": "Audit Logs vs Immutable Receipts",
-      "type": "diagram",
-      "date": "2026-02-17"
     },
     {
       "slug": "2026-02-15-governance-and-the-importance-of",
