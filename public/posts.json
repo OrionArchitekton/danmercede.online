@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-19T03:09:30.262Z",
-  "count": 58,
+  "generated": "2026-06-20T16:57:17.535Z",
+  "count": 59,
   "posts": [
+    {
+      "slug": "2026-06-20-lint-llm-schemas-before-prod",
+      "title": "Lint LLM Schemas Before Prod",
+      "type": "thought-snippet",
+      "date": "2026-06-20"
+    },
     {
       "slug": "2026-06-18-budget-your-mcp-tool-surface",
       "title": "Budget Your MCP Tool Surface",
