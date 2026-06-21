@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-20T16:59:35.769Z",
-  "count": 60,
+  "generated": "2026-06-21T04:41:23.980Z",
+  "count": 61,
   "posts": [
+    {
+      "slug": "2026-06-20-bots-pollute-the-merge-gate",
+      "title": "Bots Pollute the Merge Gate",
+      "type": "thought-snippet",
+      "date": "2026-06-20"
+    },
     {
       "slug": "2026-06-20-deployed-isnt-running",
       "title": "Deployed Isn't Running",
