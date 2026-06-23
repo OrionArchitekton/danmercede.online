@@ -2,7 +2,7 @@
 
 ## Scope
 
-This change adds a first-class diagram content type to `danmercede.online` for the approved MAP set in `/home/orion/.orion/danmercede-diagram-feed-MAP-20260618.md` section 0.
+This change adds a first-class diagram content type to `danmercede.online` for the approved MAP set in the internal `danmercede-diagram-feed-MAP-20260618.md` ops note, section 0.
 
 The approved set is exactly 21 diagram rows. Company-branded diagrams, `qa_slides` sales-stat slides, NotebookLM-watermarked slides, and all MAP-benched rows stay out of scope.
 
