@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-23T04:07:58.425Z",
-  "count": 64,
+  "generated": "2026-06-23T16:27:00.906Z",
+  "count": 65,
   "posts": [
+    {
+      "slug": "2026-06-23-context-routing",
+      "title": "Context Routing",
+      "type": "experiment-log",
+      "date": "2026-06-23"
+    },
     {
       "slug": "2026-06-22-merge-truth-is-not-runtime-truth",
       "title": "Merge Truth Is Not Runtime Truth",
