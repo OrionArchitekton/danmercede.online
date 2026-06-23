@@ -5,6 +5,18 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-06-22-merge-truth-is-not-runtime-truth",
+    slug: "2026-06-22-merge-truth-is-not-runtime-truth",
+    title: "Merge Truth Is Not Runtime Truth",
+    date: "2026-06-22",
+    timestamp: "09:06 PM PT",
+    type: EntryType.ThoughtSnippet,
+    context: "Systems",
+    tags: ["systems","execution","infra"],
+    content: "A pull request can be merged, the docs can be updated, and the registry can look clean. None of that proves the deployed system is running the new contract. Source truth and live truth are different systems. The better operating pattern is to put the verifier inside the deployed artifact, then run the proof from that artifact against the live service. That closes the gap between \"we shipped it\" and \"the system in front of users is the one we think it is.\" Verify the artifact, not the intention.",
+  }
+,
+  {
     id: "2026-06-22-context-quality-gate",
     slug: "2026-06-22-context-quality-gate",
     title: "Context Quality Gate",

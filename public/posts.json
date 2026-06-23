@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-22T19:37:04.378Z",
-  "count": 63,
+  "generated": "2026-06-23T04:07:58.425Z",
+  "count": 64,
   "posts": [
+    {
+      "slug": "2026-06-22-merge-truth-is-not-runtime-truth",
+      "title": "Merge Truth Is Not Runtime Truth",
+      "type": "thought-snippet",
+      "date": "2026-06-22"
+    },
     {
       "slug": "2026-06-22-context-quality-gate",
       "title": "Context Quality Gate",
