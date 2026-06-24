@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-24T04:55:36.462Z",
-  "count": 66,
+  "generated": "2026-06-24T20:20:15.688Z",
+  "count": 67,
   "posts": [
+    {
+      "slug": "2026-06-24-verify-the-verifier",
+      "title": "Verify the Verifier",
+      "type": "experiment-log",
+      "date": "2026-06-24"
+    },
     {
       "slug": "2026-06-23-lock-the-init-not-the-job",
       "title": "Lock the Init, Not the Job",
