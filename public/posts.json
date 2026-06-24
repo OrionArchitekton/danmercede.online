@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-23T16:27:00.906Z",
-  "count": 65,
+  "generated": "2026-06-24T04:55:36.462Z",
+  "count": 66,
   "posts": [
+    {
+      "slug": "2026-06-23-lock-the-init-not-the-job",
+      "title": "Lock the Init, Not the Job",
+      "type": "experiment-log",
+      "date": "2026-06-23"
+    },
     {
       "slug": "2026-06-23-context-routing",
       "title": "Context Routing",
