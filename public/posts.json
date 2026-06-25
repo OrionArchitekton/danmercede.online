@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-25T20:00:12.093Z",
-  "count": 70,
+  "generated": "2026-06-25T23:37:17.746Z",
+  "count": 71,
   "posts": [
+    {
+      "slug": "2026-06-25-self-hosting-two-planes",
+      "title": "Self-Hosting Has Two Planes, Not One",
+      "type": "short-essay",
+      "date": "2026-06-25"
+    },
     {
       "slug": "2026-06-25-shape-isnt-identity",
       "title": "Shape Isn't Identity",
