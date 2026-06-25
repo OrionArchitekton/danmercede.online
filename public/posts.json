@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-25T00:18:31.712Z",
-  "count": 68,
+  "generated": "2026-06-25T00:21:44.795Z",
+  "count": 69,
   "posts": [
+    {
+      "slug": "2026-06-24-claims-without-postgres",
+      "title": "Claims Without Postgres",
+      "type": "short-essay",
+      "date": "2026-06-24"
+    },
     {
       "slug": "2026-06-24-recon-before-you-build",
       "title": "Recon Before You Build",
