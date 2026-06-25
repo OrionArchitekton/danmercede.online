@@ -5,7 +5,7 @@
 // `npm test` (tsx --test).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderFeedJsonLd, getOrderedEntries } from '../scripts/prerenderBody.ts';
+import { renderFeedJsonLd, getOrderedEntries, getPageEntries } from '../scripts/prerenderBody.ts';
 import { EntryType, type Diagram } from '../types.ts';
 
 const entries = getOrderedEntries();
@@ -56,11 +56,30 @@ test('Blog node lists one BlogPosting per entry, backlinking the hub Person', ()
     assert.ok(post.headline && post.datePublished && post.url, 'BlogPosting has headline/date/url');
     assert.equal(post.author['@id'], 'https://www.danmercede.com/#person');
     assert.equal(post.publisher['@id'], 'https://www.danmercede.com/#person');
-    assert.equal(post.mainEntityOfPage['@id'], 'https://www.danmercede.online/#webpage');
+    // Compiled entries point at their real /slug page; legacy seed entries keep the
+    // feed /#slug fragment (no page). Either way mainEntityOfPage tracks the url.
+    assert.equal(post.mainEntityOfPage['@id'], post.url);
   }
   // Sync check: first BlogPosting matches the newest ordered entry.
   assert.equal(blog.blogPost[0].headline, entries[0].title);
-  assert.equal(blog.blogPost[0].url, `https://www.danmercede.online/#${entries[0].slug}`);
+  assert.equal(blog.blogPost[0].url, `https://www.danmercede.online/${entries[0].slug}`);
+});
+
+test('no BlogPosting page-URL references an entry that has no emitted page (no 404 structured data)', () => {
+  const pageSlugs = new Set(getPageEntries().map((e) => e.slug));
+  const blog = graph['@graph'].find((n) => n['@type'] === 'Blog');
+  for (const post of blog.blogPost) {
+    if (!String(post.url).includes('/#')) {
+      const slug = String(post.url).replace('https://www.danmercede.online/', '');
+      assert.ok(pageSlugs.has(slug), `feed JSON-LD page url ${post.url} has no emitted per-slug page`);
+    }
+  }
+  // And every compiled (page) entry resolves to a real page URL, not a fragment.
+  for (const post of blog.blogPost) {
+    const slug = String(post.url).replace(/^https:\/\/www\.danmercede\.online\/#?/, '');
+    const isPageUrl = !String(post.url).includes('/#');
+    assert.equal(isPageUrl, pageSlugs.has(slug), `URL form must match page-eligibility for ${slug}`);
+  }
 });
 
 test('diagram BlogPosting carries ImageObject without minting a local Person', () => {

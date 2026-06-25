@@ -168,16 +168,18 @@ test('bodyBakePlugin does not corrupt content containing $ replacement patterns'
   );
 });
 
-test('committed sitemap.xml covers every canonical post slug with a fragment URL (W9)', () => {
+test('committed sitemap.xml covers every canonical post slug with a real page URL (W9)', () => {
   const postsRaw = fs.readFileSync(path.join(projectRoot, 'public', 'posts.json'), 'utf-8');
   const posts = (JSON.parse(postsRaw) as { posts: { slug: string }[] }).posts;
   const sitemap = fs.readFileSync(path.join(projectRoot, 'public', 'sitemap.xml'), 'utf-8');
   for (const post of posts) {
     assert.ok(
-      sitemap.includes(`/#${post.slug}</loc>`),
-      `sitemap.xml missing fragment URL for canonical slug ${post.slug}`,
+      sitemap.includes(`<loc>https://www.danmercede.online/${post.slug}</loc>`),
+      `sitemap.xml missing real page URL for canonical slug ${post.slug}`,
     );
   }
+  // Entries are real pages now, never /#fragment URLs.
+  assert.ok(!sitemap.includes('/#'), 'sitemap must not contain /#fragment URLs');
   // Root URL is still present.
   assert.ok(sitemap.includes('<loc>https://www.danmercede.online/</loc>'), 'sitemap missing root URL');
   // lastmod must never be a literal placeholder; each must be an ISO date.
