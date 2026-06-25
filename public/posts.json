@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-25T00:21:44.795Z",
-  "count": 69,
+  "generated": "2026-06-25T20:00:12.093Z",
+  "count": 70,
   "posts": [
+    {
+      "slug": "2026-06-25-shape-isnt-identity",
+      "title": "Shape Isn't Identity",
+      "type": "experiment-log",
+      "date": "2026-06-25"
+    },
     {
       "slug": "2026-06-24-claims-without-postgres",
       "title": "Claims Without Postgres",
