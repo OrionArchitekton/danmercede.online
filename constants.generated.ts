@@ -5,6 +5,22 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-06-24-recon-before-you-build",
+    slug: "2026-06-24-recon-before-you-build",
+    title: "Recon Before You Build",
+    date: "2026-06-24",
+    timestamp: "05:15 PM PT",
+    type: EntryType.ExperimentLog,
+    context: "Execution",
+    tags: ["execution","systems","failure-modes"],
+    hypothesis: "An AI assistant's self-generated 'future opportunities' list is net-new work worth scoping and building.",
+    constraint: "Ground each suggestion against live system state before authoring any build plan; one canonical per capability; no greenfield until anti-dup is proven.",
+    result: "Failed",
+    resultDetails: "Two flagship 'opportunities' turned out ~75-80% already shipped. A grounding recon pass reclassified every component already-have / partial / net-new against live state; the honest deliverable shrank to a thin integration adapter for one and a read-only audit plus small hygiene fixes for the other. Building either as proposed would have duplicated shipped, tested infrastructure.",
+    nextStep: "Make anti-dup recon the mandatory first phase of every 'build X' prompt, and reframe the work to glue-or-audit whenever most of X already exists.",
+  }
+,
+  {
     id: "2026-06-24-verify-the-verifier",
     slug: "2026-06-24-verify-the-verifier",
     title: "Verify the Verifier",

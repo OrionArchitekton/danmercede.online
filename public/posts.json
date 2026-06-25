@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-24T20:20:15.688Z",
-  "count": 67,
+  "generated": "2026-06-25T00:18:31.712Z",
+  "count": 68,
   "posts": [
+    {
+      "slug": "2026-06-24-recon-before-you-build",
+      "title": "Recon Before You Build",
+      "type": "experiment-log",
+      "date": "2026-06-24"
+    },
     {
       "slug": "2026-06-24-verify-the-verifier",
       "title": "Verify the Verifier",
