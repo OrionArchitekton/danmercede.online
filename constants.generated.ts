@@ -5,6 +5,19 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-06-25-self-hosting-two-planes",
+    slug: "2026-06-25-self-hosting-two-planes",
+    title: "Self-Hosting Has Two Planes, Not One",
+    date: "2026-06-25",
+    timestamp: "04:45 PM PT",
+    type: EntryType.ShortEssay,
+    context: "Infra",
+    tags: ["infra","security","systems"],
+    claim: "Most self-hosting messes trace to one mistake: treating every service the same. Split them by a single question — does the public need to reach this? Public apps go through one controlled ingress plane (Cloudflare Tunnel to Traefik to containers, zero public inbound ports); everything you administer stays on a private mesh (Tailscale). The two planes meet only through routes you declare, never by accident. The discipline is one sentence: classify every service by whether the public needs it, put it on the matching plane, and verify the bind address — not just the health check.",
+    implication: "Wrote the whole thing up end to end — Cloudflare Tunnel, Traefik, Tailscale, the auth model, and a security checklist: https://www.danmercede.com/guides/self-hosting-websites-and-apps",
+  }
+,
+  {
     id: "2026-06-25-shape-isnt-identity",
     slug: "2026-06-25-shape-isnt-identity",
     title: "Shape Isn't Identity",
