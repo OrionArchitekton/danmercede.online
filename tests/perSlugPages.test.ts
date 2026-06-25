@@ -12,6 +12,7 @@ import {
   pageUrl,
   renderEntryPageJsonLd,
   buildEntryPageHtml,
+  entryDescription,
 } from '../scripts/perSlugPages.ts';
 
 const SITE = 'https://www.danmercede.online';
@@ -51,9 +52,12 @@ function shellFixture(): string {
     // description + og:description are split across lines in the real index.html;
     // the emitter's attribute regexes must tolerate that (\s+).
     '<meta name="description"\n    content="Living signal surface and working log for Dan Mercede." />',
+    '<meta property="og:type" content="website" />',
     '<meta property="og:title" content="danmercede.online — Working Notes" />',
     '<meta property="og:description"\n    content="Short-form notes, experiments, and reflections." />',
     '<meta property="og:url" content="https://www.danmercede.online/" />',
+    '<meta name="twitter:title" content="danmercede.online — Working Notes" />',
+    '<meta name="twitter:description"\n    content="Short-form notes, experiments, and reflections." />',
     '<meta property="og:image" content="https://www.danmercede.online/dan-mercede-founder-working-og.jpg" />',
     '<meta property="og:image:type" content="image/jpeg" />',
     '<meta property="og:image:width" content="1200" />',
@@ -91,6 +95,18 @@ test('renderEntryPageJsonLd: single BlogPosting at the real page URL, person bac
   assert.equal(post.headline, thought.title);
 });
 
+test('renderEntryPageJsonLd: WebPage/ItemPage node wires page → site / person / mainEntity', () => {
+  const graph = JSON.parse(renderEntryPageJsonLd(thought).replace(/\\u003c/g, '<'));
+  const webpage = graph['@graph'].find((n: any) => Array.isArray(n['@type']) && n['@type'].includes('WebPage'));
+  assert.ok(webpage, 'WebPage/ItemPage node present');
+  assert.deepEqual(webpage['@type'], ['WebPage', 'ItemPage']);
+  assert.equal(webpage['@id'], `${pageUrl(thought.slug)}#webpage`);
+  assert.equal(webpage.url, pageUrl(thought.slug));
+  assert.equal(webpage.isPartOf['@id'], `${SITE}/#website`);
+  assert.equal(webpage.about['@id'], PERSON);
+  assert.equal(webpage.mainEntity['@id'], pageUrl(thought.slug));
+});
+
 test('renderEntryPageJsonLd: diagram entry carries an ImageObject with absolute URL + caption', () => {
   const raw = renderEntryPageJsonLd(diagram);
   const graph = JSON.parse(raw.replace(/\\u003c/g, '<'));
@@ -101,6 +117,27 @@ test('renderEntryPageJsonLd: diagram entry carries an ImageObject with absolute 
   assert.equal(post.image.caption, diagram.caption);
 });
 
+// Security boundary: siteRelativeImageUrl must reject off-site / protocol-relative / non-path
+// schemes so a stray diagram src can never advertise an attacker-controllable image.
+for (const badSrc of ['https://attacker.example/img.jpg', '//cdn.example/x.png', 'javascript:alert(1)']) {
+  test(`renderEntryPageJsonLd: unsafe diagram src (${badSrc}) yields NO ImageObject`, () => {
+    const evil: Diagram = { ...diagram, src: badSrc };
+    const graph = JSON.parse(renderEntryPageJsonLd(evil).replace(/\\u003c/g, '<'));
+    const post = graph['@graph'].find((n: any) => n['@type'] === 'BlogPosting');
+    assert.ok(post, 'BlogPosting present');
+    assert.equal(post.image, undefined, 'no image for a non-same-origin src');
+  });
+
+  test(`buildEntryPageHtml: unsafe diagram src (${badSrc}) keeps the default portrait og:image`, () => {
+    const evil: Diagram = { ...diagram, src: badSrc };
+    const html = buildEntryPageHtml(shellFixture(), evil);
+    // The diagram-image override is SKIPPED for a non-same-origin src, so og:image and
+    // its type stay the safe default portrait — the unsafe URL never reaches the OG surface.
+    assert.match(html, /<meta property="og:image" content="https:\/\/www\.danmercede\.online\/dan-mercede-founder-working-og\.jpg"/);
+    assert.match(html, /<meta property="og:image:type" content="image\/jpeg"/);
+  });
+}
+
 test('buildEntryPageHtml: page is self-canonical (criterion 2)', () => {
   const html = buildEntryPageHtml(shellFixture(), thought);
   const canon = html.match(/<link rel="canonical" href="([^"]+)"/);
@@ -109,6 +146,23 @@ test('buildEntryPageHtml: page is self-canonical (criterion 2)', () => {
   assert.equal((html.match(/rel="canonical"/g) || []).length, 1, 'exactly one canonical');
   assert.match(html, /<meta property="og:url" content="https:\/\/www\.danmercede\.online\/2026-06-24-enforce-at-the-boundary"/);
   assert.ok(html.includes(`<title>`) && html.includes(thought.title), 'title carries the entry title');
+});
+
+test('buildEntryPageHtml: per-entry twitter:title + twitter:description override the generic shell defaults', () => {
+  const html = buildEntryPageHtml(shellFixture(), thought);
+  // \s+ + capture: the real index.html splits twitter:description across lines, and the
+  // override preserves that, so extract the content rather than matching a fixed space.
+  const tt = html.match(/<meta name="twitter:title"\s+content="([^"]*)"/);
+  const td = html.match(/<meta name="twitter:description"\s+content="([^"]*)"/);
+  assert.equal(tt?.[1], thought.title, 'twitter:title = entry title');
+  assert.equal(td?.[1], entryDescription(thought), 'twitter:description = entry description');
+  assert.ok(!html.includes('content="danmercede.online — Working Notes"'), 'generic feed title/desc must be gone');
+});
+
+test('buildEntryPageHtml: og:type is article for a single-entry page (not website)', () => {
+  const html = buildEntryPageHtml(shellFixture(), thought);
+  assert.match(html, /<meta property="og:type" content="article"/);
+  assert.ok(!html.includes('<meta property="og:type" content="website"'), 'feed og:type=website must be replaced');
 });
 
 test('buildEntryPageHtml: exactly one single-entry BlogPosting JSON-LD (criterion 3)', () => {

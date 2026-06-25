@@ -159,7 +159,9 @@ export function buildEntryPageHtml(shellHtml: string, entry: LogEntry): string {
   html = setAttr(html, /(<link rel="canonical"\s+href=")[^"]*(")/, url, 'canonical');
   html = setAttr(html, /(<meta property="og:url"\s+content=")[^"]*(")/, url, 'og:url');
 
-  // 2) title + description (page + OG)
+  // 2) title + description across page + OG + Twitter. X/Twitter cards prefer the
+  // twitter:* values over og:*, so the per-entry twitter:title/description MUST be set
+  // too — otherwise every entry card shows the generic feed headline/description.
   html = replaceOnce(
     html,
     /<title>[\s\S]*?<\/title>/,
@@ -169,6 +171,10 @@ export function buildEntryPageHtml(shellHtml: string, entry: LogEntry): string {
   html = setAttr(html, /(<meta name="description"\s+content=")[^"]*(")/, desc, 'meta description');
   html = setAttr(html, /(<meta property="og:title"\s+content=")[^"]*(")/, entry.title, 'og:title');
   html = setAttr(html, /(<meta property="og:description"\s+content=")[^"]*(")/, desc, 'og:description');
+  html = setAttr(html, /(<meta name="twitter:title"\s+content=")[^"]*(")/, entry.title, 'twitter:title');
+  html = setAttr(html, /(<meta name="twitter:description"\s+content=")[^"]*(")/, desc, 'twitter:description');
+  // An entry page is a single BlogPosting, not the site — correct the OG type.
+  html = setAttr(html, /(<meta property="og:type"\s+content=")[^"]*(")/, 'article', 'og:type');
 
   // 3) diagram pages advertise the diagram image (and its real type/alt/dimensions) as
   // the social/og image — replacing ALL the default portrait OG siblings, not just the
