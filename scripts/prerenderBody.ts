@@ -119,7 +119,7 @@ function entryBodyHtml(entry: LogEntry): string {
   }
 }
 
-function entryArticleHtml(entry: LogEntry): string {
+export function entryArticleHtml(entry: LogEntry): string {
   const meta = `<p>${escapeHtml(entry.type)} &middot; ${escapeHtml(entry.date)} &middot; ${escapeHtml(
     entry.timestamp,
   )}</p>`;
@@ -127,8 +127,9 @@ function entryArticleHtml(entry: LogEntry): string {
   const tags = entry.tags.length
     ? `<p>Tags: ${entry.tags.map((t) => escapeHtml(`#${t}`)).join(' ')}</p>`
     : '';
-  // id == slug so the EntryCard permalink (`#${slug}`) and the sitemap fragment
-  // (`/#${slug}`) resolve to a real on-page anchor (W6).
+  // id == slug so the in-feed EntryCard permalink (`#${slug}`) resolves to a real
+  // on-page anchor (W6), and so the per-slug page reuses this exact <article> (the
+  // page's canonical URL is `/${slug}`, emitted by perSlugPagesPlugin).
   return `<article id="${escapeHtml(entry.slug)}">${heading}${meta}${entryBodyHtml(
     entry,
   )}${tags}</article>`;
@@ -157,6 +158,24 @@ export function renderPrerenderBody(entries: LogEntry[] = getOrderedEntries()): 
 const SITE = 'https://www.danmercede.online';
 const PERSON = 'https://www.danmercede.com/#person';
 
+// Slugs that receive their own per-slug page: the COMPILED inbox+substrate set
+// (constants.generated.ts). Legacy constants.ts seed entries stay feed-only
+// (fragment-addressable), matching their existing exclusion from the sitemap — so
+// no per-slug page or page-URL is ever minted for content that has no real page.
+const PAGE_ENTRY_SLUGS = new Set(GENERATED_ENTRIES.map((e) => e.slug));
+
+/** Entries that get a real per-slug page, newest-first — the per-slug emitter's source. */
+export function getPageEntries(): LogEntry[] {
+  return [...GENERATED_ENTRIES].sort(
+    (a, b) => parseFullDateTime(b.date, b.timestamp) - parseFullDateTime(a.date, a.timestamp),
+  );
+}
+
+/** An entry's canonical URL: its own page `/slug` if it has one, else the feed fragment `/#slug`. */
+export function entryCanonicalUrl(slug: string): string {
+  return PAGE_ENTRY_SLUGS.has(slug) ? `${SITE}/${slug}` : `${SITE}/#${slug}`;
+}
+
 function absoluteUrl(src: string): string {
   if (/^https?:\/\//i.test(src)) return src;
   if (src.startsWith('/')) return `${SITE}${src}`;
@@ -173,15 +192,20 @@ function absoluteUrl(src: string): string {
  */
 export function renderFeedJsonLd(entries: LogEntry[] = getOrderedEntries()): string {
   const blogPost = entries.map((e) => {
+    // Compiled entries have their own per-slug page (perSlugPagesPlugin emits
+    // dist/<slug>/index.html) → point @id/url/mainEntityOfPage at that page. Legacy
+    // seed entries have no page → keep the feed fragment so structured data never
+    // references a 404.
+    const canonical = entryCanonicalUrl(e.slug);
     const post: Record<string, unknown> = {
       '@type': 'BlogPosting',
-      '@id': `${SITE}/#${e.slug}`,
+      '@id': canonical,
       headline: e.title,
       datePublished: e.date,
-      url: `${SITE}/#${e.slug}`,
+      url: canonical,
       author: { '@id': PERSON },
       publisher: { '@id': PERSON },
-      mainEntityOfPage: { '@id': `${SITE}/#webpage` },
+      mainEntityOfPage: { '@id': canonical },
     };
 
     if (e.type === EntryType.Diagram) {

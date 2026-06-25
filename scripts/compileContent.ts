@@ -1106,12 +1106,12 @@ function escapeXml(value: string): string {
 }
 
 /**
- * Generate sitemap.xml from compiled entries. One <url> per entry as a
- * `/#<slug>` fragment (entries are anchor-addressable on the single-page feed,
- * W6) plus the root URL. Each <lastmod> is the entry's own content date — NOT an
- * every-build auto-bump (inflated lastmod erodes crawler trust; 2026 best
- * practice is to track REAL change). Root <lastmod> = newest entry date, or
- * today only when there are no entries.
+ * Generate sitemap.xml from compiled entries. One <url> per entry as a real
+ * per-slug page URL `/<slug>` (each entry is emitted as a static page at
+ * dist/<slug>/index.html by perSlugPagesPlugin) plus the root URL. Each <lastmod>
+ * is the entry's own content date — NOT an every-build auto-bump (inflated lastmod
+ * erodes crawler trust; 2026 best practice is to track REAL change). Root <lastmod>
+ * = newest entry date, or today only when there are no entries.
  */
 export function generateSitemap(entries: ParsedEntry[]): string {
   // Newest content date (entries carry YYYY-MM-DD `date`); fall back to today in
@@ -1130,11 +1130,11 @@ export function generateSitemap(entries: ParsedEntry[]): string {
   lines.push('    <changefreq>daily</changefreq>');
   lines.push('    <priority>1.0</priority>');
   lines.push('  </url>');
-  // Per-entry fragment URLs, newest-first (entries are pre-sorted by main()).
+  // Per-entry real page URLs, newest-first (entries are pre-sorted by main()).
   for (const entry of entries) {
     const lastmod = /^\d{4}-\d{2}-\d{2}$/.test(entry.date) ? entry.date : newest;
     lines.push('  <url>');
-    lines.push(`    <loc>${SITE_ORIGIN}/#${escapeXml(entry.slug)}</loc>`);
+    lines.push(`    <loc>${SITE_ORIGIN}/${escapeXml(entry.slug)}</loc>`);
     lines.push(`    <lastmod>${lastmod}</lastmod>`);
     if (entry.type === 'diagram') {
       const src = entry.fields['src'];
