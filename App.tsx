@@ -251,7 +251,7 @@ const App: React.FC = () => {
             <footer className="mt-32 pt-12 border-t border-gray-100 flex flex-col gap-6 text-sm text-gray-500 font-mono">
                 <div className="flex flex-col items-center gap-1">
                     <a
-                        href="https://www.orionintelligenceagency.com/book"
+                        href="https://www.orionintelligenceagency.com/book?utm_source=danmercede.online&utm_medium=signal_cta&utm_campaign=readiness_scan"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-gray-900 font-medium text-xs uppercase tracking-wider hover:underline transition-colors"
