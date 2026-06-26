@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-25T23:37:17.746Z",
-  "count": 71,
+  "generated": "2026-06-26T20:08:47.588Z",
+  "count": 72,
   "posts": [
+    {
+      "slug": "2026-06-26-clone-the-box-not-the-cron",
+      "title": "Clone the Box, Not the Cron",
+      "type": "short-essay",
+      "date": "2026-06-26"
+    },
     {
       "slug": "2026-06-25-self-hosting-two-planes",
       "title": "Self-Hosting Has Two Planes, Not One",
