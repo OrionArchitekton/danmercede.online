@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-26T20:08:47.588Z",
-  "count": 72,
+  "generated": "2026-06-26T23:56:24.648Z",
+  "count": 73,
   "posts": [
+    {
+      "slug": "2026-06-26-worktrees-git-c-not-git-dir",
+      "title": "Worktrees: git -C, Not GIT_DIR",
+      "type": "short-essay",
+      "date": "2026-06-26"
+    },
     {
       "slug": "2026-06-26-clone-the-box-not-the-cron",
       "title": "Clone the Box, Not the Cron",
