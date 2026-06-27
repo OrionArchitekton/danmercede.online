@@ -5,6 +5,22 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-06-27-when-verifiers-abstain",
+    slug: "2026-06-27-when-verifiers-abstain",
+    title: "When Verifiers Abstain",
+    date: "2026-06-27",
+    timestamp: "07:05 AM PT",
+    type: EntryType.ExperimentLog,
+    context: "Systems",
+    tags: ["failure-modes","signal","governance"],
+    hypothesis: "A fail-closed, multi-vote adversarial verification gate will correctly separate true from false research claims in an automated research loop.",
+    constraint: "Survive-rule: a claim passes only with a quorum of valid votes and fewer than two refutations; default to refuted under uncertainty.",
+    result: "Failed",
+    resultDetails: "Under transient API rate-limiting, every verifier vote returned null, so each claim scored 0-0 and the run reported 'all 25 claims refuted — inconclusive.' False: those were abstentions (the adjudicator never ran), not evidentiary refutations. The survive-rule correctly withheld the unverified claims, but the run's summary conflated 'never adjudicated' with 'refuted by evidence.' An abstention-tolerant re-verify plus a manual one-source-at-a-time top-up then confirmed 24 of 26 claims against primary sources — the opposite of inconclusive.",
+    nextStep: "Make abstention a first-class status, never folded into 'killed.' On recovery, reuse the saved search and extraction artifacts and re-verify gently rather than re-running the whole pipeline. And existence-check every citation: a future-dated reference ID is not automatically a hallucination.",
+  }
+,
+  {
     id: "2026-06-26-path-glob-swallows-errors",
     slug: "2026-06-26-path-glob-swallows-errors",
     title: "Path.glob Swallows Errors",
