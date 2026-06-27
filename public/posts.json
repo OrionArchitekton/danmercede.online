@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-26T23:58:53.969Z",
-  "count": 74,
+  "generated": "2026-06-27T07:03:59.470Z",
+  "count": 75,
   "posts": [
+    {
+      "slug": "2026-06-27-when-verifiers-abstain",
+      "title": "When Verifiers Abstain",
+      "type": "experiment-log",
+      "date": "2026-06-27"
+    },
     {
       "slug": "2026-06-26-path-glob-swallows-errors",
       "title": "Path.glob Swallows Errors",
