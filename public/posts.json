@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-28T07:49:17.472Z",
-  "count": 76,
+  "generated": "2026-06-28T20:47:01.689Z",
+  "count": 77,
   "posts": [
+    {
+      "slug": "2026-06-28-pin-what-your-ci-recompiles",
+      "title": "Pin What Your CI Recompiles",
+      "type": "short-essay",
+      "date": "2026-06-28"
+    },
     {
       "slug": "2026-06-28-dedup-by-auth-not-existence",
       "title": "Dedup By Auth, Not Existence",
