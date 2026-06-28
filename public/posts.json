@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-28T20:47:01.689Z",
-  "count": 77,
+  "generated": "2026-06-28T21:44:12.232Z",
+  "count": 78,
   "posts": [
+    {
+      "slug": "2026-06-28-placement-beats-rules",
+      "title": "Placement Beats Rules",
+      "type": "short-essay",
+      "date": "2026-06-28"
+    },
     {
       "slug": "2026-06-28-pin-what-your-ci-recompiles",
       "title": "Pin What Your CI Recompiles",
