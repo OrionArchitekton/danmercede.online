@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-27T07:03:59.470Z",
-  "count": 75,
+  "generated": "2026-06-28T07:49:17.472Z",
+  "count": 76,
   "posts": [
+    {
+      "slug": "2026-06-28-dedup-by-auth-not-existence",
+      "title": "Dedup By Auth, Not Existence",
+      "type": "experiment-log",
+      "date": "2026-06-28"
+    },
     {
       "slug": "2026-06-27-when-verifiers-abstain",
       "title": "When Verifiers Abstain",
