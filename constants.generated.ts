@@ -5,6 +5,36 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-06-29-runtime-governance-how-it-works",
+    slug: "2026-06-29-runtime-governance-how-it-works",
+    title: "Runtime Governance: How It Works",
+    date: "2026-06-29",
+    timestamp: "08:00 AM PT",
+    type: EntryType.Diagram,
+    context: "Governance",
+    tags: ["governance","execution","systems"],
+    src: "/assets/diagrams/2026-06-29-runtime-governance-how-it-works.png",
+    alt: "Runtime governance, step by step. A request arrives; rich telemetry is collected in real time (source IP and ASN, host and path, user and token, TLS, geo and device, historical signals); runtime policies evaluate identity and access, posture and risk, context and behavior, and business rules in milliseconds; a decision is made to allow, challenge, restrict, or block; Traefik enforces it instantly via routes, middleware, and dynamic config; and outcomes are logged so policies adapt over time. Allow proceeds to the service, challenge requires step-up verification, restrict applies rate limits or read-only or masked scope, and block returns a 403, 429, or custom page. Decide at runtime, not at deploy time: least privilege always, verify explicitly, observe everything, secure by default. Under five milliseconds per decision, over one hundred thousand decisions per second, zero downtime.",
+    caption: "Continuously evaluate, decide, and enforce at runtime, without slowing down your apps.",
+    content: "Runtime governance evaluates, decides, and enforces on every request instead of trusting a deploy-time configuration. Telemetry feeds a policy engine that returns allow, challenge, restrict, or block; the reverse proxy enforces the verdict in single-digit milliseconds and the outcome feeds back so policy improves over time. The unit of safety is the runtime decision, not the hope that nothing changed since deploy.",
+  }
+,
+  {
+    id: "2026-06-29-the-two-plane-architecture",
+    slug: "2026-06-29-the-two-plane-architecture",
+    title: "The Two-Plane Architecture",
+    date: "2026-06-29",
+    timestamp: "08:00 AM PT",
+    type: EntryType.Diagram,
+    context: "Infra",
+    tags: ["systems","infra","execution"],
+    src: "/assets/diagrams/2026-06-29-the-two-plane-architecture.png",
+    alt: "The two-plane architecture. A public ingress plane carries the world to your apps: the visitor's browser reaches the Cloudflare edge (DNS, TLS, WAF, CDN, DDoS, optional Access), then one path per hostname (a Cloudflare tunnel dialing outbound, or a published 443 with an origin cert) to a single Traefik reverse proxy that binds 80 and 443 and routes by host and path over a private Docker network to your app containers, reached by service name rather than localhost. A separate private admin plane carries the operator to everything else over a Tailscale mesh VPN: SSH, dashboards, metrics, databases, secrets stores, and internal tools. The two planes join only at a deliberate meet point where at most one service at a time is exposed via an IP allowlist, never by accident.",
+    caption: "One box, one reverse proxy, zero public inbound ports: a private mesh for everything else.",
+    content: "The two-plane architecture separates how the world reaches your apps from how you reach everything else. Public traffic terminates at a single reverse proxy; every admin and internal surface lives on a private mesh and binds only to loopback or the mesh, never 0.0.0.0. Exposure becomes a deliberate, one-service-at-a-time decision instead of an accident.",
+  }
+,
+  {
     id: "2026-06-29-the-fix-had-the-same-race",
     slug: "2026-06-29-the-fix-had-the-same-race",
     title: "The Fix Had the Same Race",
