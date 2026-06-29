@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-29T00:23:28.896Z",
-  "count": 79,
+  "generated": "2026-06-29T09:22:24.139Z",
+  "count": 80,
   "posts": [
+    {
+      "slug": "2026-06-29-the-fix-had-the-same-race",
+      "title": "The Fix Had the Same Race",
+      "type": "experiment-log",
+      "date": "2026-06-29"
+    },
     {
       "slug": "2026-06-28-coherent-isnt-correct",
       "title": "Coherent Isn't Correct",
