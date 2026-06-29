@@ -63,14 +63,19 @@ const GoogleAnalytics = () => {
   return null;
 };
 
-// Single mount point for all site instrumentation. GA4 is env-gated (above); the
-// Vercel widgets are cookieless and auto-no-op when not on Vercel production.
-const Analytics = () => (
-  <>
-    <GoogleAnalytics />
-    <VercelAnalytics />
-    <SpeedInsights />
-  </>
-);
+// Single mount point for all site instrumentation. ALL of it — GA4 and the Vercel
+// widgets — is gated on the production-only VITE_GA_MEASUREMENT_ID switch (via
+// gaConfig), so dev and preview deploys mount nothing and emit nothing. The
+// Vercel widgets are otherwise cookieless and per-environment.
+const Analytics = () => {
+  if (!gaConfig) return null;
+  return (
+    <>
+      <GoogleAnalytics />
+      <VercelAnalytics />
+      <SpeedInsights />
+    </>
+  );
+};
 
 export default Analytics;

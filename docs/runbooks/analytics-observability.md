@@ -30,7 +30,10 @@ apex 301s to **www** (canonical host `https://www.danmercede.online/`).
 1. **GA4:** analytics.google.com → create/reuse a property → add a **Web** stream for
    `https://www.danmercede.online`. Copy the `G-XXXXXXXXXX` Measurement ID. (Use the
    **same** GA4 property as .com only if you want combined reporting; otherwise a
-   separate property keeps the signals log isolated — recommended.)
+   separate property keeps the signals log isolated — recommended.) In the stream's
+   **Enhanced measurement**, **turn OFF "Page changes based on browser history events"** —
+   the app sends `page_view` itself (on load + each hashchange), so leaving it on
+   double-counts. Keep the other Enhanced measurement signals ON.
 2. **Vercel:** project **`danmercede-online`** → Settings → Environment Variables →
    add `VITE_GA_MEASUREMENT_ID = G-XXXXXXXXXX` for **Production** only (`VITE_` prefix
    required). Settings → enable **Web Analytics** and **Speed Insights**. Redeploy Production.

@@ -15,7 +15,8 @@ Instrument from the **app layer**, env-gated, no measurement id committed:
   Mode v2 (analytics granted, ad signals denied, IP anonymized), `send_page_view:false`.
   No router here, so a `page_view` fires on mount and on each `hashchange` (which
   signal is being read), not via route changes.
-- **Vercel Web Analytics + Speed Insights** (cookieless; auto-no-op off Vercel prod).
+- **Vercel Web Analytics + Speed Insights** (cookieless), gated on the same
+  production-only `VITE_GA_MEASUREMENT_ID` switch as GA4 — mount nothing on dev/preview.
 - **AEO**: `public/llms.txt` advertising the signals feed and backlinking the
   canonical danmercede.com hub/#person identity (this site defines no Person node).
 - **Synthetic observability**: the existing daily `prod-smoke` monitor also asserts
@@ -41,7 +42,8 @@ one place that decides whether GA runs and with what consent/config. Tested.
    (analytics granted, ad signals denied), and a `page_view` fires on mount and on
    each `hashchange`.
 3. `resolveGaConfig` returns null for malformed ids, a correct config otherwise.
-4. Vercel Web Analytics + Speed Insights mount once and are no-ops in non-production.
+4. ALL instrumentation (GA4 + Vercel Web Analytics + Speed Insights) is gated on
+   `VITE_GA_MEASUREMENT_ID`: dev/preview mount nothing; production mounts all three once.
 5. `public/llms.txt` exists, begins with `# Dan Mercede`, advertises the .online
    origin, and backlinks the .com hub + `#person`.
 6. The daily monitor fails if the served self-canonical does not resolve to the
