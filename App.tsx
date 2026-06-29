@@ -24,6 +24,7 @@ const ENTRIES = [...GENERATED_ENTRIES, ...LEGACY_ENTRIES].sort((a, b) =>
     parseFullDateTime(b.date, b.timestamp) - parseFullDateTime(a.date, a.timestamp)
 );
 import EntryCard from './components/EntryCard';
+import Analytics from './components/Analytics';
 import { ExternalLink, Rss, Archive as ArchiveIcon, BookOpen, X } from 'lucide-react';
 
 type ViewMode = 'feed' | 'archive' | 'tags';
@@ -55,6 +56,7 @@ const App: React.FC = () => {
 
     return (
         <div className="min-h-screen flex flex-col max-w-3xl mx-auto px-6 py-12 selection:bg-black selection:text-white">
+            <Analytics />
 
             {/* Skip link: visually hidden until keyboard-focused, then jumps to main content (a11y parity with the other brand sites). */}
             <a

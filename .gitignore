@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Local env files (secrets live in Vercel, not the repo); .env.example is committed
+.env
+.env.*
+!.env.example
+
 # External substrate checkout produced by CI's draft-builder workflow
 # (actions/checkout of OrionArchitekton/dan-mercede-substrate at vendor/substrate).
 # Never commit the embedded repo tree into this repo.

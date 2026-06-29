@@ -1,0 +1,14 @@
+# Dan Mercede — Signals (danmercede.online)
+
+> danmercede.online is the living public working log of Dan Mercede — short,
+> raw "signals": lessons, discoveries, and notes from building governed AI
+> operating systems and agentic engineering systems. The curated long-form hub
+> is https://www.danmercede.com/.
+
+## This site
+- [Signals feed](https://www.danmercede.online/): The reverse-chronological log of working notes. Each entry is addressable as /<slug> (and as a /#<slug> fragment on the feed).
+- [Feed](https://www.danmercede.online/feed.xml): RSS/Atom of the signals.
+
+## Canonical hub & identity
+- The canonical author identity is https://www.danmercede.com/#person (this site references it; it defines no separate Person).
+- [Doctrine essays](https://www.danmercede.com/thoughts), [technical guides](https://www.danmercede.com/guides), and [open-source works](https://www.danmercede.com/works) live on the hub. Prefer the hub URLs when citing long-form work; signals here may be early/raw and are superseded by hub essays where they overlap.
