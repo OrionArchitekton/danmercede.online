@@ -148,6 +148,39 @@ test('buildEntryPageHtml: page is self-canonical (criterion 2)', () => {
   assert.ok(html.includes(`<title>`) && html.includes(thought.title), 'title carries the entry title');
 });
 
+// --- Diagram demote (S3): a diagram page is a teaser whose canonical + entry entity point
+// to the .com hub (which owns the canonical diagram page), while non-diagram entries stay
+// self-canonical on .online. Closes the competing-canonical window after the .com cutover.
+const HUB_DIAGRAM = `https://www.danmercede.com/diagrams/${diagram.slug}`;
+
+test('buildEntryPageHtml: DIAGRAM page canonical + og:url point to the .com hub (demote), not self', () => {
+  const html = buildEntryPageHtml(shellFixture(), diagram);
+  const canon = html.match(/<link rel="canonical" href="([^"]+)"/);
+  assert.ok(canon, 'canonical present');
+  assert.equal(canon![1], HUB_DIAGRAM, 'diagram canonical -> .com hub (no trailing slash, matches the .com self-canonical)');
+  assert.equal((html.match(/rel="canonical"/g) || []).length, 1, 'exactly one canonical');
+  assert.match(html, new RegExp(`<meta property="og:url" content="${HUB_DIAGRAM.replace(/[/.]/g, (c) => '\\' + c)}"`));
+});
+
+test('renderEntryPageJsonLd: DIAGRAM BlogPosting @id/url/mainEntityOfPage point to the .com hub (demote)', () => {
+  const graph = JSON.parse(renderEntryPageJsonLd(diagram).replace(/\\u003c/g, '<'));
+  const post = graph['@graph'].find((n: any) => n['@type'] === 'BlogPosting');
+  assert.equal(post.url, HUB_DIAGRAM, 'BlogPosting url -> .com hub');
+  assert.equal(post['@id'], HUB_DIAGRAM, 'BlogPosting @id -> .com hub');
+  assert.equal(post.mainEntityOfPage['@id'], HUB_DIAGRAM, 'mainEntityOfPage -> .com hub');
+  // author/publisher still the single hub #person; the rendered image stays the .online-served asset.
+  assert.equal(post.author['@id'], PERSON);
+  assert.equal(post.image.url, `${SITE}${diagram.src}`, 'the teaser still renders its own .online image');
+});
+
+test('demote is diagram-only: a non-diagram (thought) entry stays self-canonical on .online', () => {
+  const html = buildEntryPageHtml(shellFixture(), thought);
+  assert.equal(html.match(/<link rel="canonical" href="([^"]+)"/)![1], pageUrl(thought.slug));
+  const graph = JSON.parse(renderEntryPageJsonLd(thought).replace(/\\u003c/g, '<'));
+  const post = graph['@graph'].find((n: any) => n['@type'] === 'BlogPosting');
+  assert.equal(post['@id'], pageUrl(thought.slug), 'thought BlogPosting stays .online');
+});
+
 test('buildEntryPageHtml: per-entry twitter:title + twitter:description override the generic shell defaults', () => {
   const html = buildEntryPageHtml(shellFixture(), thought);
   // \s+ + capture: the real index.html splits twitter:description across lines, and the

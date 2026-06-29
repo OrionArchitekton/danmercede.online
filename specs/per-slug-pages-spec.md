@@ -75,17 +75,27 @@ Each scenario is an end-to-end slice (render fn → build artifact → served fi
    there is a file `dist/<slug>/index.html`. The count of emitted per-slug pages equals the
    compiled entry count.
 
-2. **Each page is self-canonical.** Each `dist/<slug>/index.html` contains exactly one
-   `<link rel="canonical" href="https://www.danmercede.online/<slug>">`, a `<title>`
-   carrying the entry title, a meta description, and `og:url` =
-   `https://www.danmercede.online/<slug>`.
+2. **Each page is self-canonical — EXCEPT a diagram, which is demoted to a teaser.** A
+   non-diagram page contains exactly one
+   `<link rel="canonical" href="https://www.danmercede.online/<slug>">` with `og:url` =
+   the same, a `<title>` carrying the entry title, and a meta description. A **diagram**
+   entry instead canonicalizes (and `og:url`) to the danmercede.com hub —
+   `https://www.danmercede.com/diagrams/<slug>` (NO trailing slash; byte-matches the hub's
+   own self-canonical, since the hub now owns the indexable diagram page). The .online
+   diagram page stays served as an AEO teaser that points back to the hub. (S3 demote,
+   2026-06-29 — closes the competing-canonical window after the .com cutover.)
 
 3. **Each page carries single-entry structured data.** Each page contains exactly one
-   JSON-LD block with a single `BlogPosting` whose `@id`/`url`/`mainEntityOfPage` =
-   `https://www.danmercede.online/<slug>` and whose `author`/`publisher` `@id` =
-   `https://www.danmercede.com/#person`. For a **diagram** entry the BlogPosting carries an
-   `image` `ImageObject` with the absolute image URL + caption, and `og:image`/`twitter:image`
-   are the diagram image (non-diagram pages keep the default working-portrait OG).
+   JSON-LD block with a single `BlogPosting` whose `author`/`publisher` `@id` =
+   `https://www.danmercede.com/#person`. The BlogPosting's `@id`/`url`/`mainEntityOfPage`
+   (and the WebPage node's `mainEntity`) equal the entry's **canonical**:
+   `https://www.danmercede.online/<slug>` for a non-diagram, the
+   `https://www.danmercede.com/diagrams/<slug>` hub URL for a **diagram** (so the content
+   entity resolves to the hub canonical). The WebPage node still describes THIS .online page
+   (its `@id`/`url` stay `.online`). For a diagram the BlogPosting still carries an `image`
+   `ImageObject` (the rendered .online image) and `og:image`/`twitter:image` are the diagram
+   image; non-diagram pages keep the default working-portrait OG. The .online **sitemap** no
+   longer emits an `<image:image>` for diagrams — the hub owns that image-sitemap entry.
 
 4. **Each page's baked body is that one entry.** Each page's `<body>` contains the entry's
    `<article id="<slug>">` with its `<h2>` title and lead text (claim/content/hypothesis/

@@ -1136,16 +1136,10 @@ export function generateSitemap(entries: ParsedEntry[]): string {
     lines.push('  <url>');
     lines.push(`    <loc>${SITE_ORIGIN}/${escapeXml(entry.slug)}</loc>`);
     lines.push(`    <lastmod>${lastmod}</lastmod>`);
-    if (entry.type === 'diagram') {
-      const src = entry.fields['src'];
-      const caption = entry.fields['caption'];
-      if (typeof src === 'string' && typeof caption === 'string') {
-        lines.push('    <image:image>');
-        lines.push(`      <image:loc>${escapeXml(absoluteSiteUrl(src))}</image:loc>`);
-        lines.push(`      <image:caption>${escapeXml(caption)}</image:caption>`);
-        lines.push('    </image:image>');
-      }
-    }
+    // Diagram entries no longer claim the image here: the danmercede.com hub now owns the
+    // canonical diagram page and its <image:image> sitemap entry (S3 demote). This .online
+    // page stays listed as an AEO teaser (it rel=canonicals to the hub), but emitting an
+    // <image:image> from BOTH surfaces would split image-search authority for the same asset.
     lines.push('    <changefreq>monthly</changefreq>');
     lines.push('    <priority>0.7</priority>');
     lines.push('  </url>');
