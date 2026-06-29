@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-28T21:44:12.232Z",
-  "count": 78,
+  "generated": "2026-06-29T00:23:28.896Z",
+  "count": 79,
   "posts": [
+    {
+      "slug": "2026-06-28-coherent-isnt-correct",
+      "title": "Coherent Isn't Correct",
+      "type": "experiment-log",
+      "date": "2026-06-28"
+    },
     {
       "slug": "2026-06-28-placement-beats-rules",
       "title": "Placement Beats Rules",
