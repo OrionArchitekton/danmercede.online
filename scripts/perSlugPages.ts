@@ -17,10 +17,26 @@ import { entryArticleHtml, escapeHtml } from './prerenderBody.ts';
 
 const SITE = 'https://www.danmercede.online';
 const PERSON = 'https://www.danmercede.com/#person';
+const HUB = 'https://www.danmercede.com';
 
 /** The flat per-slug canonical page URL. */
 export function pageUrl(slug: string): string {
   return `${SITE}/${slug}`;
+}
+
+/**
+ * The .com hub diagram URL a diagram entry canonicalizes to (S3 demote). The hub owns the
+ * indexable canonical for diagrams (/diagrams/<slug>); this .online page is an AEO teaser
+ * that rel=canonicals here. NO trailing slash — must byte-match the hub's own self-canonical
+ * (verified: https://www.danmercede.com/diagrams/<slug>). Diagram slugs are 1:1 across surfaces.
+ */
+export function hubDiagramUrl(slug: string): string {
+  return `${HUB}/diagrams/${slug}`;
+}
+
+/** The canonical URL for an entry: the .com hub for diagrams (teaser demote), else self (.online). */
+export function canonicalUrlFor(entry: LogEntry): string {
+  return entry.type === EntryType.Diagram ? hubDiagramUrl(entry.slug) : pageUrl(entry.slug);
 }
 
 /**
@@ -74,16 +90,21 @@ function truncate(text: string, max = 200): string {
  */
 export function renderEntryPageJsonLd(entry: LogEntry): string {
   const url = pageUrl(entry.slug);
+  // The entry's CONTENT entity resolves to the canonical: the .com hub for a diagram teaser
+  // (S3 demote), else this .online page. The WebPage node still describes THIS .online page
+  // (its @id/url stay .online), but its mainEntity references the BlogPosting by the canonical
+  // @id so the graph reference stays consistent.
+  const canonical = canonicalUrlFor(entry);
 
   const post: Record<string, unknown> = {
     '@type': 'BlogPosting',
-    '@id': url,
+    '@id': canonical,
     headline: entry.title,
     datePublished: entry.date,
-    url,
+    url: canonical,
     author: { '@id': PERSON },
     publisher: { '@id': PERSON },
-    mainEntityOfPage: { '@id': url },
+    mainEntityOfPage: { '@id': canonical },
   };
 
   if (entry.type === EntryType.Diagram) {
@@ -108,7 +129,7 @@ export function renderEntryPageJsonLd(entry: LogEntry): string {
         name: entry.title,
         isPartOf: { '@id': `${SITE}/#website` },
         about: { '@id': PERSON },
-        mainEntity: { '@id': url },
+        mainEntity: { '@id': canonical },
       },
       post,
     ],
@@ -150,14 +171,17 @@ function setAttr(html: string, attrRe: RegExp, value: string, label: string): st
  */
 export function buildEntryPageHtml(shellHtml: string, entry: LogEntry): string {
   const url = pageUrl(entry.slug);
+  // canonical/og:url: a diagram teaser points to the .com hub canonical (S3 demote); every
+  // other entry is self-canonical on .online.
+  const canonical = canonicalUrlFor(entry);
   const desc = entryDescription(entry);
   let html = shellHtml;
 
-  // 1) canonical + og:url → the real page URL.
+  // 1) canonical + og:url → the canonical page URL (.com hub for a diagram teaser, else self).
   // \s+ between the identifying attribute and href/content: the source index.html
   // splits some meta tags across lines, and the built shell preserves that.
-  html = setAttr(html, /(<link rel="canonical"\s+href=")[^"]*(")/, url, 'canonical');
-  html = setAttr(html, /(<meta property="og:url"\s+content=")[^"]*(")/, url, 'og:url');
+  html = setAttr(html, /(<link rel="canonical"\s+href=")[^"]*(")/, canonical, 'canonical');
+  html = setAttr(html, /(<meta property="og:url"\s+content=")[^"]*(")/, canonical, 'og:url');
 
   // 2) title + description across page + OG + Twitter. X/Twitter cards prefer the
   // twitter:* values over og:*, so the per-entry twitter:title/description MUST be set

@@ -516,7 +516,7 @@ test('formatTimestamp/formatDate: PT label correct regardless of host TZ', () =>
   }
 });
 
-test('generateSitemap emits image sitemap node for diagram entries', () => {
+test('generateSitemap does NOT emit an image node for diagram entries (S3 demote: the .com hub owns the image-sitemap entry)', () => {
   const xml = generateSitemap([
     {
       slug: 'diagram-entry',
@@ -535,10 +535,14 @@ test('generateSitemap emits image sitemap node for diagram entries', () => {
       source: 'substrate',
     },
   ]);
-  assert.ok(xml.includes('xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"'));
-  assert.ok(xml.includes('<image:loc>https://www.danmercede.online/assets/diagrams/diagram-entry.svg</image:loc>'));
-  assert.ok(xml.includes('<image:caption>The gate sits before the mutation.</image:caption>'));
+  // The .online page stays listed as an AEO teaser (loc + lastmod present)...
+  assert.ok(xml.includes('<loc>https://www.danmercede.online/diagram-entry</loc>'), 'diagram page still listed (teaser)');
   assert.ok(xml.includes('<lastmod>2026-03-13</lastmod>'));
+  // ...but it no longer claims the image: the hub (danmercede.com) now owns the
+  // <image:image> sitemap entry, so emitting it from both surfaces would split authority.
+  assert.ok(!xml.includes('<image:image>'), 'no image node for diagrams after the demote');
+  assert.ok(!xml.includes('<image:loc>'), 'no image:loc for diagrams after the demote');
+  assert.ok(!xml.includes('/assets/diagrams/diagram-entry.svg'), 'the diagram image url is no longer in the .online sitemap');
 });
 
 // ---------------------------------------------------------------------------

@@ -159,10 +159,6 @@
   <url>
     <loc>https://www.danmercede.online/2026-06-16-fail-closed-merge-admission</loc>
     <lastmod>2026-06-16</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-06-16-fail-closed-merge-admission.png</image:loc>
-      <image:caption>Fail-closed merge admission for agent-written code: the gate is the product.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -223,10 +219,6 @@
   <url>
     <loc>https://www.danmercede.online/2026-04-24-the-missing-execution-boundary</loc>
     <lastmod>2026-04-24</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-04-24-the-missing-execution-boundary.jpg</image:loc>
-      <image:caption>The missing unit is not a policy; it is an execution boundary.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -239,20 +231,12 @@
   <url>
     <loc>https://www.danmercede.online/2026-04-21-the-map-is-not-the-territory</loc>
     <lastmod>2026-04-21</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-04-21-the-map-is-not-the-territory.jpg</image:loc>
-      <image:caption>The map of controls is not the territory of enforcement.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.danmercede.online/2026-04-17-translating-reasonable-care-into-code</loc>
     <lastmod>2026-04-17</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-04-17-translating-reasonable-care-into-code.jpg</image:loc>
-      <image:caption>What reasonable care looks like as an execution path.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -265,20 +249,12 @@
   <url>
     <loc>https://www.danmercede.online/2026-04-14-the-enterprise-ai-market-divide</loc>
     <lastmod>2026-04-14</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-04-14-the-enterprise-ai-market-divide.jpg</image:loc>
-      <image:caption>The market is dividing along one axis: before versus after.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.danmercede.online/2026-04-10-the-fallacy-of-monitoring</loc>
     <lastmod>2026-04-10</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-04-10-the-fallacy-of-monitoring.jpg</image:loc>
-      <image:caption>The alert arrives after the harm: that&apos;s the fallacy.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -291,20 +267,12 @@
   <url>
     <loc>https://www.danmercede.online/2026-04-07-the-equation-of-liability</loc>
     <lastmod>2026-04-07</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-04-07-the-equation-of-liability.jpg</image:loc>
-      <image:caption>The statute makes post-hoc governance a liability, not a defense.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.danmercede.online/2026-04-03-governance-is-not-hope</loc>
     <lastmod>2026-04-03</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-04-03-governance-is-not-hope.jpg</image:loc>
-      <image:caption>Monitoring is hope; containment is the alternative.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -317,20 +285,12 @@
   <url>
     <loc>https://www.danmercede.online/2026-03-31-the-physics-of-ai-isolation</loc>
     <lastmod>2026-03-31</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-03-31-the-physics-of-ai-isolation.jpg</image:loc>
-      <image:caption>Real control is physics, not policy.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.danmercede.online/2026-03-27-from-policy-to-runtime-proof</loc>
     <lastmod>2026-03-27</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-03-27-from-policy-to-runtime-proof.jpg</image:loc>
-      <image:caption>If governance isn&apos;t enforced at runtime, it isn&apos;t governance.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -343,20 +303,12 @@
   <url>
     <loc>https://www.danmercede.online/2026-03-24-monitoring-vs-enforcement-architecture</loc>
     <lastmod>2026-03-24</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-03-24-monitoring-vs-enforcement-architecture.jpg</image:loc>
-      <image:caption>The architecture divide, stated plainly.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.danmercede.online/2026-03-20-governance-converts-risk-into-economics</loc>
     <lastmod>2026-03-20</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-03-20-governance-converts-risk-into-economics.svg</image:loc>
-      <image:caption>Governance is not a cost center; it converts risk into economics.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -369,20 +321,12 @@
   <url>
     <loc>https://www.danmercede.online/2026-03-17-runtime-governance-control-plane</loc>
     <lastmod>2026-03-17</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-03-17-runtime-governance-control-plane.svg</image:loc>
-      <image:caption>The reference architecture, one picture.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.danmercede.online/2026-03-13-the-gated-execution-pipeline</loc>
     <lastmod>2026-03-13</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-03-13-the-gated-execution-pipeline.svg</image:loc>
-      <image:caption>The whole loop: where each gate sits and what each failure does.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -395,10 +339,6 @@
   <url>
     <loc>https://www.danmercede.online/2026-03-10-advisory-vs-deterministic-boundary</loc>
     <lastmod>2026-03-10</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-03-10-advisory-vs-deterministic-boundary.jpg</image:loc>
-      <image:caption>A wall you can walk through is not a boundary.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -411,20 +351,12 @@
   <url>
     <loc>https://www.danmercede.online/2026-03-06-the-substrate-walls</loc>
     <lastmod>2026-03-06</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-03-06-the-substrate-walls.jpg</image:loc>
-      <image:caption>Isolation built up from the hardware, not bolted on as policy.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.danmercede.online/2026-03-03-the-rpc-stub-airlock</loc>
     <lastmod>2026-03-03</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-03-03-the-rpc-stub-airlock.jpg</image:loc>
-      <image:caption>Agents submit intent; they do not hold execution rights.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -437,10 +369,6 @@
   <url>
     <loc>https://www.danmercede.online/2026-02-27-monitor-after-vs-constrain-before</loc>
     <lastmod>2026-02-27</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-02-27-monitor-after-vs-constrain-before.jpg</image:loc>
-      <image:caption>Monitoring tells you it happened; a constraint stops it from happening.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -453,30 +381,18 @@
   <url>
     <loc>https://www.danmercede.online/2026-02-24-authority-decay-over-a-session</loc>
     <lastmod>2026-02-24</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-02-24-authority-decay-over-a-session.jpg</image:loc>
-      <image:caption>Standing authority is the bug; authority should decay and force re-auth.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.danmercede.online/2026-02-20-anatomy-of-non-repudiation</loc>
     <lastmod>2026-02-20</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-02-20-anatomy-of-non-repudiation.jpg</image:loc>
-      <image:caption>Non-repudiation is structural, not promised: the receipt carries the proof.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.danmercede.online/2026-02-17-audit-logs-vs-immutable-receipts</loc>
     <lastmod>2026-02-17</lastmod>
-    <image:image>
-      <image:loc>https://www.danmercede.online/assets/diagrams/2026-02-17-audit-logs-vs-immutable-receipts.jpg</image:loc>
-      <image:caption>Audit logs are written after the fact; an immutable receipt is written as a precondition of the act.</image:caption>
-    </image:image>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
