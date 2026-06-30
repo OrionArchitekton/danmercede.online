@@ -11,10 +11,10 @@ export const ENTRIES: LogEntry[] = [
     context: "Governance",
     tags: ["governance", "systems", "infra"],
     claim: "In autonomous systems, retrospective governance is a failure mode; governance must be a physics constraint, not an audit log.",
-    content: `We often treat governance as a retrospective layer—audit logs, compliance checks, and post-incident reviews. But in autonomous agentic systems, by the time you review the log, the agent has already executed the trade, deleted the file, or sent the email.
+    content: `We often treat governance as a retrospective layer: audit logs, compliance checks, and post-incident reviews. But in autonomous agentic systems, by the time you review the log, the agent has already executed the trade, deleted the file, or sent the email.
     
     The challenge is latency. If every agentic decision requires a round-trip to a governance kernel, we introduce unacceptable drag. The solution likely lies in localizing signed policy primitives to the agent's runtime environment. We are currently testing a model where policy logic is compiled into WASM modules that sit directly in the agent's context window pipeline.`,
-    implication: "Implication: We must move from 'Oversight' to 'Physics'—embedding rules into the execution substrate itself."
+    implication: "Implication: We must move from 'Oversight' to 'Physics', embedding rules into the execution substrate itself."
   },
   {
     id: "ex-002",
