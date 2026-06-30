@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-30T15:20:32.417Z",
-  "count": 85,
+  "generated": "2026-06-30T23:44:26.339Z",
+  "count": 86,
   "posts": [
+    {
+      "slug": "2026-06-30-prefill-demos-server-side",
+      "title": "Prefill demos server-side",
+      "type": "experiment-log",
+      "date": "2026-06-30"
+    },
     {
       "slug": "2026-06-30-a-report-is-not-recon",
       "title": "A Report Is Not Recon",
