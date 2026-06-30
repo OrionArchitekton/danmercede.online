@@ -48,8 +48,8 @@ a product, library, backend, API, runtime, or platform repo.
 
 ## Allowed Dependencies
 
-- static React, Vite, TypeScript, Tailwind CDN, `lucide-react`, `tsx`, and
-  `gray-matter`
+- static React, Vite, TypeScript, bundled Tailwind/PostCSS tooling,
+  `lucide-react`, `tsx`, and `gray-matter`
 - Vercel static hosting and GitHub Actions for admitted publishing workflows
 - substrate content only through explicit compile-time ingestion and conflict
   rules
