@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-30T15:17:09.473Z",
-  "count": 84,
+  "generated": "2026-06-30T15:20:32.417Z",
+  "count": 85,
   "posts": [
+    {
+      "slug": "2026-06-30-a-report-is-not-recon",
+      "title": "A Report Is Not Recon",
+      "type": "short-essay",
+      "date": "2026-06-30"
+    },
     {
       "slug": "2026-06-30-refuted-or-rate-limited",
       "title": "Refuted or Rate Limited",
