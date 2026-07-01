@@ -1,6 +1,6 @@
-# Dan Mercede — Signals (danmercede.online)
+# Dan Mercede: Signals (danmercede.online)
 
-> danmercede.online is the living public working log of Dan Mercede — short,
+> danmercede.online is the living public working log of Dan Mercede, short,
 > raw "signals": lessons, discoveries, and notes from building governed AI
 > operating systems and agentic engineering systems. The curated long-form hub
 > is https://www.danmercede.com/.
