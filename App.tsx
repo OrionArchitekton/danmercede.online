@@ -73,7 +73,7 @@ const App: React.FC = () => {
                     {/* Line 1: Identity + Micro-links (responsive) */}
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
                         <h1 className="text-base font-bold tracking-tight text-gray-900">
-                            danmercede.online <span className="text-gray-500 font-normal ml-2">— Living Signal Surface</span>
+                            danmercede.online <span className="text-gray-500 font-normal ml-2">· Living Signal Surface</span>
                         </h1>
                         {/* Micro-links - below on mobile, inline on desktop */}
                         <div className="flex items-center gap-4 text-xs font-mono text-gray-500">
