@@ -1,7 +1,13 @@
 {
-  "generated": "2026-06-30T23:44:26.339Z",
-  "count": 86,
+  "generated": "2026-07-01T07:59:03.819Z",
+  "count": 87,
   "posts": [
+    {
+      "slug": "2026-07-01-recheck-what-you-rejected",
+      "title": "Recheck What You Rejected",
+      "type": "short-essay",
+      "date": "2026-07-01"
+    },
     {
       "slug": "2026-06-30-prefill-demos-server-side",
       "title": "Prefill demos server-side",
