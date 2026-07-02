@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-01T07:59:03.819Z",
-  "count": 87,
+  "generated": "2026-07-02T07:11:10.106Z",
+  "count": 88,
   "posts": [
+    {
+      "slug": "2026-07-02-silence-is-not-absence",
+      "title": "Silence Is Not Absence",
+      "type": "experiment-log",
+      "date": "2026-07-02"
+    },
     {
       "slug": "2026-07-01-recheck-what-you-rejected",
       "title": "Recheck What You Rejected",
