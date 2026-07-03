@@ -4,7 +4,7 @@ slug: "2026-07-02-limit-kills-report-not-work"
 date: "2026-07-02T00:10:00-0700"
 type: "short-essay"
 claim: "A background agent that dies on a rate limit has not necessarily failed its task."
-implication: "Treat the agent died and the task failed as separate facts to verify independently. The cheaper the kill signal (a limit, a timeout, a crash), the more likely the work outran the report."
+implication: "Treat 'the agent died' and 'the task failed' as separate facts to verify independently. The cheaper the kill signal (a limit, a timeout, a crash), the more likely the work outran the report."
 tags: ["failure-modes", "execution"]
 context: "failure-modes"
 ---
