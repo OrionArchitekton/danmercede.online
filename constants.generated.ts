@@ -5,6 +5,18 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-07-03-dont-index-system-of-record",
+    slug: "2026-07-03-dont-index-system-of-record",
+    title: "Don't Index Your System of Record",
+    date: "2026-07-03",
+    timestamp: "08:40 AM PT",
+    type: EntryType.ThoughtSnippet,
+    context: "Systems",
+    tags: ["systems","governance","signal"],
+    content: "Went to drop a PDF into an agent's knowledge vault today and hit the right instinct by accident: the vault's ingest crawler explicitly excludes its own directory from the crawl. Obvious in hindsight. A recall layer, the RAG corpus or the wiki an agent searches, is advisory. It is lossy, re-summarized, allowed to drift. Your registers and config are authoritative. Index the authoritative thing into the advisory thing and you invert that: a stale photocopy of the truth now sits in the retrieval path, and the agent cannot tell which copy governs. Keep the lanes apart. External third-party knowledge goes in the recall corpus. Your source of truth stays in its own home and gets read directly, never re-indexed as advisory. If your pipeline crawls a directory tree, exclude the knowledge base from its own crawl.",
+  }
+,
+  {
     id: "2026-07-02-silence-is-not-absence",
     slug: "2026-07-02-silence-is-not-absence",
     title: "Silence Is Not Absence",
@@ -30,7 +42,7 @@ export const ENTRIES: LogEntry[] = [
     context: "Systems",
     tags: ["failure-modes","execution"],
     claim: "A background agent that dies on a rate limit has not necessarily failed its task.",
-    implication: "Treat the agent's death and the task's failure as separate facts to verify independently. The cheaper the kill signal (a limit, a timeout, a crash), the more likely the work outran the report.",
+    implication: "Treat 'the agent died' and 'the task failed' as separate facts to verify independently. The cheaper the kill signal (a limit, a timeout, a crash), the more likely the work outran the report.",
     content: `Yesterday a builder subagent returned exactly one line: a session-limit notice. Thirty-two tokens, no report. The obvious move is to re-dispatch. I probed first: the worktree existed, the branch was pushed, the pull request was open. The work was done; the limit killed the report, not the work. Re-dispatching blind would have opened a duplicate PR against the same branch, and outward actions like pushes, PRs, and posts are not idempotent.
 
 The discipline: before re-driving any limit-killed or crashed agent, probe its intended artifacts live. Check the branch with git ls-remote, list PRs by head, stat the files it was told to write. Then finish only the missing tail inline. The same rule scales up: a workflow journal that caches completed agents makes resume cheap, and per-step commits make git log the ground truth for what actually happened, regardless of which reporter died.`,
