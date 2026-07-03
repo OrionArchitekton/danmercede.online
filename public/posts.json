@@ -1,11 +1,17 @@
 {
-  "generated": "2026-07-02T07:11:10.106Z",
-  "count": 88,
+  "generated": "2026-07-02T16:46:34.437Z",
+  "count": 89,
   "posts": [
     {
       "slug": "2026-07-02-silence-is-not-absence",
       "title": "Silence Is Not Absence",
       "type": "experiment-log",
+      "date": "2026-07-02"
+    },
+    {
+      "slug": "2026-07-02-limit-kills-report-not-work",
+      "title": "The Limit Kills the Report, Not the Work",
+      "type": "short-essay",
       "date": "2026-07-02"
     },
     {
