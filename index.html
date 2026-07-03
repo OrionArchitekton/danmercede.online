@@ -73,9 +73,38 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
     rel="stylesheet">
+
+  <!-- Meta Pixel Code -->
+  <!-- Operator-installed 2026-07-03: feeds live PageView events to the Meta
+       test dataset that PixelSentry (OAC venture) reconciles its Dataset
+       Quality parser against. Removable once reconciliation data is captured.
+       Hostname-gated to the production origin so local dev, Vercel previews,
+       and forks never load Meta or pollute the dataset (matches the repo's
+       env-gated analytics posture; stricter than a %PROD% build gate, which
+       preview deployments would pass). Disclosed on /policies. -->
+  <script>
+    (function () {
+      var h = window.location.hostname;
+      if (h !== 'danmercede.online' && h !== 'www.danmercede.online') return;
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '1551096183054005');
+      fbq('track', 'PageView');
+    })();
+  </script>
+  <!-- End Meta Pixel Code -->
 </head>
 
 <body>
+  <!-- Meta Pixel noscript fallback deliberately omitted: this SPA renders
+       nothing without JS, so a no-JS pixel hit carries no analytics value, and
+       a noscript img cannot be hostname-gated (it would fire from previews). -->
   <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>

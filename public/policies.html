@@ -86,11 +86,16 @@
       <section>
         <h2 class="text-sm font-mono uppercase tracking-wider text-gray-500 mb-3">Privacy</h2>
         <p>
-          This is a static site. It sets <span class="font-medium">no cookies</span>, runs
-          <span class="font-medium">no analytics or tracking</span>, has no accounts or logins, and collects no
-          personal data from visitors. Nothing you do here is recorded by the site. Standard, transient web-server
-          and CDN request logs may be retained by the hosting provider (Vercel) for operational and security
-          purposes under their own policies; the site itself stores nothing.
+          This is a static site with <span class="font-medium">no accounts or logins</span>; it collects no
+          personal data directly and stores nothing itself. For aggregate visit analytics the production site
+          loads the <span class="font-medium">Meta Pixel</span>, which sets Meta cookies (such as
+          <span class="font-mono">_fbp</span>) and sends page-view events to Meta Platforms; how Meta processes
+          that data is described in
+          <a href="https://www.facebook.com/privacy/policy/" class="underline underline-offset-2 hover:text-black">Meta&#39;s privacy policy</a>.
+          When configured, Google Analytics 4 also runs in a privacy-leaning consent mode (analytics only, all ad
+          signals denied, IP anonymized). Neither runs on non-production copies of the site. Standard, transient
+          web-server and CDN request logs may be retained by the hosting provider (Vercel) for operational and
+          security purposes under their own policies.
         </p>
       </section>
 
