@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-03T15:33:32.644Z",
-  "count": 90,
+  "generated": "2026-07-04T07:17:04.680Z",
+  "count": 91,
   "posts": [
+    {
+      "slug": "2026-07-04-benchmarks-evict-hot-models",
+      "title": "Benchmarks Evict Hot Models",
+      "type": "experiment-log",
+      "date": "2026-07-04"
+    },
     {
       "slug": "2026-07-03-dont-index-system-of-record",
       "title": "Don't Index Your System of Record",
