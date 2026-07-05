@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-05T07:07:02.857Z",
-  "count": 92,
+  "generated": "2026-07-05T07:10:14.375Z",
+  "count": 93,
   "posts": [
+    {
+      "slug": "2026-07-05-fail-set-is-everything",
+      "title": "Fail Set Is Everything",
+      "type": "thought-snippet",
+      "date": "2026-07-05"
+    },
     {
       "slug": "2026-07-05-pr-merge-train-gotchas",
       "title": "PR-Merge Train Gotchas",
