@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-04T07:17:04.680Z",
-  "count": 91,
+  "generated": "2026-07-05T07:07:02.857Z",
+  "count": 92,
   "posts": [
+    {
+      "slug": "2026-07-05-pr-merge-train-gotchas",
+      "title": "PR-Merge Train Gotchas",
+      "type": "short-essay",
+      "date": "2026-07-05"
+    },
     {
       "slug": "2026-07-04-benchmarks-evict-hot-models",
       "title": "Benchmarks Evict Hot Models",
