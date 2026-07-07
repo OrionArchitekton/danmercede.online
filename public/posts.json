@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-06T14:43:52.206Z",
-  "count": 94,
+  "generated": "2026-07-07T15:55:04.275Z",
+  "count": 95,
   "posts": [
+    {
+      "slug": "2026-07-07-vet-the-ai-pr-fleet",
+      "title": "Vet the AI PR Fleet",
+      "type": "short-essay",
+      "date": "2026-07-07"
+    },
     {
       "slug": "2026-07-06-recon-vs-prior-decisions",
       "title": "Recon vs Prior Decisions",
