@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-07T15:55:04.275Z",
-  "count": 95,
+  "generated": "2026-07-08T16:17:39.204Z",
+  "count": 96,
   "posts": [
+    {
+      "slug": "2026-07-08-certify-vs-reproduce",
+      "title": "Certify vs Reproduce",
+      "type": "short-essay",
+      "date": "2026-07-08"
+    },
     {
       "slug": "2026-07-07-vet-the-ai-pr-fleet",
       "title": "Vet the AI PR Fleet",
