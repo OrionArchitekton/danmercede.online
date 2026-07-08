@@ -169,6 +169,14 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, onTagClick }) => {
         {entry.title}
       </h2>
 
+      {/* Optional lead figure (e.g. a guide infographic) */}
+      {entry.image && (
+        <figure className="mb-6 space-y-2">
+          <img src={entry.image.src} alt={entry.image.alt} loading="lazy" decoding="async" className="w-full h-auto border border-gray-200 bg-white" />
+          {entry.image.caption && <figcaption className="text-sm text-gray-600 leading-relaxed">{entry.image.caption}</figcaption>}
+        </figure>
+      )}
+
       {/* Body */}
       {renderBody()}
 

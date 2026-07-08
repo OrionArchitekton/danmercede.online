@@ -7,6 +7,10 @@ claim: "A reviewer that reasons about your code and one that runs it have differ
 implication: "For AI-written code, stack independent review layers so one layer's blind spot is another layer's catch."
 tags: ["failure-modes", "execution", "security"]
 context: "failure-modes"
+image:
+  src: "/assets/signals/independent-review-stack.webp"
+  alt: "The independent review stack: four orthogonal review layers for agent-written code (live environment recon, a pre-PR multi-model fleet, post-push functional execution, and the CI merge gate), each sensing a different modality and catching a defect the others miss."
+  caption: "Four review layers, each sensing a different modality. Independent ones do not share blind spots."
 ---
 
 A security reviewer read my credential scrubber and certified it: no overlap mis-redaction. One review layer later, a different reviewer ran the code and reproduced a partial secret in the logs. Same function, opposite verdict.

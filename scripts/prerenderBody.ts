@@ -127,10 +127,16 @@ export function entryArticleHtml(entry: LogEntry): string {
   const tags = entry.tags.length
     ? `<p>Tags: ${entry.tags.map((t) => escapeHtml(`#${t}`)).join(' ')}</p>`
     : '';
+  // Optional lead figure (any entry type may carry one), baked as crawlable prose.
+  const figure = entry.image
+    ? `<figure><img src="${escapeHtml(entry.image.src)}" alt="${escapeHtml(entry.image.alt)}" loading="lazy" width="1200" height="675" />` +
+      (entry.image.caption ? `<figcaption>${escapeHtml(entry.image.caption)}</figcaption>` : '') +
+      `</figure>`
+    : '';
   // id == slug so the in-feed EntryCard permalink (`#${slug}`) resolves to a real
   // on-page anchor (W6), and so the per-slug page reuses this exact <article> (the
   // page's canonical URL is `/${slug}`, emitted by perSlugPagesPlugin).
-  return `<article id="${escapeHtml(entry.slug)}">${heading}${meta}${entryBodyHtml(
+  return `<article id="${escapeHtml(entry.slug)}">${heading}${meta}${figure}${entryBodyHtml(
     entry,
   )}${tags}</article>`;
 }

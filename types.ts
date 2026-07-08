@@ -27,6 +27,7 @@ export interface BaseEntry {
   timestamp: string; // HH:MM [Timezone]
   tags: Tag[];
   context?: ContextLabel;
+  image?: { src: string; alt: string; caption?: string }; // optional inline figure (e.g. a guide infographic)
 }
 
 export interface ShortEssay extends BaseEntry {
