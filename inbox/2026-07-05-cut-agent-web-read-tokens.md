@@ -10,4 +10,8 @@ resultDetails: "9,541 tokens raw vs 1,678 as markdown, an 82% cut on that page (
 nextStep: "Full stack and the reader CLI in the guide: https://www.danmercede.com/guides/giving-your-agent-web-access"
 tags: ["economics", "execution", "systems"]
 context: "execution"
+image:
+  src: "/assets/signals/efficient-web-access.webp"
+  alt: "The cost of lazy web access versus a hardened stack: raw HTML wasting about 82 percent of an agent's context window, against a three-part stack of self-hosted search, extract-first markdown fetching, and a summarizing subagent that passes back only distilled facts."
+  caption: "Raw HTML can burn 80 percent of an agent's context. Extract-first fetching keeps only the signal."
 ---

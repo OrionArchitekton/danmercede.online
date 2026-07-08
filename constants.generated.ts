@@ -15,6 +15,7 @@ export const ENTRIES: LogEntry[] = [
     tags: ["failure-modes","execution","security"],
     claim: "A reviewer that reasons about your code and one that runs it have different blind spots: certification is an argument, reproduction is a fact.",
     implication: "For AI-written code, stack independent review layers so one layer's blind spot is another layer's catch.",
+    image: {"src":"/assets/signals/independent-review-stack.webp","alt":"The independent review stack: four orthogonal review layers for agent-written code (live environment recon, a pre-PR multi-model fleet, post-push functional execution, and the CI merge gate), each sensing a different modality and catching a defect the others miss.","caption":"Four review layers, each sensing a different modality. Independent ones do not share blind spots."},
     content: `A security reviewer read my credential scrubber and certified it: no overlap mis-redaction. One review layer later, a different reviewer ran the code and reproduced a partial secret in the logs. Same function, opposite verdict.
 
 The two reviewers were not unequal in skill. They had different blind spots. A reviewer that reasons about your code builds an argument for why it is correct. A reviewer that executes it observes what actually happens. An argument can be sound and still miss the exact input the code meets in production. Reproduction does not get that option: the secret either leaks or it does not.
@@ -78,6 +79,7 @@ A second shape of the same blindness shows up in wide research fan-outs: a broad
     result: "Passed",
     resultDetails: "9,541 tokens raw vs 1,678 as markdown, an 82% cut on that page (20-30% typical). The extraction is deterministic markdown, not a model summary, so it cannot hallucinate. A keyless reader CLI runs in a subagent, so raw HTML never reaches the main context. A live smoke test caught a browser User-Agent 403 the unit tests missed.",
     nextStep: "Full stack and the reader CLI in the guide: https://www.danmercede.com/guides/giving-your-agent-web-access",
+    image: {"src":"/assets/signals/efficient-web-access.webp","alt":"The cost of lazy web access versus a hardened stack: raw HTML wasting about 82 percent of an agent's context window, against a three-part stack of self-hosted search, extract-first markdown fetching, and a summarizing subagent that passes back only distilled facts.","caption":"Raw HTML can burn 80 percent of an agent's context. Extract-first fetching keeps only the signal."},
   }
 ,
   {
