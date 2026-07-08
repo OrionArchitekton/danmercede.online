@@ -5,6 +5,26 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-07-08-certify-vs-reproduce",
+    slug: "2026-07-08-certify-vs-reproduce",
+    title: "Certify vs Reproduce",
+    date: "2026-07-08",
+    timestamp: "09:20 AM PT",
+    type: EntryType.ShortEssay,
+    context: "Systems",
+    tags: ["failure-modes","execution","security"],
+    claim: "A reviewer that reasons about your code and one that runs it have different blind spots: certification is an argument, reproduction is a fact.",
+    implication: "For AI-written code, stack independent review layers so one layer's blind spot is another layer's catch.",
+    content: `A security reviewer read my credential scrubber and certified it: no overlap mis-redaction. One review layer later, a different reviewer ran the code and reproduced a partial secret in the logs. Same function, opposite verdict.
+
+The two reviewers were not unequal in skill. They had different blind spots. A reviewer that reasons about your code builds an argument for why it is correct. A reviewer that executes it observes what actually happens. An argument can be sound and still miss the exact input the code meets in production. Reproduction does not get that option: the secret either leaks or it does not.
+
+This is why a single review pass is not a safety net for AI-written code. The passes have to be independent, because independence is what stops their blind spots from lining up. Certification tells you a careful reasoner could not find the bug. Reproduction tells you whether the bug is there. Keep both, and keep them separate.
+
+The full walkthrough, four review layers and five defects each caught by only one, is here: https://www.danmercede.com/guides/why-agent-code-needs-layered-review`,
+  }
+,
+  {
     id: "2026-07-07-vet-the-ai-pr-fleet",
     slug: "2026-07-07-vet-the-ai-pr-fleet",
     title: "Vet the AI PR Fleet",
