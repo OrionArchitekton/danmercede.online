@@ -1,7 +1,8 @@
 {
   "cleanUrls": true,
   "redirects": [
-    { "source": "/rss", "destination": "/feed.xml", "permanent": true }
+    { "source": "/rss", "destination": "/feed.xml", "permanent": true },
+    { "source": "/rss.xml", "destination": "/feed.xml", "permanent": true }
   ],
   "headers": [
     {

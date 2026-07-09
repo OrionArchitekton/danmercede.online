@@ -61,6 +61,24 @@ jobs:
           COUNT=$(echo "$RESPONSE" | jq '.count // 0')
           echo "count=$COUNT" >> $GITHUB_OUTPUT
       
+      # WebSub freshness push (specs/rss-feed-spec.md scenario 4): tell the hub the
+      # feeds changed so subscribers (Feedly-class readers) get pushed instead of
+      # waiting on a poll. Non-blocking: a ping failure is a WARNING, never a gate.
+      - name: Ping WebSub hub
+        continue-on-error: true
+        run: |
+          for FEED in "https://www.danmercede.online/feed.xml" "https://www.danmercede.online/atom.xml"; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "https://pubsubhubbub.appspot.com/" \
+              -H "Content-Type: application/x-www-form-urlencoded" \
+              --data-urlencode "hub.mode=publish" \
+              --data-urlencode "hub.url=${FEED}") || STATUS="000"
+            if [ "$STATUS" = "204" ]; then
+              echo "WebSub ping accepted for ${FEED}"
+            else
+              echo "::warning::WebSub ping for ${FEED} returned HTTP ${STATUS}"
+            fi
+          done
+
       - name: Notify success
         if: steps.verify.outputs.verified == 'true'
         run: |
