@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-08T23:05:48.163Z",
-  "count": 96,
+  "generated": "2026-07-09T08:09:30.980Z",
+  "count": 97,
   "posts": [
+    {
+      "slug": "2026-07-09-schema-is-a-second-surface",
+      "title": "Schema Is a Second Surface",
+      "type": "short-essay",
+      "date": "2026-07-09"
+    },
     {
       "slug": "2026-07-08-certify-vs-reproduce",
       "title": "Certify vs Reproduce",
