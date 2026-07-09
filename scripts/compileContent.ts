@@ -202,7 +202,7 @@ function validateDate(date: unknown, file: string): string | null {
     if (isNaN(date.getTime())) {
       return null;
     }
-    // Detect "midnight UTC, zero milliseconds" — gray-matter's canonical shape for a
+    // Detect "midnight UTC, zero milliseconds" - gray-matter's canonical shape for a
     // date-only YAML scalar. Any non-midnight or non-zero-ms instant is treated as a
     // full timestamp whose exact instant must be preserved.
     const isDateOnlySentinel =
@@ -211,7 +211,7 @@ function validateDate(date: unknown, file: string): string | null {
       date.getUTCSeconds() === 0 &&
       date.getUTCMilliseconds() === 0;
     if (isDateOnlySentinel) {
-      // YYYY-MM-DD slice from ISO, then noon-PST default — matches the quoted-string
+      // YYYY-MM-DD slice from ISO, then noon-PST default - matches the quoted-string
       // date-only branch below for byte-identical output.
       dateStr = date.toISOString().slice(0, 10);
     } else {
@@ -237,7 +237,7 @@ function validateDate(date: unknown, file: string): string | null {
   }
 
   // ISO 8601 with milliseconds + Z (from Date.toISOString() for a full instant):
-  // accept as-is — formatTimestamp/formatDate render it correctly via Intl.DateTimeFormat
+  // accept as-is - formatTimestamp/formatDate render it correctly via Intl.DateTimeFormat
   // with explicit America/Los_Angeles, so we don't need to rewrite the string.
   const isoWithMillis = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z$/;
   if (isoWithMillis.test(dateStr)) {
@@ -589,7 +589,7 @@ function copyDiagramAsset(
 /**
  * Map a single substrate frontmatter+body into a consumer ParsedEntry. Returns null
  * when the canonical is filtered out (wrong surface, wrong status, missing required
- * fields, or unmapped type). All filter decisions log to console.log (not stderr) —
+ * fields, or unmapped type). All filter decisions log to console.log (not stderr) -
  * substrate read is FAIL-OPEN.
  */
 export function mapSubstrateToEntry(
@@ -962,7 +962,7 @@ function main() {
   // CI owns compilation. Guard must run before any filesystem writes so the
   // Vercel prebuild hook cannot overwrite the committed bundle.
   if (process.env.VERCEL) {
-    console.log('VERCEL build environment detected — skipping compile; the committed bundle is served (Spec 4b D1).');
+    console.log('VERCEL build environment detected - skipping compile; the committed bundle is served (Spec 4b D1).');
     process.exit(0);
   }
 
@@ -1055,7 +1055,7 @@ function main() {
   console.log(`✅ Generated: ${outputJson}`);
 
   // W9: per-entry sitemap with lastmod from REAL content dates (never auto-bumped
-  // every build — 2026 best practice; inflated lastmod erodes crawler trust).
+  // every build - 2026 best practice; inflated lastmod erodes crawler trust).
   const sitemapContent = generateSitemap(merged);
   fs.writeFileSync(outputSitemap, sitemapContent, 'utf-8');
   console.log(`✅ Generated: ${outputSitemap}`);
@@ -1110,13 +1110,13 @@ function escapeXml(value: string): string {
  * Generate sitemap.xml from compiled entries. One <url> per entry as a real
  * per-slug page URL `/<slug>` (each entry is emitted as a static page at
  * dist/<slug>/index.html by perSlugPagesPlugin) plus the root URL. Each <lastmod>
- * is the entry's own content date — NOT an every-build auto-bump (inflated lastmod
+ * is the entry's own content date - NOT an every-build auto-bump (inflated lastmod
  * erodes crawler trust; 2026 best practice is to track REAL change). Root <lastmod>
  * = newest entry date, or today only when there are no entries.
  */
 export function generateSitemap(entries: ParsedEntry[]): string {
   // Newest content date (entries carry YYYY-MM-DD `date`); fall back to today in
-  // PT (America/Los_Angeles) to match the rest of this file's TZ discipline —
+  // PT (America/Los_Angeles) to match the rest of this file's TZ discipline -
   // UTC slice could roll to tomorrow on a late-evening PT build.
   const dates = entries.map(e => e.date).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d));
   const newest = dates.length > 0 ? dates.sort().reverse()[0] : PT_DATE_FORMATTER.format(new Date());
