@@ -48,13 +48,12 @@ time; the feed is deterministic from content.
 - **Feed stale after a signal publish:** the PR that added the signal did not
   commit regenerated feeds. Run `npm run compile` locally and commit the
   `public/feed.xml` + `public/atom.xml` diff.
-- **Substrate entries missing (count drop in posts.json / sitemap / feed):**
-  compile ran without a reachable substrate. The compiler reads
-  `dan-mercede-substrate` FAIL-OPEN: no sibling checkout and no
-  `SUBSTRATE_PATH` means substrate entries silently vanish from ALL committed
-  artifacts, and the inbox-only drift gate still passes. In a worktree, always
-  run `SUBSTRATE_PATH=<canonical substrate home> npm run compile`, and diff
-  `posts.json`'s `count` against HEAD before committing.
+- **Compile aborts with "CONTENT SHRINK BLOCKED" (exit 2):** the fail-closed
+  shrink guard fired: the recompile produced fewer entries than the committed
+  `posts.json` count, almost always because no substrate was reachable (the
+  substrate read is FAIL-OPEN; a worktree has no sibling checkout). Re-run with
+  `SUBSTRATE_PATH=<canonical substrate home> npm run compile`. Only pass
+  `ALLOW_CONTENT_SHRINK=1` for a deliberate entry removal.
 - **Hub ping failing repeatedly:** subscribers fall back to polling; no user
   impact. Re-ping manually:
   `curl -X POST https://pubsubhubbub.appspot.com/ -d hub.mode=publish --data-urlencode hub.url=https://www.danmercede.online/feed.xml`

@@ -657,3 +657,36 @@ test('mergeEntriesDedupBySlug preserves all inbox entries when substrate empty',
   const merged = mergeEntriesDedupBySlug(inbox, []);
   assert.equal(merged.length, 2);
 });
+
+// ---------------------------------------------------------------------------
+// silentShrinkError — fail-closed guard against silent content truncation
+// (PR #105 adversarial finding: a compile without a reachable substrate
+// regenerates every committed artifact minus all substrate entries, and the
+// inbox-only drift gate stays green).
+// ---------------------------------------------------------------------------
+
+import { silentShrinkError } from '../scripts/compileContent.ts';
+
+test('shrink guard: blocks a count drop without the explicit override', () => {
+  const err = silentShrinkError(72, 97, false);
+  assert.ok(err, 'a 97 -> 72 recompile must be blocked');
+  assert.match(err!, /SUBSTRATE_PATH/, 'message must name the likely cause + remedy');
+  assert.match(err!, /ALLOW_CONTENT_SHRINK/, 'message must name the explicit override');
+});
+
+test('shrink guard: blocks a shrink to zero (empty-output path is also gated)', () => {
+  assert.ok(silentShrinkError(0, 97, false));
+});
+
+test('shrink guard: equal or growing counts pass', () => {
+  assert.equal(silentShrinkError(97, 97, false), null);
+  assert.equal(silentShrinkError(98, 97, false), null);
+});
+
+test('shrink guard: explicit override allows a deliberate shrink', () => {
+  assert.equal(silentShrinkError(96, 97, true), null);
+});
+
+test('shrink guard: no committed baseline (first run) passes', () => {
+  assert.equal(silentShrinkError(72, null, false), null);
+});

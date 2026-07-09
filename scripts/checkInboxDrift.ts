@@ -77,6 +77,10 @@ function main(): void {
     const env = { ...process.env };
     delete env.VERCEL;
     env.SUBSTRATE_PATH = emptySubstrateDir;
+    // This inbox-only recompile intentionally shrinks the entry set (substrate
+    // pinned to an empty dir) and every write is snapshot/restored below, so
+    // the fail-closed shrink guard must not abort it.
+    env.ALLOW_CONTENT_SHRINK = '1';
 
     const result = spawnSync(resolveTsx(), [path.join('scripts', 'compileContent.ts')], {
       cwd: projectRoot,

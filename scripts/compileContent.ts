@@ -474,6 +474,29 @@ function generateEntryCode(entry: ParsedEntry): string {
  *   2. Else if the sibling-fallback `<projectRoot>/../dan-mercede-substrate` exists, use it.
  *   3. Else return null (consumer continues with inbox-only).
  */
+/**
+ * Fail-closed guard against silent content truncation. Returns an error
+ * message when the recompiled entry count DROPS versus the committed
+ * posts.json count without the explicit ALLOW_CONTENT_SHRINK override, else
+ * null. A null committedCount (no/unreadable baseline) always passes: the
+ * guard protects an existing corpus, not a first run.
+ */
+export function silentShrinkError(
+  newCount: number,
+  committedCount: number | null,
+  allowShrink: boolean,
+): string | null {
+  if (allowShrink || committedCount === null || newCount >= committedCount) {
+    return null;
+  }
+  return (
+    `recompile produced ${newCount} entries but the committed public/posts.json has ${committedCount}. ` +
+    `Likely cause: no reachable substrate (set SUBSTRATE_PATH to the canonical dan-mercede-substrate checkout; ` +
+    `the substrate read is fail-open and a worktree has no sibling checkout). ` +
+    `If the shrink is deliberate (entry removal), re-run with ALLOW_CONTENT_SHRINK=1.`
+  );
+}
+
 export function resolveSubstratePath(projectRoot: string): string | null {
   const envPath = process.env.SUBSTRATE_PATH;
   if (envPath && envPath.trim() !== '') {
@@ -1025,6 +1048,31 @@ function main() {
 
   // 3. Merge (substrate wins on slug conflict)
   const merged = mergeEntriesDedupBySlug(inboxEntries, substrateEntries);
+
+  // 3b. FAIL-CLOSED shrink guard (before ANY write, including empty-output):
+  // the substrate read above is fail-open, so a compile without a reachable
+  // substrate silently regenerates every committed artifact minus all
+  // substrate entries — and the inbox-only drift gate stays green. Block any
+  // count drop vs the committed posts.json unless explicitly overridden.
+  let committedCount: number | null = null;
+  if (fs.existsSync(outputJson)) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(outputJson, 'utf-8'));
+      if (typeof parsed.count === 'number') committedCount = parsed.count;
+    } catch {
+      committedCount = null; // unreadable baseline: treat as first run
+    }
+  }
+  const shrinkErr = silentShrinkError(
+    merged.length,
+    committedCount,
+    Boolean(process.env.ALLOW_CONTENT_SHRINK),
+  );
+  if (shrinkErr) {
+    console.error(`\n❌ CONTENT SHRINK BLOCKED\n\n   ${shrinkErr}`);
+    console.error('   Build aborted BEFORE writing any artifact.');
+    process.exit(2);
+  }
 
   // 4. Empty-output short-circuit
   if (merged.length === 0) {

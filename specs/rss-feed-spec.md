@@ -21,8 +21,13 @@ page. Answer-engine crawlers that poll feeds for freshness see a dead surface.
   (Atom 1.0) automatically, with full content, working per-entry permalinks, WebSub
   hub declaration, autodiscovery, and a post-publish hub ping.
 - **Non-goal:** a danmercede.com essays feed (queued separately); dev.to/Hashnode
-  import configuration (operator dashboard action); any change to signal authoring,
-  compile validation, or the SPA runtime.
+  import configuration (operator dashboard action); any change to signal authoring
+  or the SPA runtime.
+- **Scope amendment (review-driven):** compile gained a fail-closed shrink guard:
+  a recompile whose entry count drops below the committed `posts.json` count
+  aborts before any write unless `ALLOW_CONTENT_SHRINK=1` (adversarial finding:
+  the fail-open substrate read could silently truncate every committed artifact,
+  self-consistently passing the feed drift test).
 
 ## Scenarios (tracer bullets)
 
