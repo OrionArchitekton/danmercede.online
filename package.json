@@ -4,12 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "compile": "tsx scripts/compileContent.ts",
+    "compile": "tsx scripts/compileContent.ts && tsx scripts/renderFeed.ts",
     "prebuild": "npm run compile",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "tsx --test tests/compileContent.test.ts tests/vercelGuard.test.ts tests/bodyBake.test.ts tests/feedJsonLd.test.ts tests/identityGuard.test.ts tests/contentBoundary.test.ts tests/perSlugPages.test.ts tests/analytics.test.ts tests/feedChannelCopy.test.ts",
+    "test": "tsx --test tests/compileContent.test.ts tests/vercelGuard.test.ts tests/bodyBake.test.ts tests/feedJsonLd.test.ts tests/identityGuard.test.ts tests/contentBoundary.test.ts tests/perSlugPages.test.ts tests/analytics.test.ts tests/feedChannelCopy.test.ts tests/feed.test.ts",
     "drift-check": "tsx scripts/checkInboxDrift.ts"
   },
   "dependencies": {

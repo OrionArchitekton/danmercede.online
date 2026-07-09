@@ -53,6 +53,14 @@ Declared by package.json — not verified in this change: `npm run compile`
 (regenerates the committed bundle; commit its output), `npm run dev`,
 `npm run preview`, plain `npm run build`.
 
+CAUTION — worktree compiles: the compiler reads `dan-mercede-substrate`
+FAIL-OPEN (env `SUBSTRATE_PATH`, else sibling `../dan-mercede-substrate`, else
+inbox-only). A worktree has no sibling checkout, so a bare `npm run compile`
+silently drops every substrate entry from the committed artifacts while the
+inbox-only drift gate stays green. Always run
+`SUBSTRATE_PATH=<canonical substrate home> npm run compile` in a worktree and
+diff `public/posts.json` `count` against HEAD before committing.
+
 ## Estate Authority
 
 - Estate doctrine: `platform/orion-estate-audit/AGENTS.md` (orion-estate tree)

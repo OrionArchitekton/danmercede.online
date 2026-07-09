@@ -474,6 +474,54 @@ function generateEntryCode(entry: ParsedEntry): string {
  *   2. Else if the sibling-fallback `<projectRoot>/../dan-mercede-substrate` exists, use it.
  *   3. Else return null (consumer continues with inbox-only).
  */
+/**
+ * The shrink override is STRICTLY the literal "1": any other value (including
+ * "0", "false", "true") leaves the guard armed, so a CI var set to a falsy
+ * string cannot silently authorize content loss.
+ */
+export function allowShrinkFromEnv(value: string | undefined): boolean {
+  return value === '1';
+}
+
+/**
+ * Parse the committed posts.json baseline count. Returns the count when the
+ * JSON is valid and carries a numeric `count`; returns 'invalid' for
+ * malformed JSON or a missing/non-numeric count. A corrupt baseline is NOT
+ * proof of a fresh start: callers must fail closed on 'invalid' (only a
+ * genuinely ABSENT file is a first run).
+ */
+export function parseCommittedCount(raw: string): number | 'invalid' {
+  try {
+    const parsed = JSON.parse(raw);
+    return typeof parsed?.count === 'number' ? parsed.count : 'invalid';
+  } catch {
+    return 'invalid';
+  }
+}
+
+/**
+ * Fail-closed guard against silent content truncation. Returns an error
+ * message when the recompiled entry count DROPS versus the committed
+ * posts.json count without the explicit ALLOW_CONTENT_SHRINK=1 override,
+ * else null. A null committedCount (file genuinely absent = first run)
+ * passes: the guard protects an existing corpus.
+ */
+export function silentShrinkError(
+  newCount: number,
+  committedCount: number | null,
+  allowShrink: boolean,
+): string | null {
+  if (allowShrink || committedCount === null || newCount >= committedCount) {
+    return null;
+  }
+  return (
+    `recompile produced ${newCount} entries but the committed public/posts.json has ${committedCount}. ` +
+    `Likely cause: no reachable substrate (set SUBSTRATE_PATH to the canonical dan-mercede-substrate checkout; ` +
+    `the substrate read is fail-open and a worktree has no sibling checkout). ` +
+    `If the shrink is deliberate (entry removal), re-run with ALLOW_CONTENT_SHRINK=1.`
+  );
+}
+
 export function resolveSubstratePath(projectRoot: string): string | null {
   const envPath = process.env.SUBSTRATE_PATH;
   if (envPath && envPath.trim() !== '') {
@@ -1025,6 +1073,38 @@ function main() {
 
   // 3. Merge (substrate wins on slug conflict)
   const merged = mergeEntriesDedupBySlug(inboxEntries, substrateEntries);
+
+  // 3b. FAIL-CLOSED shrink guard (before ANY write, including empty-output):
+  // the substrate read above is fail-open, so a compile without a reachable
+  // substrate silently regenerates every committed artifact minus all
+  // substrate entries — and the inbox-only drift gate stays green. Block any
+  // count drop vs the committed posts.json unless explicitly overridden.
+  const allowShrink = allowShrinkFromEnv(process.env.ALLOW_CONTENT_SHRINK);
+  let committedCount: number | null = null;
+  if (fs.existsSync(outputJson)) {
+    const parsedCount = parseCommittedCount(fs.readFileSync(outputJson, 'utf-8'));
+    if (parsedCount === 'invalid') {
+      // A corrupt baseline is not proof of a fresh start: refusing to
+      // overwrite is the only safe default (fail closed).
+      if (!allowShrink) {
+        console.error(
+          '\n❌ BASELINE UNREADABLE: committed public/posts.json exists but has no valid numeric count.',
+        );
+        console.error(
+          '   Refusing to overwrite committed artifacts. Restore posts.json from git, or re-run with ALLOW_CONTENT_SHRINK=1 for a deliberate rebuild.',
+        );
+        process.exit(2);
+      }
+    } else {
+      committedCount = parsedCount;
+    }
+  }
+  const shrinkErr = silentShrinkError(merged.length, committedCount, allowShrink);
+  if (shrinkErr) {
+    console.error(`\n❌ CONTENT SHRINK BLOCKED\n\n   ${shrinkErr}`);
+    console.error('   Build aborted BEFORE writing any artifact.');
+    process.exit(2);
+  }
 
   // 4. Empty-output short-circuit
   if (merged.length === 0) {
