@@ -1,7 +1,7 @@
 /**
  * Tests for the Spec 4b D1 Vercel compile guard (T1).
  *
- * On Vercel, the prebuild hook must NOT recompile content — the committed
+ * On Vercel, the prebuild hook must NOT recompile content - the committed
  * bundle is the deploy truth. The guard exits 0 before any filesystem writes
  * when process.env.VERCEL is set.
  *
