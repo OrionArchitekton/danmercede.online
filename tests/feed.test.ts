@@ -106,6 +106,24 @@ test('feeds are deterministic for identical input', () => {
   assert.equal(renderAtom([essay, note]), atom);
 });
 
+// Feed drift gate (PR #105 review): checkInboxDrift covers constants/posts.json/
+// sitemap but NOT the feeds, so a signal PR could update the bundle and forget
+// public/feed.xml + atom.xml. The renderer is deterministic given content, so a
+// fresh render from the COMMITTED bundle must byte-equal the committed artifacts.
+test('committed feeds match a fresh render of the committed bundle (drift gate)', () => {
+  const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+  assert.equal(
+    fs.readFileSync(path.join(projectRoot, 'public', 'feed.xml'), 'utf8'),
+    renderRss(),
+    'public/feed.xml is stale: run `npm run compile` (with SUBSTRATE_PATH in a worktree) and commit it',
+  );
+  assert.equal(
+    fs.readFileSync(path.join(projectRoot, 'public', 'atom.xml'), 'utf8'),
+    renderAtom(),
+    'public/atom.xml is stale: run `npm run compile` (with SUBSTRATE_PATH in a worktree) and commit it',
+  );
+});
+
 test('VERCEL=1 feed render exits 0, prints sentinel, leaves committed feeds byte-identical', () => {
   const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const feedPath = path.join(projectRoot, 'public', 'feed.xml');
