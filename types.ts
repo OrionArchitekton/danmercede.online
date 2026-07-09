@@ -15,7 +15,8 @@ export type Tag =
   | "signal"
   | "infra"
   | "security"
-  | "economics";
+  | "economics"
+  | "workflow-ownership";
 
 export type ContextLabel = "Infra" | "Governance" | "Systems" | "Execution" | "Signal";
 

@@ -1,7 +1,7 @@
 /**
  * Tests for the Spec 4b D1 Vercel compile guard (T1).
  *
- * On Vercel, the prebuild hook must NOT recompile content — the committed
+ * On Vercel, the prebuild hook must NOT recompile content - the committed
  * bundle is the deploy truth. The guard exits 0 before any filesystem writes
  * when process.env.VERCEL is set.
  *
@@ -23,7 +23,7 @@ const generatedTsPath = path.join(projectRoot, 'constants.generated.ts');
 const postsJsonPath = path.join(projectRoot, 'public', 'posts.json');
 
 const SENTINEL =
-  'VERCEL build environment detected — skipping compile; the committed bundle is served (Spec 4b D1).';
+  'VERCEL build environment detected - skipping compile; the committed bundle is served (Spec 4b D1).';
 
 /** Prefer the repo-local tsx binary; fall back to PATH (npm scripts add .bin). */
 function resolveTsx(): string {

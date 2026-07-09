@@ -6,17 +6,17 @@
  * Produces a static, crawlable HTML snapshot of the feed that is injected into
  * `<div id="root">` at `vite build` time (see scripts/bodyBakePlugin.ts). Non-Google
  * answer engines (ChatGPT/GPTBot, Perplexity/PerplexityBot, Claude/ClaudeBot) fetch
- * raw HTML and do NOT execute JS — without this they see an empty root div. React's
+ * raw HTML and do NOT execute JS - without this they see an empty root div. React's
  * createRoot().render() replaces the root's children on hydration, so interactive
  * users get the live SPA while crawlers get the baked content.
  *
- * This is a NO-SSR build-time bake — no framework/SSR runtime. The entry data is the
+ * This is a NO-SSR build-time bake - no framework/SSR runtime. The entry data is the
  * SAME committed source the SPA renders (constants.generated.ts + legacy constants.ts),
  * so the baked body can never drift from what the app shows.
  *
  * Importable by:
- *   - scripts/bodyBakePlugin.ts (the Vite transformIndexHtml plugin) — W1
- *   - scripts/generateSitemap.ts (per-entry sitemap)                 — W9
+ *   - scripts/bodyBakePlugin.ts (the Vite transformIndexHtml plugin) - W1
+ *   - scripts/generateSitemap.ts (per-entry sitemap)                 - W9
  *   - tests/bodyBake.test.ts (drift test)
  *
  * Only `ENTRIES` is imported from each module; the `import.meta.env`-touching
@@ -28,7 +28,7 @@ import { ENTRIES as LEGACY_ENTRIES } from '../constants.ts';
 import { EntryType, type LogEntry } from '../types.ts';
 
 // ---------------------------------------------------------------------------
-// Entry ordering — mirror App.tsx exactly (newest-first by date + time-of-day).
+// Entry ordering - mirror App.tsx exactly (newest-first by date + time-of-day).
 // ---------------------------------------------------------------------------
 
 function parseFullDateTime(date: string, timestamp: string): number {
@@ -44,7 +44,7 @@ function parseFullDateTime(date: string, timestamp: string): number {
   ).getTime();
 }
 
-/** All rendered entries, newest-first — identical ordering to App.tsx. */
+/** All rendered entries, newest-first - identical ordering to App.tsx. */
 export function getOrderedEntries(): LogEntry[] {
   return [...GENERATED_ENTRIES, ...LEGACY_ENTRIES].sort(
     (a, b) =>
@@ -53,7 +53,7 @@ export function getOrderedEntries(): LogEntry[] {
 }
 
 // ---------------------------------------------------------------------------
-// HTML escaping (no framework — escape every interpolated string).
+// HTML escaping (no framework - escape every interpolated string).
 // ---------------------------------------------------------------------------
 
 export function escapeHtml(value: string): string {
@@ -76,7 +76,7 @@ function paragraphs(text: string): string {
 
 /**
  * The crawlable text for one entry, by type. Returns the lead paragraph(s) that
- * carry the entry's substance — this is what answer engines read.
+ * carry the entry's substance - this is what answer engines read.
  */
 function entryBodyHtml(entry: LogEntry): string {
   switch (entry.type) {
@@ -149,16 +149,16 @@ export function entryArticleHtml(entry: LogEntry): string {
  */
 export function renderPrerenderBody(entries: LogEntry[] = getOrderedEntries()): string {
   const header =
-    '<h1>danmercede.online — Living Signal Surface</h1>' +
+    '<h1>danmercede.online - Living Signal Surface</h1>' +
     '<p>Public working log of Dan Mercede: short-form notes, experiments, and status ' +
-    'updates on runtime governance, control planes, and failure-mode analysis. Not ' +
+    'updates on operator workflows, owned AI systems, and fail-closed proof depth. Not ' +
     'polished. Not canonical.</p>';
   const articles = entries.map(entryArticleHtml).join('');
   return `<div data-prerender="true">${header}${articles}</div>`;
 }
 
 // ---------------------------------------------------------------------------
-// Feed JSON-LD (W19) — build-time structured data for the feed surface.
+// Feed JSON-LD (W19) - build-time structured data for the feed surface.
 // ---------------------------------------------------------------------------
 
 const SITE = 'https://www.danmercede.online';
@@ -166,11 +166,11 @@ const PERSON = 'https://www.danmercede.com/#person';
 
 // Slugs that receive their own per-slug page: the COMPILED inbox+substrate set
 // (constants.generated.ts). Legacy constants.ts seed entries stay feed-only
-// (fragment-addressable), matching their existing exclusion from the sitemap — so
+// (fragment-addressable), matching their existing exclusion from the sitemap - so
 // no per-slug page or page-URL is ever minted for content that has no real page.
 const PAGE_ENTRY_SLUGS = new Set(GENERATED_ENTRIES.map((e) => e.slug));
 
-/** Entries that get a real per-slug page, newest-first — the per-slug emitter's source. */
+/** Entries that get a real per-slug page, newest-first - the per-slug emitter's source. */
 export function getPageEntries(): LogEntry[] {
   return [...GENERATED_ENTRIES].sort(
     (a, b) => parseFullDateTime(b.date, b.timestamp) - parseFullDateTime(a.date, a.timestamp),
@@ -234,7 +234,7 @@ export function renderFeedJsonLd(entries: LogEntry[] = getOrderedEntries()): str
         '@type': ['CollectionPage', 'WebPage'],
         '@id': `${SITE}/#webpage`,
         url: `${SITE}/`,
-        name: 'danmercede.online — Working Notes',
+        name: 'danmercede.online - Working Notes',
         about: { '@id': PERSON },
         isPartOf: { '@id': `${SITE}/#website` },
         mainEntity: { '@id': `${SITE}/#blog` },
@@ -249,7 +249,7 @@ export function renderFeedJsonLd(entries: LogEntry[] = getOrderedEntries()): str
         '@type': 'Blog',
         '@id': `${SITE}/#blog`,
         url: `${SITE}/`,
-        name: 'danmercede.online — Living Signal Surface',
+        name: 'danmercede.online - Living Signal Surface',
         publisher: { '@id': PERSON },
         author: { '@id': PERSON },
         blogPost,
