@@ -4,7 +4,7 @@
 // by manual regenerate + commit (see #25, #103/#104 history). Nothing structural
 // stops a regen from a stale lane checkout reintroducing the retired brand lead
 // ("Runtime governance, control planes, and the operator-grade systems...") and
-// shipping it silently — CI would stay green. This pins the channel description
+// shipping it silently; CI would stay green. This pins the channel description
 // so that regression fails the `ci` gate instead. Run via `npm test` (tsx --test).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -16,7 +16,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const feed = readFileSync(path.join(root, 'public', 'feed.xml'), 'utf8');
 const atom = readFileSync(path.join(root, 'public', 'atom.xml'), 'utf8');
 
-// Retired brand lead — PROHIBITION needles, kept aligned with the lane repo's
+// Retired brand lead: PROHIBITION needles, kept aligned with the lane repo's
 // tests/test_brand_positioning_pins.py so both ends of the render pipe agree.
 const RETIRED_LEAD = /runtime governance|operator-grade|control planes?, and|enterprise AI operating system/i;
 
