@@ -142,43 +142,43 @@ export type ImageMeta = { alt: string; description?: string };
 export const IMAGE_METADATA = {
   // Executive / Authority Set
   "dan-mercede-executive-authority.png": {
-    alt: "Dan Mercede, Founder & Systems Architect of a governed AI operating system",
+    alt: "Dan Mercede, founder, operator, and systems builder",
     description:
-      "Executive portrait of Dan Mercede, founder and systems architect focused on governed AI systems and enterprise control planes.",
+      "Executive portrait of Dan Mercede, founder and operator focused on owned AI workflows and systems teams can run.",
   },
   "dan-mercede-executive-outdoor.png": {
-    alt: "Dan Mercede, Founder & Systems Architect of a governed AI operating system",
+    alt: "Dan Mercede, founder and systems architect for operator-led AI workflows",
     description:
-      "Outdoor executive portrait of Dan Mercede, founder and systems architect specializing in governed AI and system control architecture.",
+      "Outdoor executive portrait of Dan Mercede, founder and systems architect specializing in workflow ownership and proof depth.",
   },
   "dan-mercede-executive-relaxed.png": {
-    alt: "Dan Mercede, Founder & Systems Architect of a governed AI operating system",
+    alt: "Dan Mercede, founder and systems architect for operator-led AI workflows",
     description:
-      "Relaxed executive portrait of Dan Mercede, founder and systems architect working in governed AI and enterprise AI governance.",
+      "Relaxed executive portrait of Dan Mercede, founder and systems architect working on owned workflows and AI-assisted systems.",
   },
 
   // Founder / Working Headshots
   "dan-mercede-founder-headshot.png": {
-    alt: "Dan Mercede working as founder and systems architect on governed AI systems",
+    alt: "Dan Mercede working as founder and systems architect on operator-led AI systems",
     description:
-      "Founder headshot of Dan Mercede, actively building and operating governed AI systems with a focus on execution and architecture.",
+      "Founder headshot of Dan Mercede, actively building and operating AI-assisted workflows with a focus on execution and ownership.",
   },
   "dan-mercede-founder-headshot-sm.png": {
-    alt: "Dan Mercede working as founder and systems architect on governed AI systems",
+    alt: "Dan Mercede working as founder and systems architect on operator-led AI systems",
     description:
-      "Scaled founder headshot of Dan Mercede focused on hands-on AI system design and governance.",
+      "Scaled founder headshot of Dan Mercede focused on hands-on AI system design and workflow ownership.",
   },
   "dan-mercede-founder-headshot-xs.png": {
-    alt: "Dan Mercede working as founder and systems architect on governed AI systems",
+    alt: "Dan Mercede working as founder and systems architect on operator-led AI systems",
     description:
-      "Compact founder headshot of Dan Mercede emphasizing hands-on work in governed AI systems.",
+      "Compact founder headshot of Dan Mercede emphasizing hands-on work turning AI into owned workflows.",
   },
 
   // Founder / Social & Working Context
   "dan-mercede-founder-social-landscape.png": {
     alt: "Dan Mercede, founder and systems architect in a working environment",
     description:
-      "Landscape portrait of Dan Mercede in a casual working environment, representing hands-on leadership in governed AI systems.",
+      "Landscape portrait of Dan Mercede in a casual working environment, representing hands-on leadership in operator-led AI systems.",
   },
   "dan-mercede-founder-social-portrait.png": {
     alt: "Dan Mercede, founder and systems architect in a working environment",
@@ -186,19 +186,19 @@ export const IMAGE_METADATA = {
       "Portrait of Dan Mercede in a social working context, reflecting active system design and founder-led execution.",
   },
   "dan-mercede-founder-working-landscape.png": {
-    alt: "Dan Mercede working as founder and systems architect on governed AI systems",
+    alt: "Dan Mercede working as founder and systems architect on operator-led AI systems",
     description:
-      "Landscape image of Dan Mercede actively working on governed AI system architecture and execution.",
+      "Landscape image of Dan Mercede actively working on AI workflow architecture and execution.",
   },
   "dan-mercede-founder-working-portrait.png": {
-    alt: "Dan Mercede working as founder and systems architect on governed AI systems",
+    alt: "Dan Mercede working as founder and systems architect on operator-led AI systems",
     description:
-      "Portrait of Dan Mercede in a focused working setting, emphasizing hands-on system building and AI governance.",
+      "Portrait of Dan Mercede in a focused working setting, emphasizing hands-on system building and workflow ownership.",
   },
   "dan-mercede-founder-working-avatar.webp": {
-    alt: "Dan Mercede working as founder and systems architect on governed AI systems",
+    alt: "Dan Mercede working as founder and systems architect on operator-led AI systems",
     description:
-      "Avatar of Dan Mercede in a focused working setting, emphasizing hands-on system building and AI governance.",
+      "Avatar of Dan Mercede in a focused working setting, emphasizing hands-on system building and workflow ownership.",
   },
 } as const satisfies Record<string, ImageMeta>;
 

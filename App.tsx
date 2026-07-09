@@ -96,16 +96,16 @@ const App: React.FC = () => {
 
                     {/* Line 3: Scope */}
                     <div className="text-xs text-gray-500 font-mono mb-4">
-                        Scope: Runtime governance, execution control planes, failure-mode analysis.
+                        Scope: Operator workflows, owned AI systems, and fail-closed proof depth.
                     </div>
 
                     {/* Line 4: Focus */}
                     <div className="text-xs font-mono flex items-center gap-2">
                         <span className="text-gray-500 uppercase tracking-wider">Current Focus:</span>
                         <div className="flex gap-2">
-                            <span className="text-black bg-gray-100 px-1.5 py-0.5 rounded-sm">Runtime Governance</span>
-                            <span className="text-black bg-gray-100 px-1.5 py-0.5 rounded-sm">Control Planes</span>
-                            <span className="text-black bg-gray-100 px-1.5 py-0.5 rounded-sm">Failure Modes</span>
+                            <span className="text-black bg-gray-100 px-1.5 py-0.5 rounded-sm">Workflow Ownership</span>
+                            <span className="text-black bg-gray-100 px-1.5 py-0.5 rounded-sm">AI Agents</span>
+                            <span className="text-black bg-gray-100 px-1.5 py-0.5 rounded-sm">Proof Depth</span>
                         </div>
                     </div>
                 </div>
@@ -258,10 +258,10 @@ const App: React.FC = () => {
                         rel="noopener noreferrer"
                         className="text-gray-900 font-medium text-xs uppercase tracking-wider hover:underline transition-colors"
                     >
-                        Book a Runtime Governance Readiness Scan &rarr;
+                        Work with OIA on one workflow &rarr;
                     </a>
                     <span className="text-gray-500 text-[10px] tracking-wide font-normal normal-case">
-                        Gap map &bull; Failure heatmap &bull; Enforcement checklist &bull; 30/60/90 plan
+                        Strategy &bull; Leadership &bull; Engineering &bull; Agents
                     </span>
                 </div>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">

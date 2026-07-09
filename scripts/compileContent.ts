@@ -35,7 +35,8 @@ export type Tag =
   | "signal"
   | "infra"
   | "security"
-  | "economics";
+  | "economics"
+  | "workflow-ownership";
 
 export type ContextLabel = "Infra" | "Governance" | "Systems" | "Execution" | "Signal";
 
@@ -64,7 +65,7 @@ type StatusValue = "Active" | "Paused" | "Rolled back" | "Investigating" | "Reso
 
 const ALLOWED_TAGS: Tag[] = [
   "systems", "governance", "failure-modes", "execution",
-  "signal", "infra", "security", "economics"
+  "signal", "infra", "security", "economics", "workflow-ownership"
 ];
 
 const TYPE_SLUG_TO_ENUM: Record<TypeSlug, string> = {
