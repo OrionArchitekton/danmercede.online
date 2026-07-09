@@ -23,7 +23,7 @@ const generatedTsPath = path.join(projectRoot, 'constants.generated.ts');
 const postsJsonPath = path.join(projectRoot, 'public', 'posts.json');
 
 const SENTINEL =
-  'VERCEL build environment detected — skipping compile; the committed bundle is served (Spec 4b D1).';
+  'VERCEL build environment detected - skipping compile; the committed bundle is served (Spec 4b D1).';
 
 /** Prefer the repo-local tsx binary; fall back to PATH (npm scripts add .bin). */
 function resolveTsx(): string {
