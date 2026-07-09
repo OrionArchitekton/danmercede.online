@@ -690,3 +690,25 @@ test('shrink guard: explicit override allows a deliberate shrink', () => {
 test('shrink guard: no committed baseline (first run) passes', () => {
   assert.equal(silentShrinkError(72, null, false), null);
 });
+
+// Cycle-3 review findings on the guard itself: env override must be strictly
+// '1' (not any truthy string), and a CORRUPT baseline must fail closed while a
+// genuinely ABSENT baseline (first run) passes.
+
+import { allowShrinkFromEnv, parseCommittedCount } from '../scripts/compileContent.ts';
+
+test('shrink override: only the literal "1" enables it', () => {
+  assert.equal(allowShrinkFromEnv('1'), true);
+  assert.equal(allowShrinkFromEnv('0'), false);
+  assert.equal(allowShrinkFromEnv('false'), false);
+  assert.equal(allowShrinkFromEnv('true'), false);
+  assert.equal(allowShrinkFromEnv(''), false);
+  assert.equal(allowShrinkFromEnv(undefined), false);
+});
+
+test('committed baseline: valid count parses, corruption is flagged invalid', () => {
+  assert.equal(parseCommittedCount('{"count": 97, "posts": []}'), 97);
+  assert.equal(parseCommittedCount('{"count": "97"}'), 'invalid');
+  assert.equal(parseCommittedCount('{"posts": []}'), 'invalid');
+  assert.equal(parseCommittedCount('not json {'), 'invalid');
+});

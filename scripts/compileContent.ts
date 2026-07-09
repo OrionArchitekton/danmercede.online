@@ -475,11 +475,36 @@ function generateEntryCode(entry: ParsedEntry): string {
  *   3. Else return null (consumer continues with inbox-only).
  */
 /**
+ * The shrink override is STRICTLY the literal "1": any other value (including
+ * "0", "false", "true") leaves the guard armed, so a CI var set to a falsy
+ * string cannot silently authorize content loss.
+ */
+export function allowShrinkFromEnv(value: string | undefined): boolean {
+  return value === '1';
+}
+
+/**
+ * Parse the committed posts.json baseline count. Returns the count when the
+ * JSON is valid and carries a numeric `count`; returns 'invalid' for
+ * malformed JSON or a missing/non-numeric count. A corrupt baseline is NOT
+ * proof of a fresh start: callers must fail closed on 'invalid' (only a
+ * genuinely ABSENT file is a first run).
+ */
+export function parseCommittedCount(raw: string): number | 'invalid' {
+  try {
+    const parsed = JSON.parse(raw);
+    return typeof parsed?.count === 'number' ? parsed.count : 'invalid';
+  } catch {
+    return 'invalid';
+  }
+}
+
+/**
  * Fail-closed guard against silent content truncation. Returns an error
  * message when the recompiled entry count DROPS versus the committed
- * posts.json count without the explicit ALLOW_CONTENT_SHRINK override, else
- * null. A null committedCount (no/unreadable baseline) always passes: the
- * guard protects an existing corpus, not a first run.
+ * posts.json count without the explicit ALLOW_CONTENT_SHRINK=1 override,
+ * else null. A null committedCount (file genuinely absent = first run)
+ * passes: the guard protects an existing corpus.
  */
 export function silentShrinkError(
   newCount: number,
@@ -1054,20 +1079,27 @@ function main() {
   // substrate silently regenerates every committed artifact minus all
   // substrate entries — and the inbox-only drift gate stays green. Block any
   // count drop vs the committed posts.json unless explicitly overridden.
+  const allowShrink = allowShrinkFromEnv(process.env.ALLOW_CONTENT_SHRINK);
   let committedCount: number | null = null;
   if (fs.existsSync(outputJson)) {
-    try {
-      const parsed = JSON.parse(fs.readFileSync(outputJson, 'utf-8'));
-      if (typeof parsed.count === 'number') committedCount = parsed.count;
-    } catch {
-      committedCount = null; // unreadable baseline: treat as first run
+    const parsedCount = parseCommittedCount(fs.readFileSync(outputJson, 'utf-8'));
+    if (parsedCount === 'invalid') {
+      // A corrupt baseline is not proof of a fresh start: refusing to
+      // overwrite is the only safe default (fail closed).
+      if (!allowShrink) {
+        console.error(
+          '\n❌ BASELINE UNREADABLE: committed public/posts.json exists but has no valid numeric count.',
+        );
+        console.error(
+          '   Refusing to overwrite committed artifacts. Restore posts.json from git, or re-run with ALLOW_CONTENT_SHRINK=1 for a deliberate rebuild.',
+        );
+        process.exit(2);
+      }
+    } else {
+      committedCount = parsedCount;
     }
   }
-  const shrinkErr = silentShrinkError(
-    merged.length,
-    committedCount,
-    Boolean(process.env.ALLOW_CONTENT_SHRINK),
-  );
+  const shrinkErr = silentShrinkError(merged.length, committedCount, allowShrink);
   if (shrinkErr) {
     console.error(`\n❌ CONTENT SHRINK BLOCKED\n\n   ${shrinkErr}`);
     console.error('   Build aborted BEFORE writing any artifact.');
