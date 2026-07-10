@@ -35,10 +35,22 @@ jobs:
           echo "slug=$SLUG" >> $GITHUB_OUTPUT
           echo "title=$PR_TITLE" >> $GITHUB_OUTPUT
       
-      - name: Wait for Vercel deployment
+      - name: Wait for the deploy to serve the published slug (bounded)
         run: |
-          echo "Waiting 120 seconds for Vercel deployment..."
-          sleep 120
+          # The fixed sleep could under-wait a slow Vercel build, making the
+          # verification AND the WebSub ping read the PRE-deploy site
+          # (backported from oia-web #74 review). This workflow knows the
+          # published slug, so poll posts.json for it directly, bounded.
+          SLUG="${{ steps.extract.outputs.slug }}"
+          DEADLINE=$(( $(date +%s) + 480 ))
+          while [ "$(date +%s)" -lt "$DEADLINE" ]; do
+            if curl -s --max-time 15 "${SITE_URL}/posts.json" | jq -e ".posts[] | select(.slug == \"$SLUG\")" > /dev/null 2>&1; then
+              echo "deploy serves slug '$SLUG'"
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "::warning::slug '$SLUG' not served after 480s; verification below will report the miss"
       
       - name: Verify posts.json
         id: verify
