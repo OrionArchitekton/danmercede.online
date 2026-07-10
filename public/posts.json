@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-09T22:47:11.634Z",
-  "count": 97,
+  "generated": "2026-07-10T08:24:39.798Z",
+  "count": 98,
   "posts": [
+    {
+      "slug": "2026-07-10-quota-is-not-a-parse-error",
+      "title": "Quota Is Not a Parse Error",
+      "type": "short-essay",
+      "date": "2026-07-10"
+    },
     {
       "slug": "2026-07-09-schema-is-a-second-surface",
       "title": "Schema Is a Second Surface",
