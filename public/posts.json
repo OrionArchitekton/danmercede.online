@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-10T08:24:39.798Z",
-  "count": 98,
+  "generated": "2026-07-10T16:50:04.842Z",
+  "count": 99,
   "posts": [
+    {
+      "slug": "2026-07-10-refute-your-own-claims",
+      "title": "Refute Your Own Claims",
+      "type": "experiment-log",
+      "date": "2026-07-10"
+    },
     {
       "slug": "2026-07-10-quota-is-not-a-parse-error",
       "title": "Quota Is Not a Parse Error",
