@@ -35,10 +35,38 @@ jobs:
           echo "slug=$SLUG" >> $GITHUB_OUTPUT
           echo "title=$PR_TITLE" >> $GITHUB_OUTPUT
       
-      - name: Wait for Vercel deployment
+      - name: Wait for the deploy to refresh posts.json (bounded)
         run: |
-          echo "Waiting 120 seconds for Vercel deployment..."
-          sleep 120
+          # The fixed sleep could under-wait a slow Vercel build, making the
+          # verification AND the WebSub ping read the PRE-deploy site
+          # (backported from oia-web #74 review). Slug presence is NOT a
+          # deploy signal for re-published slugs (pre-deploy posts.json
+          # already matches), so poll the compile-stamped `generated`
+          # timestamp, which every deploy bumps, with a baseline guard: an
+          # empty baseline is never change-compared (a failed first fetch
+          # would falsely read the next success as "deployed").
+          BEFORE=""
+          for i in 1 2 3 4 5 6; do
+            BEFORE=$(curl -s --max-time 15 "${SITE_URL}/posts.json" | jq -r '.generated // empty' 2>/dev/null || true)
+            [ -n "$BEFORE" ] && break
+            sleep 15
+          done
+          echo "pre-deploy generated: ${BEFORE:-<none>}"
+          if [ -z "$BEFORE" ]; then
+            echo "::warning::could not capture a pre-deploy baseline; falling back to a conservative 300s wait"
+            sleep 300
+            exit 0
+          fi
+          DEADLINE=$(( $(date +%s) + 480 ))
+          while [ "$(date +%s)" -lt "$DEADLINE" ]; do
+            sleep 30
+            NOW=$(curl -s --max-time 15 "${SITE_URL}/posts.json" | jq -r '.generated // empty' 2>/dev/null || true)
+            if [ -n "$NOW" ] && [ "$NOW" != "$BEFORE" ]; then
+              echo "deploy refreshed posts.json: $NOW"
+              exit 0
+            fi
+          done
+          echo "::warning::posts.json unchanged after 480s (slow deploy); verification below will report any miss"
       
       - name: Verify posts.json
         id: verify
@@ -49,7 +77,7 @@ jobs:
           RESPONSE=$(curl -s "${SITE_URL}/posts.json" || echo "{}")
           
           # Check if slug exists in posts
-          if echo "$RESPONSE" | jq -e ".posts[] | select(.slug == \"$SLUG\")" > /dev/null 2>&1; then
+          if echo "$RESPONSE" | jq -e --arg slug "$SLUG" '.posts[] | select(.slug == $slug)' > /dev/null 2>&1; then
             echo "verified=true" >> $GITHUB_OUTPUT
             echo "Slug '$SLUG' found in posts.json"
           else
