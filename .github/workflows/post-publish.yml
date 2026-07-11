@@ -8,7 +8,10 @@ on:
 env:
   SLACK_CHANNEL_ID: ${{ secrets.DANMERCEDE_CHANNEL_ID }}
   SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-  SITE_URL: https://danmercede.online
+  # www, NOT the apex: the apex 301s to www with a literal "Redirecting..."
+  # body, which silently broke every non-following curl in this job on its
+  # first real run (2026-07-11). Fetches below also pass -L as a belt.
+  SITE_URL: https://www.danmercede.online
 
 jobs:
   verify-publish:
@@ -72,7 +75,7 @@ jobs:
           # would falsely read the next success as "deployed").
           BEFORE=""
           for i in 1 2 3 4 5 6; do
-            BEFORE=$(curl -s --max-time 15 "${SITE_URL}/posts.json" | jq -r '.generated // empty' 2>/dev/null || true)
+            BEFORE=$(curl -sL --max-time 15 "${SITE_URL}/posts.json" | jq -r '.generated // empty' 2>/dev/null || true)
             [ -n "$BEFORE" ] && break
             sleep 15
           done
@@ -85,7 +88,7 @@ jobs:
           DEADLINE=$(( $(date +%s) + 480 ))
           while [ "$(date +%s)" -lt "$DEADLINE" ]; do
             sleep 30
-            NOW=$(curl -s --max-time 15 "${SITE_URL}/posts.json" | jq -r '.generated // empty' 2>/dev/null || true)
+            NOW=$(curl -sL --max-time 15 "${SITE_URL}/posts.json" | jq -r '.generated // empty' 2>/dev/null || true)
             if [ -n "$NOW" ] && [ "$NOW" != "$BEFORE" ]; then
               echo "deploy refreshed posts.json: $NOW"
               exit 0
@@ -98,9 +101,13 @@ jobs:
         env:
           SLUG: ${{ steps.extract.outputs.slug }}
         run: |
-          # Fetch posts.json
-          RESPONSE=$(curl -s "${SITE_URL}/posts.json" || echo "{}")
-          
+          # Fetch posts.json. Every jq below is guarded: on its first real run
+          # (2026-07-11) a non-JSON response crashed the unguarded count jq
+          # under bash -e, which SKIPPED the WebSub ping and both notify steps,
+          # so nobody was told verification failed. A bad fetch must degrade to
+          # verified=false + the failure notification, never a silent crash.
+          RESPONSE=$(curl -sL --max-time 15 "${SITE_URL}/posts.json" || echo "{}")
+
           # Check if slug exists in posts
           if echo "$RESPONSE" | jq -e --arg slug "$SLUG" '.posts[] | select(.slug == $slug)' > /dev/null 2>&1; then
             echo "verified=true" >> $GITHUB_OUTPUT
@@ -109,9 +116,9 @@ jobs:
             echo "verified=false" >> $GITHUB_OUTPUT
             echo "::warning::Slug '$SLUG' NOT found in posts.json"
           fi
-          
+
           # Get post count
-          COUNT=$(echo "$RESPONSE" | jq '.count // 0')
+          COUNT=$(echo "$RESPONSE" | jq '.count // 0' 2>/dev/null || echo 0)
           echo "count=$COUNT" >> $GITHUB_OUTPUT
       
       # WebSub freshness push (specs/rss-feed-spec.md scenario 4): tell the hub the
