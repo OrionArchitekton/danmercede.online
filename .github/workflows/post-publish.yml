@@ -12,7 +12,18 @@ env:
 
 jobs:
   verify-publish:
-    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'published')
+    # Fire on real publishes. The original 'published'-label gate was a silent
+    # no-op: the signal-publish flow never labels its PRs, so every run since
+    # the workflow landed concluded SKIPPED and no WebSub ping ever went out
+    # (verified 2026-07-10: 20/20 runs skipped). Recognize the actual publish
+    # shapes (signal titles / draft and signal branches); the label stays as a
+    # manual override for anything else.
+    if: >-
+      github.event.pull_request.merged == true &&
+      (contains(github.event.pull_request.labels.*.name, 'published') ||
+       startsWith(github.event.pull_request.title, 'signal: ') ||
+       startsWith(github.event.pull_request.head.ref, 'draft/') ||
+       startsWith(github.event.pull_request.head.ref, 'codex/online-signal-'))
     runs-on: ubuntu-latest
     
     steps:
@@ -23,9 +34,16 @@ jobs:
           PR_TITLE="${{ github.event.pull_request.title }}"
           PR_BRANCH="${{ github.event.pull_request.head.ref }}"
           
-          # Try to get slug from branch name first
+          # Try to get slug from branch name first. Signal publishes use
+          # branch codex/online-signal-<slug> and title "signal: <slug>"
+          # (the slug is already slug-form there; the generic title fallback
+          # would wrongly prepend "signal-").
           if [[ "$PR_BRANCH" == draft/* ]]; then
             SLUG="${PR_BRANCH#draft/}"
+          elif [[ "$PR_BRANCH" == codex/online-signal-* ]]; then
+            SLUG="${PR_BRANCH#codex/online-signal-}"
+          elif [[ "$PR_TITLE" == "signal: "* ]]; then
+            SLUG="${PR_TITLE#signal: }"
           else
             # Fallback: derive from title
             TITLE=$(echo "$PR_TITLE" | sed 's/^Draft:\s*//')
