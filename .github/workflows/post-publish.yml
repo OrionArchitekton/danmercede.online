@@ -29,11 +29,14 @@ jobs:
     steps:
       - name: Extract slug from PR
         id: extract
+        # Untrusted PR context reaches the shell ONLY via env (never templated
+        # into the script body): a crafted title/branch stays data, not code
+        # (estate prompt-defense: no untrusted GitHub context in run: blocks).
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
           # Extract slug from PR title "Draft: <title>" or branch name "draft/<slug>"
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          PR_BRANCH="${{ github.event.pull_request.head.ref }}"
-          
           # Try to get slug from branch name first. Signal publishes use
           # branch codex/online-signal-<slug> and title "signal: <slug>"
           # (the slug is already slug-form there; the generic title fallback
@@ -50,8 +53,12 @@ jobs:
             SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g')
           fi
           
+          # Strip CR/LF before writing outputs: a multi-line title could
+          # otherwise inject extra output records.
+          SLUG=${SLUG//[$'\r\n']/ }
+          TITLE_OUT=${PR_TITLE//[$'\r\n']/ }
           echo "slug=$SLUG" >> $GITHUB_OUTPUT
-          echo "title=$PR_TITLE" >> $GITHUB_OUTPUT
+          echo "title=$TITLE_OUT" >> $GITHUB_OUTPUT
       
       - name: Wait for the deploy to refresh posts.json (bounded)
         run: |
@@ -88,9 +95,9 @@ jobs:
       
       - name: Verify posts.json
         id: verify
+        env:
+          SLUG: ${{ steps.extract.outputs.slug }}
         run: |
-          SLUG="${{ steps.extract.outputs.slug }}"
-          
           # Fetch posts.json
           RESPONSE=$(curl -s "${SITE_URL}/posts.json" || echo "{}")
           
@@ -127,47 +134,39 @@ jobs:
 
       - name: Notify success
         if: steps.verify.outputs.verified == 'true'
+        env:
+          SLUG: ${{ steps.extract.outputs.slug }}
+          TITLE: ${{ steps.extract.outputs.title }}
+          COUNT: ${{ steps.verify.outputs.count }}
         run: |
-          SLUG="${{ steps.extract.outputs.slug }}"
-          TITLE="${{ steps.extract.outputs.title }}"
-          COUNT="${{ steps.verify.outputs.count }}"
-          
+          # Build the payload with jq so title/slug stay data even if they
+          # carry quotes or JSON metacharacters (no hand-spliced JSON).
+          PAYLOAD=$(jq -n --arg channel "$SLACK_CHANNEL_ID" --arg title "$TITLE" \
+            --arg count "$COUNT" --arg url "${SITE_URL}/#${SLUG}" '{
+              channel: $channel,
+              blocks: [{type: "section", text: {type: "mrkdwn",
+                text: "*Published!* \($title)\n\n:white_check_mark: Verified in posts.json (total: \($count) posts)\n:link: <\($url)|View Post>"}}],
+              text: "Published: \($title)"
+            }')
           curl -s -X POST "https://slack.com/api/chat.postMessage" \
             -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
             -H "Content-Type: application/json" \
-            -d "{
-              \"channel\": \"$SLACK_CHANNEL_ID\",
-              \"blocks\": [
-                {
-                  \"type\": \"section\",
-                  \"text\": {
-                    \"type\": \"mrkdwn\",
-                    \"text\": \"*Published!* $TITLE\\n\\n:white_check_mark: Verified in posts.json (total: $COUNT posts)\\n:link: <${SITE_URL}/#${SLUG}|View Post>\"
-                  }
-                }
-              ],
-              \"text\": \"Published: $TITLE\"
-            }"
+            -d "$PAYLOAD"
       
       - name: Notify failure
         if: steps.verify.outputs.verified != 'true'
+        env:
+          SLUG: ${{ steps.extract.outputs.slug }}
+          TITLE: ${{ steps.extract.outputs.title }}
         run: |
-          SLUG="${{ steps.extract.outputs.slug }}"
-          TITLE="${{ steps.extract.outputs.title }}"
-          
+          PAYLOAD=$(jq -n --arg channel "$SLACK_CHANNEL_ID" --arg slug "$SLUG" \
+            --arg title "$TITLE" '{
+              channel: $channel,
+              blocks: [{type: "section", text: {type: "mrkdwn",
+                text: "*Verification Failed* :warning:\n\nPost `\($slug)` not found in posts.json after deployment.\n\n<https://vercel.com/orion-apex/danmercede-online|Check Vercel Dashboard>"}}],
+              text: "Verification failed for: \($title)"
+            }')
           curl -s -X POST "https://slack.com/api/chat.postMessage" \
             -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
             -H "Content-Type: application/json" \
-            -d "{
-              \"channel\": \"$SLACK_CHANNEL_ID\",
-              \"blocks\": [
-                {
-                  \"type\": \"section\",
-                  \"text\": {
-                    \"type\": \"mrkdwn\",
-                    \"text\": \"*Verification Failed* :warning:\\n\\nPost \`$SLUG\` not found in posts.json after deployment.\\n\\n<https://vercel.com/orion-apex/danmercede-online|Check Vercel Dashboard>\"
-                  }
-                }
-              ],
-              \"text\": \"Verification failed for: $TITLE\"
-            }"
+            -d "$PAYLOAD"
