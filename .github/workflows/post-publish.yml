@@ -117,8 +117,12 @@ jobs:
             echo "::warning::Slug '$SLUG' NOT found in posts.json"
           fi
 
-          # Get post count
-          COUNT=$(echo "$RESPONSE" | jq '.count // 0' 2>/dev/null || echo 0)
+          # Get post count. Guarded beyond parse errors: a misrouted endpoint
+          # can return valid JSON whose .count is an object/array, which jq
+          # would pretty-print over multiple lines and corrupt GITHUB_OUTPUT,
+          # failing this step and skipping the success-gated notify steps.
+          # Only a single-line numeric scalar may reach the output file.
+          COUNT=$(echo "$RESPONSE" | jq -er 'if (.count | type) == "number" then .count else 0 end' 2>/dev/null || echo 0)
           echo "count=$COUNT" >> $GITHUB_OUTPUT
       
       # WebSub freshness push (specs/rss-feed-spec.md scenario 4): tell the hub the
