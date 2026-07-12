@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-11T07:07:17.405Z",
-  "count": 100,
+  "generated": "2026-07-12T15:56:11.530Z",
+  "count": 101,
   "posts": [
+    {
+      "slug": "2026-07-12-stubs-filter-like-api",
+      "title": "Stubs Must Filter Like the API",
+      "type": "experiment-log",
+      "date": "2026-07-12"
+    },
     {
       "slug": "2026-07-11-budget-the-week-you-act-in",
       "title": "Budget the Week You Act In",
