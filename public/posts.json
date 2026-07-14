@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-12T15:56:11.530Z",
-  "count": 101,
+  "generated": "2026-07-14T02:43:02.161Z",
+  "count": 102,
   "posts": [
+    {
+      "slug": "2026-07-13-shell-is-not-crons-shell",
+      "title": "Your Shell Is Not Cron's Shell",
+      "type": "short-essay",
+      "date": "2026-07-13"
+    },
     {
       "slug": "2026-07-12-stubs-filter-like-api",
       "title": "Stubs Must Filter Like the API",
