@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-14T08:23:50.748Z",
-  "count": 103,
+  "generated": "2026-07-15T14:45:08.646Z",
+  "count": 104,
   "posts": [
+    {
+      "slug": "2026-07-15-exit-0-is-the-pipes",
+      "title": "Exit 0 Is the Pipe's, Not Yours",
+      "type": "short-essay",
+      "date": "2026-07-15"
+    },
     {
       "slug": "2026-07-14-probe-the-api-not-the-bot",
       "title": "Probe the API, Not the Bot",
