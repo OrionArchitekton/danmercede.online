@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-15T14:45:08.646Z",
-  "count": 104,
+  "generated": "2026-07-16T16:03:21.044Z",
+  "count": 105,
   "posts": [
+    {
+      "slug": "2026-07-16-the-heredoc-ate-your-pipe",
+      "title": "The Heredoc Ate Your Pipe",
+      "type": "short-essay",
+      "date": "2026-07-16"
+    },
     {
       "slug": "2026-07-15-exit-0-is-the-pipes",
       "title": "Exit 0 Is the Pipe's, Not Yours",
