@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const robots = readFileSync(path.join(root, 'public/robots.txt'), 'utf8');
 const uaLine = (name: string) =>
-  new RegExp(`^User-agent:\\s*${name}\\s*$`, 'm');
+  new RegExp('^User-agent:\\s*' + name + '\\s*$', 'mi');
 
 test('robots.txt names Claude-User (user-directed retrieval)', () => {
   assert.match(robots, uaLine('Claude-User'));
