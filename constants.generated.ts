@@ -5,6 +5,22 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-07-17-green-gates-that-never-fired",
+    slug: "2026-07-17-green-gates-that-never-fired",
+    title: "Green Gates That Never Fired",
+    date: "2026-07-17",
+    timestamp: "09:30 AM PT",
+    type: EntryType.ExperimentLog,
+    context: "Systems",
+    tags: ["failure-modes","systems","signal"],
+    hypothesis: "The 'Prerender validation passed' line in a client site's build log meant its per-route titles and OG tags were protected.",
+    constraint: "Flip the warn-only validator to fail-closed with non-empty assertions and let the very next build tell the truth.",
+    result: "Failed",
+    resultDetails: "The gate had never fired once. It warned instead of exiting nonzero, and its title regex matched an empty <title></title>, so all 102 prerendered routes had shipped empty heads for four months. Root cause one layer down: the pages are React.lazy behind Suspense, and synchronous renderToString snapshots the loading fallback, so react-helmet never populates. Every social link share rendered a blank preview card the whole time. The fail-closed flip caught it on the first build. Fix: renderToPipeableStream buffered to onAllReady so lazy routes resolve before the head snapshot, plus non-empty assertions on title, description, canonical, and h1.",
+    nextStep: "Audit every 'validation passed' build step for whether it can actually fail, and grep the BUILT artifact for the asserted property instead of trusting the log line.",
+  }
+,
+  {
     id: "2026-07-16-the-heredoc-ate-your-pipe",
     slug: "2026-07-16-the-heredoc-ate-your-pipe",
     title: "The Heredoc Ate Your Pipe",

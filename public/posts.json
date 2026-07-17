@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-16T16:03:21.044Z",
-  "count": 105,
+  "generated": "2026-07-17T16:27:15.124Z",
+  "count": 106,
   "posts": [
+    {
+      "slug": "2026-07-17-green-gates-that-never-fired",
+      "title": "Green Gates That Never Fired",
+      "type": "experiment-log",
+      "date": "2026-07-17"
+    },
     {
       "slug": "2026-07-16-the-heredoc-ate-your-pipe",
       "title": "The Heredoc Ate Your Pipe",
