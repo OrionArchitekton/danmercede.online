@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-17T16:27:15.124Z",
-  "count": 106,
+  "generated": "2026-07-18T07:20:39.874Z",
+  "count": 107,
   "posts": [
+    {
+      "slug": "2026-07-18-pinning-is-half-the-fix",
+      "title": "Pinning the Dep Is Half the Fix",
+      "type": "short-essay",
+      "date": "2026-07-18"
+    },
     {
       "slug": "2026-07-17-green-gates-that-never-fired",
       "title": "Green Gates That Never Fired",
