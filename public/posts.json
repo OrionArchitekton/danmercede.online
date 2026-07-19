@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-18T07:20:39.874Z",
-  "count": 107,
+  "generated": "2026-07-19T07:21:26.006Z",
+  "count": 108,
   "posts": [
+    {
+      "slug": "2026-07-19-cli-errors-are-agent-api",
+      "title": "CLI Errors Are Part of Your Agent API",
+      "type": "short-essay",
+      "date": "2026-07-19"
+    },
     {
       "slug": "2026-07-18-pinning-is-half-the-fix",
       "title": "Pinning the Dep Is Half the Fix",
