@@ -5,6 +5,22 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-07-21-green-ci-proved-nothing",
+    slug: "2026-07-21-green-ci-proved-nothing",
+    title: "Green CI Proved Nothing",
+    date: "2026-07-21",
+    timestamp: "08:58 AM PT",
+    type: EntryType.ExperimentLog,
+    context: "Systems",
+    tags: ["failure-modes","signal","execution"],
+    hypothesis: "A detector's false positives came from event beacons sent on a transport that its capture layer silently dropped.",
+    constraint: "The fix only counts if a live re-measurement of the symptom against the real inputs confirms it. A green suite does not count.",
+    result: "Failed",
+    resultDetails: "The patched detector re-ran against the real inputs and found the hypothesized transport in zero of them. Every beacon used the ordinary path. The change was a genuine latent bug and worth keeping, but it was not the cause. The real mechanism was worse: the detector's negative signal had several causes it could not tell apart. A headless client that observes nothing cannot separate genuinely missing from suppressed because you are automated. Two inputs with opposite ground truth produced an identical observation.",
+    nextStep: "Reclassify the ambiguous observation as inconclusive. Mint a finding only from the opposite shape, infrastructure present but idle, where you can see the thing you are judging.",
+  }
+,
+  {
     id: "2026-07-20-timeout-ate-my-commit",
     slug: "2026-07-20-timeout-ate-my-commit",
     title: "The Timeout That Ate My Commit",

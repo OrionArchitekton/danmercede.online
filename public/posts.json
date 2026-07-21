@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-20T08:31:00.915Z",
-  "count": 109,
+  "generated": "2026-07-21T16:00:34.371Z",
+  "count": 110,
   "posts": [
+    {
+      "slug": "2026-07-21-green-ci-proved-nothing",
+      "title": "Green CI Proved Nothing",
+      "type": "experiment-log",
+      "date": "2026-07-21"
+    },
     {
       "slug": "2026-07-20-timeout-ate-my-commit",
       "title": "The Timeout That Ate My Commit",
