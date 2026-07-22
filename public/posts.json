@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-21T16:00:34.371Z",
-  "count": 110,
+  "generated": "2026-07-22T21:19:04.070Z",
+  "count": 111,
   "posts": [
+    {
+      "slug": "2026-07-22-zero-dep-llm-client-traps",
+      "title": "Two Traps in a Zero-Dep LLM Client",
+      "type": "experiment-log",
+      "date": "2026-07-22"
+    },
     {
       "slug": "2026-07-21-green-ci-proved-nothing",
       "title": "Green CI Proved Nothing",
