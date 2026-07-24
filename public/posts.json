@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-22T21:19:04.070Z",
-  "count": 111,
+  "generated": "2026-07-24T06:10:26.754Z",
+  "count": 112,
   "posts": [
+    {
+      "slug": "2026-07-23-partial-oracles-for-agent-testing",
+      "title": "Partial Oracles for Agent Testing",
+      "type": "short-essay",
+      "date": "2026-07-23"
+    },
     {
       "slug": "2026-07-22-zero-dep-llm-client-traps",
       "title": "Two Traps in a Zero-Dep LLM Client",
