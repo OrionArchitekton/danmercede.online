@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-24T06:10:26.754Z",
-  "count": 112,
+  "generated": "2026-07-24T07:03:57.498Z",
+  "count": 113,
   "posts": [
+    {
+      "slug": "2026-07-24-name-the-override-gap",
+      "title": "Name the Override Gap",
+      "type": "short-essay",
+      "date": "2026-07-24"
+    },
     {
       "slug": "2026-07-23-partial-oracles-for-agent-testing",
       "title": "Partial Oracles for Agent Testing",
