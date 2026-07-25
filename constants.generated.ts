@@ -5,6 +5,22 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-07-25-read-the-docs-not-marketing",
+    slug: "2026-07-25-read-the-docs-not-marketing",
+    title: "Read the Docs, Not the Marketing Page",
+    date: "2026-07-25",
+    timestamp: "12:20 AM PT",
+    type: EntryType.ExperimentLog,
+    context: "Signal",
+    tags: ["signal","failure-modes","execution"],
+    hypothesis: "A first-pass competitive scan's verdict of 'an incumbent already ships this' is reliable enough to kill a build decision.",
+    constraint: "Re-verify every load-bearing claim against the vendor's own product docs rather than its platform page, and record GA versus private beta for each.",
+    result: "Failed",
+    resultDetails: "The first pass scored an incumbent as shipping three of four claimed differentiators, including hard floors that block promotion, and cited the platform page: 'LLM judges score each candidate against your defined thresholds, and only what clears the bar gets to production.' The product docs for that same feature describe promotion as a manual human action: 'Deploy opens the config targeting page for the agent so that you can promote it to your chosen targeting rules.' No automatic gate is documented anywhere, and the feature is private beta, not GA. Corrected read: two of four solidly shipped, the blocking-gate axis still open. Same scan, second correction: an Apache-2.0 optimizer was reported as auto-tuning from logged traces, but its actual signature is optimize_prompt(prompt, dataset, metric), so the trace-to-dataset step is still the user's problem.",
+    nextStep: "Before any 'already shipped' claim is allowed to kill a build, require three things: a product docs or changelog URL that was actually fetched, an explicit GA/beta/waitlist status, and for any 'automatic' claim, the specific doc sentence showing no human step.",
+  }
+,
+  {
     id: "2026-07-24-name-the-override-gap",
     slug: "2026-07-24-name-the-override-gap",
     title: "Name the Override Gap",

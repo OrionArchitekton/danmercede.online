@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-24T07:03:57.498Z",
-  "count": 113,
+  "generated": "2026-07-25T07:14:25.763Z",
+  "count": 114,
   "posts": [
+    {
+      "slug": "2026-07-25-read-the-docs-not-marketing",
+      "title": "Read the Docs, Not the Marketing Page",
+      "type": "experiment-log",
+      "date": "2026-07-25"
+    },
     {
       "slug": "2026-07-24-name-the-override-gap",
       "title": "Name the Override Gap",
