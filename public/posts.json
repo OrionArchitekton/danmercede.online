@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-25T07:14:25.763Z",
-  "count": 114,
+  "generated": "2026-07-26T15:11:54.907Z",
+  "count": 115,
   "posts": [
+    {
+      "slug": "2026-07-26-subset-render-is-a-delete",
+      "title": "Subset Render Is a Delete",
+      "type": "short-essay",
+      "date": "2026-07-26"
+    },
     {
       "slug": "2026-07-25-read-the-docs-not-marketing",
       "title": "Read the Docs, Not the Marketing Page",
