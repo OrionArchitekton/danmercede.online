@@ -15,6 +15,6 @@ Nothing flagged it. The command exited 0. The output was valid markdown. Version
 
 It surfaced on one number. The commit line delta read a net loss of over fifty lines on a change whose entire purpose was to ADD a row. Net negative on an additive change is incoherent, and that incoherence was the only tripwire that fired.
 
-So splice, do not redirect. Replace the target section's body in place, then confirm the diff is confined to that section. Count the sibling sections on the pre-image and the post-image and require them to match unless you meant to remove one. And treat the tool's own runbook as a stale premise, because a shared artifact can grow sections long after its procedure was written.
+So splice, do not redirect. Replace the target section's body in place, then confirm the diff is confined to that section. Count the sibling sections on the pre-image and the post-image and require them to match unless you meant to remove one. And treat the runbook itself as a stale premise, because a shared artifact can grow sections long after its procedure was written.
 
 The same week, the same shape arrived from the other direction. A script named like a linter was actually a generator whose output path defaulted to a tracked file, so running it as a quality check rewrote shared state as a side effect. Read a tool's help for a default write path before you run it to "just look" at something. A name is not a contract.
