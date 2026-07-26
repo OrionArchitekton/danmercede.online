@@ -5,6 +5,77 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-07-26-subset-render-is-a-delete",
+    slug: "2026-07-26-subset-render-is-a-delete",
+    title: "Subset Render Is a Delete",
+    date: "2026-07-26",
+    timestamp: "08:09 AM PT",
+    type: EntryType.ShortEssay,
+    context: "Systems",
+    tags: ["failure-modes","signal","execution"],
+    claim: "A generator that renders one section of a shared multi-section artifact is a destructive overwrite wearing the costume of a normal write.",
+    implication: "Every ordinary success signal reads green on that write, so the only tripwire left is the diff line delta and a count of the sibling sections on both sides.",
+    content: `A documented runbook said to refresh a shared report by redirecting a render command over the file. The runbook predated the file growing from one section into several. The renderer emits only the section you ask it for, so the redirect would have deleted every other section, including measurements that cost real money to collect days earlier.
+
+Nothing flagged it. The command exited 0. The output was valid markdown. Version control showed one modified file and no conflict. The deletion is invisible in the new file, because you cannot see what is absent, and invisible in a status check, because a truncated file and a correct file are both just "modified".
+
+It surfaced on one number. The commit line delta read a net loss of over fifty lines on a change whose entire purpose was to ADD a row. Net negative on an additive change is incoherent, and that incoherence was the only tripwire that fired.
+
+So splice, do not redirect. Replace the target section's body in place, then confirm the diff is confined to that section. Count the sibling sections on the pre-image and the post-image and require them to match unless you meant to remove one. And treat the runbook itself as a stale premise, because a shared artifact can grow sections long after its procedure was written.
+
+The same week, the same shape arrived from the other direction. A script named like a linter was actually a generator whose output path defaulted to a tracked file, so running it as a quality check rewrote shared state as a side effect. Read a tool's help for a default write path before you run it to "just look" at something. A name is not a contract.`,
+  }
+,
+  {
+    id: "2026-07-25-read-the-docs-not-marketing",
+    slug: "2026-07-25-read-the-docs-not-marketing",
+    title: "Read the Docs, Not the Marketing Page",
+    date: "2026-07-25",
+    timestamp: "12:20 AM PT",
+    type: EntryType.ExperimentLog,
+    context: "Signal",
+    tags: ["signal","failure-modes","execution"],
+    hypothesis: "A first-pass competitive scan's verdict of 'an incumbent already ships this' is reliable enough to kill a build decision.",
+    constraint: "Re-verify every load-bearing claim against the vendor's own product docs rather than its platform page, and record GA versus private beta for each.",
+    result: "Failed",
+    resultDetails: "The first pass scored an incumbent as shipping three of four claimed differentiators, including hard floors that block promotion, and cited the platform page: 'LLM judges score each candidate against your defined thresholds, and only what clears the bar gets to production.' The product docs for that same feature describe promotion as a manual human action: 'Deploy opens the config targeting page for the agent so that you can promote it to your chosen targeting rules.' No automatic gate is documented anywhere, and the feature is private beta, not GA. Corrected read: two of four solidly shipped, the blocking-gate axis still open. Same scan, second correction: an Apache-2.0 optimizer was reported as auto-tuning from logged traces, but its actual signature is optimize_prompt(prompt, dataset, metric), so the trace-to-dataset step is still the user's problem.",
+    nextStep: "Before any 'already shipped' claim is allowed to kill a build, require three things: a product docs or changelog URL that was actually fetched, an explicit GA/beta/waitlist status, and for any 'automatic' claim, the specific doc sentence showing no human step.",
+  }
+,
+  {
+    id: "2026-07-24-name-the-override-gap",
+    slug: "2026-07-24-name-the-override-gap",
+    title: "Name the Override Gap",
+    date: "2026-07-24",
+    timestamp: "12:02 AM PT",
+    type: EntryType.ShortEssay,
+    context: "Governance",
+    tags: ["security","governance","failure-modes"],
+    claim: "An override a model can grant itself is the permission prompt again in a different hat.",
+    implication: "State what your safety control does NOT have (authentication, command binding, single-use, an audit trail) instead of describing the hardened version you meant to build.",
+    content: `I shipped a guide arguing that a safe agent harness fails closed, then described its destructive-action override as authenticated, bound to the exact command, single-use, and audited. Review caught the gap: the real override is an environment variable the operator sets. None of those four properties held.
+
+The fix was not to build the hardened version on the spot. It was to name the gap. A control described as stronger than it is fails the same way a green dashboard with a dead check behind it fails: the reader trusts a property that was never there.
+
+So write the honest version. What does the gate actually enforce, and what does it merely record? An override the model can grant itself is not a safety property. It is the permission prompt again, wearing a hat.
+
+Full writeup: danmercede.com/guides/the-fail-closed-harness`,
+  }
+,
+  {
+    id: "2026-07-23-partial-oracles-for-agent-testing",
+    slug: "2026-07-23-partial-oracles-for-agent-testing",
+    title: "Partial Oracles for Agent Testing",
+    date: "2026-07-23",
+    timestamp: "10:30 PM PT",
+    type: EntryType.ShortEssay,
+    context: "Systems",
+    tags: ["systems","governance","execution"],
+    claim: "You cannot regression-test a nondeterministic agent by demanding yesterday's exact words. The useful target is its behavioral contract: required structure, deterministic invariants, and per-field tolerance bands. Invariants run first and cannot be explained away by an LLM judge. Borderline semantic changes become an explicit flaky result, not a forced pass or fail. Legitimate evolution proposes a contract update, but a named human decides whether the boundary moves. The system under test never gets to redefine success by itself.",
+    implication: "Agent QA needs layered partial oracles: exact rules where truth is deterministic, bounded similarity where variation is legitimate, and human authority where the contract changes. I built that pattern into Proctor and presented it in the UiPath AgentHack 2026 live finale. Architecture, quickstart, and source: https://www.danmercede.com/works/proctor/",
+  }
+,
+  {
     id: "2026-07-23-review-bycatch-not-yours",
     slug: "2026-07-23-review-bycatch-not-yours",
     title: "Review Bycatch Is Not Yours to Fix",
