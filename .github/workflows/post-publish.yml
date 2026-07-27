@@ -12,6 +12,13 @@ env:
   # body, which silently broke every non-following curl in this job on its
   # first real run (2026-07-11). Fetches below also pass -L as a belt.
   SITE_URL: https://www.danmercede.online
+  # Declare ourselves on every fetch of our OWN origin. These run on
+  # GitHub-hosted runners with rotating Azure addresses, so no source-IP rule
+  # can attribute them; undeclared, estate CI counted as external audience in
+  # the AI-visibility register (2026-07-26). The `orion-` prefix is what the
+  # counter's self-traffic policy matches on. Workflow-level so it is in scope
+  # for every step, including the separate verify step below.
+  CI_UA: orion-ci-post-publish/1.0
 
 jobs:
   verify-publish:
@@ -75,7 +82,7 @@ jobs:
           # would falsely read the next success as "deployed").
           BEFORE=""
           for i in 1 2 3 4 5 6; do
-            BEFORE=$(curl -sL --max-time 15 "${SITE_URL}/posts.json" | jq -r '.generated // empty' 2>/dev/null || true)
+            BEFORE=$(curl -sL -A "${CI_UA}" --max-time 15 "${SITE_URL}/posts.json" | jq -r '.generated // empty' 2>/dev/null || true)
             [ -n "$BEFORE" ] && break
             sleep 15
           done
@@ -88,7 +95,7 @@ jobs:
           DEADLINE=$(( $(date +%s) + 480 ))
           while [ "$(date +%s)" -lt "$DEADLINE" ]; do
             sleep 30
-            NOW=$(curl -sL --max-time 15 "${SITE_URL}/posts.json" | jq -r '.generated // empty' 2>/dev/null || true)
+            NOW=$(curl -sL -A "${CI_UA}" --max-time 15 "${SITE_URL}/posts.json" | jq -r '.generated // empty' 2>/dev/null || true)
             if [ -n "$NOW" ] && [ "$NOW" != "$BEFORE" ]; then
               echo "deploy refreshed posts.json: $NOW"
               exit 0
@@ -106,7 +113,7 @@ jobs:
           # under bash -e, which SKIPPED the WebSub ping and both notify steps,
           # so nobody was told verification failed. A bad fetch must degrade to
           # verified=false + the failure notification, never a silent crash.
-          RESPONSE=$(curl -sL --max-time 15 "${SITE_URL}/posts.json" || echo "{}")
+          RESPONSE=$(curl -sL -A "${CI_UA}" --max-time 15 "${SITE_URL}/posts.json" || echo "{}")
 
           # Check if slug exists in posts
           if echo "$RESPONSE" | jq -e --arg slug "$SLUG" '.posts[] | select(.slug == $slug)' > /dev/null 2>&1; then
