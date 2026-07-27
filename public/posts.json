@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-26T18:58:12.849Z",
-  "count": 116,
+  "generated": "2026-07-27T09:01:32.613Z",
+  "count": 117,
   "posts": [
+    {
+      "slug": "2026-07-27-assignment-is-not-ownership",
+      "title": "Assignment Is Not Ownership",
+      "type": "short-essay",
+      "date": "2026-07-27"
+    },
     {
       "slug": "2026-07-26-subset-render-is-a-delete",
       "title": "Subset Render Is a Delete",
