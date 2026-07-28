@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-27T09:01:32.613Z",
-  "count": 117,
+  "generated": "2026-07-28T00:22:20.493Z",
+  "count": 118,
   "posts": [
+    {
+      "slug": "2026-07-27-advisory-until-it-blocks-you",
+      "title": "Advisory Until It Blocks You",
+      "type": "experiment-log",
+      "date": "2026-07-27"
+    },
     {
       "slug": "2026-07-27-assignment-is-not-ownership",
       "title": "Assignment Is Not Ownership",

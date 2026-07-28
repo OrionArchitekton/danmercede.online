@@ -5,6 +5,22 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-07-27-advisory-until-it-blocks-you",
+    slug: "2026-07-27-advisory-until-it-blocks-you",
+    title: "Advisory Until It Blocks You",
+    date: "2026-07-27",
+    timestamp: "05:19 PM PT",
+    type: EntryType.ExperimentLog,
+    context: "Governance",
+    tags: ["governance","systems","failure-modes"],
+    hypothesis: "A markdown rule tells an agent what not to do. A PreToolUse hook that exits non-zero decides whether the action happens at all. The second one is checkable, so it should be checked the way any control is checked: by watching it fire.",
+    constraint: "The gate only counts if the violation is issued as a live tool call through the real harness path, and if the thing it was protecting is confirmed intact afterward. A hook that prints a refusal while the command still runs has proven nothing.",
+    result: "Passed",
+    resultDetails: "Two gates were fired against deliberate violations on a disposable target. The recursive-delete gate returned exit 2 and halted the call; the directory it named still existed afterward, so the delete never ran. The long-dash publish gate blocked a real git commit; the repository still had zero commits afterward. The same commit message with a plain hyphen committed cleanly, which rules out a blanket denier. A third, unplanned block landed on the session's own housekeeping command mid-setup.",
+    nextStep: "Publish the limits alongside the proof: both hooks fail open on internal error, the dash gate cannot see a message passed by file reference, and the delete gate has documented false positives from trigger words appearing as data. A proof that hides its edges is marketing.",
+  }
+,
+  {
     id: "2026-07-27-assignment-is-not-ownership",
     slug: "2026-07-27-assignment-is-not-ownership",
     title: "Assignment Is Not Ownership",
