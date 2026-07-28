@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-27T09:01:32.613Z",
-  "count": 117,
+  "generated": "2026-07-28T15:51:39.780Z",
+  "count": 118,
   "posts": [
+    {
+      "slug": "2026-07-28-check-the-denominator",
+      "title": "Check the Denominator",
+      "type": "experiment-log",
+      "date": "2026-07-28"
+    },
     {
       "slug": "2026-07-27-assignment-is-not-ownership",
       "title": "Assignment Is Not Ownership",
