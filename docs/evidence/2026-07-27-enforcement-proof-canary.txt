@@ -135,8 +135,23 @@ discriminates on the banned character, not on commits in general.
 STATED LIMITS  (published because a proof that hides its edges is marketing)
 ================================================================================
 
-1. rule-of-two is ASK-WITH-OVERRIDE by construction, not a hard block. It makes
-   destruction an explicit decision. Canary 1c is that override working.
+1. THE BIGGEST ONE, and it limits everything above: the override is AGENT-MINTABLE.
+   `RULE_OF_TWO_OK=1` is an ordinary environment assignment, so the same agent that
+   issued the blocked command can prepend it and re-issue, with no human in the loop.
+   Canary 1c is not a human approving a destruction; it is the agent approving its own.
+   That means this gate is NOT a security boundary against a malfunctioning, confused,
+   or adversarial agent. Against that threat model it is advisory, and publishing it as
+   proof of prevention would overstate it.
+   What it does do, which markdown instructions cannot: it makes the destructive path
+   DEFAULT-DENY and forces the agent onto a second, different, visible action to
+   proceed. The action stops by construction and resumes only via an explicit,
+   attributable step. That is a real difference from persuasion, and it is a narrower
+   claim than "it prevents violations". The honest scope is: enforcement against
+   accident, drift, and unreflective action; not against intent.
+
+1b. Same shape, different route, for the long-dash gate: it has no override env var,
+   but it reads only the command TEXT, so an agent can route around it by passing the
+   message via file (see limit 3). No env bypass does not mean no bypass.
 
 2. Both hooks FAIL OPEN on internal error (ban-em-dashes.sh sets `trap 'exit 0' EXIT`).
    A crashed hook permits the action. That is a deliberate availability tradeoff and
