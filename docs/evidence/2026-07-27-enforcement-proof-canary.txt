@@ -13,7 +13,14 @@
 # repo publishes under a no-long-dash rule that the second hook below enforces at commit
 # time, so a byte-verbatim paste of the first hook's output cannot be committed here.
 # Nothing else is altered: no command, exit code, verdict, score, or control result.
-# Reproduce byte-verbatim yourself with the commands below.
+#
+# HOW TO REPRODUCE, stated precisely, because "copy these commands" would be false for
+# canary 2. Canary 1 and 1c are copyable as written. Canary 2 is NOT: its message is
+# shown with the literal token <U+2014> in place of an em dash, and copying that token
+# supplies no banned character, so the commit SUCCEEDS and exercises nothing. Verified,
+# it committed clean as ff641a1. To actually reproduce canary 2 you must type a real
+# U+2014 where the token appears, in a session whose harness has the hook registered.
+# This file cannot contain that byte, which is the whole reason the token is here.
 #
 # Two further disclosures, both of which a reviewer caught in THIS file after the first
 # fidelity header was written, which is itself the point:
@@ -173,8 +180,21 @@ STATED LIMITS  (published because a proof that hides its edges is marketing)
    accident, drift, and unreflective action; not against intent.
 
 1b. Same shape, different route, for the long-dash gate: it has no override env var,
-   but it reads only the command TEXT, so an agent can route around it by passing the
-   message via file (see limit 3). No env bypass does not mean no bypass.
+   but it reads only the command TEXT, so an agent can route around it. No env bypass
+   does not mean no bypass. Two routes, both confirmed on this node:
+     - pass the message via file (`git commit -F`, `gh --body-file`), limit 3 below;
+     - CONSTRUCT the character at runtime so it never appears in the command text:
+
+           $ D=$(printf '\xe2\x80\x94')
+           $ git commit -q -m "feat: runtime ${D} constructed dash"
+           COMMIT_EXIT=0
+
+       The commit landed WITH a real U+2014 in its message (verified by dumping the
+       committed subject: bytes e28094 present). The gate did not fire, because the
+       command text it inspects contains only the escape sequence. This one is
+       trivially available to any agent that can run a shell, and it was found by
+       probing the gate while writing this file, not by any review of it.
+   Both routes are the same lesson as limit 1: these gates bind accident, not intent.
 
 2. Both hooks FAIL OPEN on internal error (ban-em-dashes.sh sets `trap 'exit 0' EXIT`).
    A crashed hook permits the action. That is a deliberate availability tradeoff and
