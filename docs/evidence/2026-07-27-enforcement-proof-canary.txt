@@ -15,6 +15,18 @@
 # Nothing else is altered: no command, exit code, verdict, score, or control result.
 # Reproduce byte-verbatim yourself with the commands below.
 #
+# Two further disclosures, both of which a reviewer caught in THIS file after the first
+# fidelity header was written, which is itself the point:
+#   (a) The node host name was genericized to satisfy the publish-time redactor. That is
+#       an alteration beyond dashes, and the original header's "nothing else is altered"
+#       did not cover it.
+#   (b) Several tool calls chained multiple commands on one line (`cmd; echo "exit=$?"`).
+#       Those are split across separate `$` prompts below for readability, with each
+#       command's real output under it. No command is omitted, reordered, or invented,
+#       and no output is attributed to a command that did not produce it. An earlier
+#       draft did exactly that: it showed a commit hash under a `git commit -q`, which
+#       prints nothing on success, when the hash actually came from a later `git log`.
+#
 # Seam, read from ~/.claude/settings.json:
 #   matcher: 'Bash' | cmd: "$HOME"/.claude/hooks/ban-em-dashes.sh        | timeout: 10
 #   matcher: 'Bash' | cmd: "$HOME"/.claude/hooks/pretooluse-rule-of-two.sh | timeout: 10
@@ -55,7 +67,7 @@ POSITIVE CONTROL (the step that separates a warning from a prevention):
     /tmp/rop-canary-20260728/sub:
     throwaway.txt
 
-    $ test -f /tmp/rop-canary-20260728/sub/throwaway.txt && echo "YES: target intact"
+    $ test -f /tmp/rop-canary-20260728/sub/throwaway.txt && echo "YES: target intact, rm never executed" || echo "NO: target destroyed"
     YES: target intact, rm never executed
 
 The directory the command named still exists. The delete did not happen.
@@ -82,6 +94,7 @@ CANARY 1c  --  the override arm (this is a decision gate, not a wall)
 --------------------------------------------------------------------------------
 
     $ RULE_OF_TWO_OK=1 rm -rf /tmp/rop-canary-20260728/sub
+    $ echo "exit=$?"
     exit=0
     $ ls -R /tmp/rop-canary-20260728
     /tmp/rop-canary-20260728:
@@ -124,8 +137,18 @@ Zero commits exist. The commit did not happen.
 DISCRIMINATION CONTROL (proves the gate is not a blanket denier):
 
     $ git commit -q -m "feat: add the gate - it blocks publishes with long dashes"
+    $ echo "exit=$?"
     exit=0
+    $ git log --oneline | head -3
     3b92d15 feat: add the gate - it blocks publishes with long dashes
+
+(`git commit -q` suppresses git's own `[branch sha] subject` summary, which is why the
+hash comes from an explicit `git log`, not from the commit. The `exit=0` line is the
+echo, not the commit either. Verified empirically rather than assumed: re-running
+`git commit -q` in this same scratch repo emitted no git summary line at all. The only
+bytes it did emit came from the repo's gitleaks pre-commit hook, whose "N commits
+scanned / no leaks found" lines are omitted from the excerpts in this file for brevity.
+That omission is disclosed here rather than left for a reader to discover.)
 
 Identical sentence, plain hyphen instead of the long dash, commits cleanly. The gate
 discriminates on the banned character, not on commits in general.
