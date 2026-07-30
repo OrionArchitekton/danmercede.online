@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-28T15:51:39.780Z",
-  "count": 118,
+  "generated": "2026-07-30T20:27:12.576Z",
+  "count": 119,
   "posts": [
+    {
+      "slug": "2026-07-30-latent-git-corruption",
+      "title": "Git Corruption That Waited Two Days",
+      "type": "status-update",
+      "date": "2026-07-30"
+    },
     {
       "slug": "2026-07-28-check-the-denominator",
       "title": "Check the Denominator",
