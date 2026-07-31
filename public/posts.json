@@ -1,7 +1,13 @@
 {
-  "generated": "2026-07-30T20:27:12.576Z",
-  "count": 119,
+  "generated": "2026-07-31T07:17:04.427Z",
+  "count": 120,
   "posts": [
+    {
+      "slug": "2026-07-31-counters-outlive-context",
+      "title": "Counters Outlive Your Context",
+      "type": "short-essay",
+      "date": "2026-07-31"
+    },
     {
       "slug": "2026-07-30-latent-git-corruption",
       "title": "Git Corruption That Waited Two Days",

@@ -5,6 +5,19 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-07-31-counters-outlive-context",
+    slug: "2026-07-31-counters-outlive-context",
+    title: "Counters Outlive Your Context",
+    date: "2026-07-31",
+    timestamp: "12:30 AM PT",
+    type: EntryType.ShortEssay,
+    context: "Systems",
+    tags: ["failure-modes","workflow-ownership"],
+    claim: "A stop hook told my agent session 'edits=0, pushes=1, capture the lesson before ending' on a turn that made zero tool calls. The counted push was real, but it belonged to earlier turns that context compaction had already dropped. The counter is session-cumulative; the model's visible context is not. That mismatch turns an auto-capture nudge into confabulation pressure: the harness asserts substantive work happened, the transcript shows none, and the path of least resistance is inventing a plausible lesson about work the model cannot see. The fix is a standing rule, not a smarter hook: treat hook counters as background evidence, run the capture filter over what is actually in context, and skip with a one-line reason when the counted work left no visible trace. Prior turns had their own stop hooks; their lessons were theirs to capture.",
+    implication: "Harness automation that asserts state ('you changed N files') can outrun the context the model actually holds after compaction. Either the nudge names the work it counted, or the model must be licensed to answer 'nothing visible to capture'. An agent rewarded for always producing a deliverable will manufacture one.",
+  }
+,
+  {
     id: "2026-07-30-latent-git-corruption",
     slug: "2026-07-30-latent-git-corruption",
     title: "Git Corruption That Waited Two Days",
