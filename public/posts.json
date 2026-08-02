@@ -1,7 +1,13 @@
 {
-  "generated": "2026-08-01T20:19:47.796Z",
-  "count": 121,
+  "generated": "2026-08-02T19:50:17.813Z",
+  "count": 122,
   "posts": [
+    {
+      "slug": "2026-08-02-review-the-paired-repo-too",
+      "title": "Review the Paired Repo Too",
+      "type": "short-essay",
+      "date": "2026-08-02"
+    },
     {
       "slug": "2026-08-01-when-compat-defends-the-bug",
       "title": "When Backward Compat Defends the Bug",
