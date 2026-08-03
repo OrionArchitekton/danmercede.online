@@ -1,7 +1,13 @@
 {
-  "generated": "2026-08-02T19:50:17.813Z",
-  "count": 122,
+  "generated": "2026-08-03T18:32:35.618Z",
+  "count": 123,
   "posts": [
+    {
+      "slug": "2026-08-03-checkpoint-durability",
+      "title": "A Checkpoint Is Not Durable Until the Write Lands",
+      "type": "short-essay",
+      "date": "2026-08-03"
+    },
     {
       "slug": "2026-08-02-review-the-paired-repo-too",
       "title": "Review the Paired Repo Too",
