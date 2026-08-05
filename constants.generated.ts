@@ -5,6 +5,22 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-08-05-green-tests-that-cannot-fail",
+    slug: "2026-08-05-green-tests-that-cannot-fail",
+    title: "Green Tests That Cannot Fail",
+    date: "2026-08-05",
+    timestamp: "01:30 AM PT",
+    type: EntryType.ExperimentLog,
+    context: "Systems",
+    tags: ["failure-modes","execution","systems"],
+    hypothesis: "New tests covering the partial-byte mask branch of a CIDR prefix matcher will catch a regression in that mask.",
+    constraint: "Prove it by mutating the mask in both directions, too wide and too narrow. The tests must fail on each mutant.",
+    result: "Failed",
+    resultDetails: "Both mutants stayed green. The inside probes were .1 and a v6 address ending 0x281, whose low-order bits are all zero, so they satisfy a correct mask and an off-by-one one identically. Re-probing with values that carry bits below the prefix boundary (.64, .127, 0x288, 0x28f) made both mutants fail correctly.",
+    nextStep: "For any mask, rounding, clamping or boundary test, stop probing with round numbers. Pick a value just inside the edge, and run the mutant in both directions.",
+  }
+,
+  {
     id: "2026-08-03-checkpoint-durability",
     slug: "2026-08-03-checkpoint-durability",
     title: "A Checkpoint Is Not Durable Until the Write Lands",

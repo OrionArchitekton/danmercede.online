@@ -1,7 +1,13 @@
 {
-  "generated": "2026-08-03T18:32:35.618Z",
-  "count": 123,
+  "generated": "2026-08-05T08:25:18.910Z",
+  "count": 124,
   "posts": [
+    {
+      "slug": "2026-08-05-green-tests-that-cannot-fail",
+      "title": "Green Tests That Cannot Fail",
+      "type": "experiment-log",
+      "date": "2026-08-05"
+    },
     {
       "slug": "2026-08-03-checkpoint-durability",
       "title": "A Checkpoint Is Not Durable Until the Write Lands",
