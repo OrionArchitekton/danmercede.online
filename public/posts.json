@@ -1,7 +1,13 @@
 {
-  "generated": "2026-08-05T08:25:18.910Z",
-  "count": 124,
+  "generated": "2026-08-06T16:46:48.011Z",
+  "count": 125,
   "posts": [
+    {
+      "slug": "2026-08-06-clone-the-repo-you-benchmark",
+      "title": "Clone the Repo You Benchmark",
+      "type": "experiment-log",
+      "date": "2026-08-06"
+    },
     {
       "slug": "2026-08-05-green-tests-that-cannot-fail",
       "title": "Green Tests That Cannot Fail",
