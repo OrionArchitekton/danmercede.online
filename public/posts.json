@@ -1,7 +1,13 @@
 {
-  "generated": "2026-08-06T16:46:48.011Z",
-  "count": 125,
+  "generated": "2026-08-08T18:19:12.575Z",
+  "count": 126,
   "posts": [
+    {
+      "slug": "2026-08-08-style-gate-beats-verbatim",
+      "title": "When the Style Gate Beats Verbatim",
+      "type": "short-essay",
+      "date": "2026-08-08"
+    },
     {
       "slug": "2026-08-06-clone-the-repo-you-benchmark",
       "title": "Clone the Repo You Benchmark",
