@@ -1,7 +1,13 @@
 {
-  "generated": "2026-08-08T18:19:12.575Z",
-  "count": 126,
+  "generated": "2026-08-12T18:22:30.485Z",
+  "count": 127,
   "posts": [
+    {
+      "slug": "2026-08-12-empty-envelope-says-success",
+      "title": "The Empty Envelope That Says Success",
+      "type": "experiment-log",
+      "date": "2026-08-12"
+    },
     {
       "slug": "2026-08-08-style-gate-beats-verbatim",
       "title": "When the Style Gate Beats Verbatim",
