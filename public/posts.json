@@ -1,7 +1,13 @@
 {
-  "generated": "2026-08-12T18:22:30.485Z",
-  "count": 127,
+  "generated": "2026-08-13T08:13:16.213Z",
+  "count": 128,
   "posts": [
+    {
+      "slug": "2026-08-13-findings-as-ownership",
+      "title": "When Review Findings Are Someone Else's Work Plan",
+      "type": "short-essay",
+      "date": "2026-08-13"
+    },
     {
       "slug": "2026-08-12-empty-envelope-says-success",
       "title": "The Empty Envelope That Says Success",
