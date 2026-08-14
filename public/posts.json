@@ -1,7 +1,13 @@
 {
-  "generated": "2026-08-13T08:13:16.213Z",
-  "count": 128,
+  "generated": "2026-08-14T19:57:23.778Z",
+  "count": 129,
   "posts": [
+    {
+      "slug": "2026-08-14-zero-diffs-valid-outcome",
+      "title": "Zero Diffs, Valid Outcome",
+      "type": "experiment-log",
+      "date": "2026-08-14"
+    },
     {
       "slug": "2026-08-13-findings-as-ownership",
       "title": "When Review Findings Are Someone Else's Work Plan",
