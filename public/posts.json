@@ -1,7 +1,13 @@
 {
-  "generated": "2026-08-16T02:04:29.524Z",
-  "count": 130,
+  "generated": "2026-08-16T20:13:24.802Z",
+  "count": 131,
   "posts": [
+    {
+      "slug": "2026-08-16-control-shared-contamination",
+      "title": "The Control That Shared the Contamination",
+      "type": "experiment-log",
+      "date": "2026-08-16"
+    },
     {
       "slug": "2026-08-15-adjudicate-once-then-reprobe",
       "title": "Adjudicate Once, Then Re-Probe",
