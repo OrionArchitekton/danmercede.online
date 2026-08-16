@@ -1,7 +1,13 @@
 {
-  "generated": "2026-08-14T19:57:23.778Z",
-  "count": 129,
+  "generated": "2026-08-16T02:04:29.524Z",
+  "count": 130,
   "posts": [
+    {
+      "slug": "2026-08-15-adjudicate-once-then-reprobe",
+      "title": "Adjudicate Once, Then Re-Probe",
+      "type": "experiment-log",
+      "date": "2026-08-15"
+    },
     {
       "slug": "2026-08-14-zero-diffs-valid-outcome",
       "title": "Zero Diffs, Valid Outcome",
