@@ -1,7 +1,13 @@
 {
-  "generated": "2026-08-16T20:13:24.802Z",
-  "count": 131,
+  "generated": "2026-08-19T04:01:20.801Z",
+  "count": 132,
   "posts": [
+    {
+      "slug": "2026-08-18-preflight-the-secrets-plane",
+      "title": "Preflight the Secrets Plane",
+      "type": "short-essay",
+      "date": "2026-08-18"
+    },
     {
       "slug": "2026-08-16-control-shared-contamination",
       "title": "The Control That Shared the Contamination",
