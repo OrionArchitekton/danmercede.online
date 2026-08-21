@@ -5,6 +5,22 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-08-20-seven-zeros-were-the-harness",
+    slug: "2026-08-20-seven-zeros-were-the-harness",
+    title: "Seven Zeros Were the Harness",
+    date: "2026-08-20",
+    timestamp: "07:30 PM PT",
+    type: EntryType.ExperimentLog,
+    context: "Systems",
+    tags: ["failure-modes","signal","governance"],
+    hypothesis: "Seven consecutive weekly evidence packets reporting zero trades for a strategy rebuild were observing the strategy.",
+    constraint: "Before accepting the streak, prove the simulator can fire at all on the window it is fed. Read the loop bounds, not the summary.",
+    result: "Failed",
+    resultDetails: "The weekly bundle holds 7 daily bars. The momentum simulator needs a 28-bar lookback and starts at max(window_start, 28), so the trade loop was range(28, 28): empty by construction. A single signal needs at least 35 bars. Six of the seven packets had already merged through review, each one individually clean, and a go/no-go deadline was counting them as evidence. An adversarial review pass caught it by reading the simulator instead of the packet.",
+    nextStep: "Regenerate with a warm-up window longer than the lookback, score only the observed week, and add an end-to-end test that feeds the harness data which MUST produce a trade. Treat any streak of identical zero results from an automated evidence pipeline as the trigger for that positive control.",
+  }
+,
+  {
     id: "2026-08-18-preflight-the-secrets-plane",
     slug: "2026-08-18-preflight-the-secrets-plane",
     title: "Preflight the Secrets Plane",

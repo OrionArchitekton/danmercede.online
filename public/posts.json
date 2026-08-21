@@ -1,7 +1,13 @@
 {
-  "generated": "2026-08-19T04:01:20.801Z",
-  "count": 132,
+  "generated": "2026-08-21T02:22:47.420Z",
+  "count": 133,
   "posts": [
+    {
+      "slug": "2026-08-20-seven-zeros-were-the-harness",
+      "title": "Seven Zeros Were the Harness",
+      "type": "experiment-log",
+      "date": "2026-08-20"
+    },
     {
       "slug": "2026-08-18-preflight-the-secrets-plane",
       "title": "Preflight the Secrets Plane",
