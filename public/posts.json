@@ -1,7 +1,13 @@
 {
-  "generated": "2026-08-21T02:22:47.420Z",
-  "count": 133,
+  "generated": "2026-08-21T07:15:43.911Z",
+  "count": 134,
   "posts": [
+    {
+      "slug": "2026-08-21-torch-cpu-index-broke",
+      "title": "Torch CPU Index Broke",
+      "type": "experiment-log",
+      "date": "2026-08-21"
+    },
     {
       "slug": "2026-08-20-seven-zeros-were-the-harness",
       "title": "Seven Zeros Were the Harness",
