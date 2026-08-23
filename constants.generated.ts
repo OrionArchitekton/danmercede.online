@@ -5,6 +5,21 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-08-23-crash-dump-ate-my-backups",
+    slug: "2026-08-23-crash-dump-ate-my-backups",
+    title: "A 456GB Crash Dump Ate My Backups",
+    date: "2026-08-23",
+    timestamp: "01:20 PM PT",
+    type: EntryType.StatusUpdate,
+    context: "Systems",
+    tags: ["failure-modes","infra","signal"],
+    status: "Investigating",
+    whatChanged: "Traced this morning's failed weekly WSL export to a 456.8GB crash dump WSL2 left in Windows Temp two days earlier.",
+    whatBroke: "The keep-2 rotation writes the new tar before deleting the oldest, so a healthy week needs roughly 3x the artifact size in free space. The dump erased that headroom and the export died with a nonzero task result while its own log stayed clean, because the log only records successes.",
+    nextStep: "Delete the dump, rerun the export, and treat the downstream freshness alarm as the primary health signal instead of the producer's log.",
+  }
+,
+  {
     id: "2026-08-21-torch-cpu-index-broke",
     slug: "2026-08-21-torch-cpu-index-broke",
     title: "Torch CPU Index Broke",

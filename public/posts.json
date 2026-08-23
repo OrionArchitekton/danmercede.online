@@ -1,7 +1,13 @@
 {
-  "generated": "2026-08-21T07:15:43.911Z",
-  "count": 134,
+  "generated": "2026-08-23T19:56:13.671Z",
+  "count": 135,
   "posts": [
+    {
+      "slug": "2026-08-23-crash-dump-ate-my-backups",
+      "title": "A 456GB Crash Dump Ate My Backups",
+      "type": "status-update",
+      "date": "2026-08-23"
+    },
     {
       "slug": "2026-08-21-torch-cpu-index-broke",
       "title": "Torch CPU Index Broke",
