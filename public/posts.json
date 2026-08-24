@@ -1,7 +1,13 @@
 {
-  "generated": "2026-08-23T19:56:13.671Z",
-  "count": 135,
+  "generated": "2026-08-24T07:04:13.257Z",
+  "count": 136,
   "posts": [
+    {
+      "slug": "2026-08-24-strandedness-is-evidence",
+      "title": "Strandedness Is Evidence",
+      "type": "short-essay",
+      "date": "2026-08-24"
+    },
     {
       "slug": "2026-08-23-crash-dump-ate-my-backups",
       "title": "A 456GB Crash Dump Ate My Backups",
