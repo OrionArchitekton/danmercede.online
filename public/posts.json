@@ -1,7 +1,13 @@
 {
-  "generated": "2026-08-24T07:04:13.257Z",
-  "count": 136,
+  "generated": "2026-08-25T07:19:02.196Z",
+  "count": 137,
   "posts": [
+    {
+      "slug": "2026-08-25-the-offline-label-lied",
+      "title": "The Offline Label Lied",
+      "type": "experiment-log",
+      "date": "2026-08-25"
+    },
     {
       "slug": "2026-08-24-strandedness-is-evidence",
       "title": "Strandedness Is Evidence",
