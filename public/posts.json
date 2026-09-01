@@ -1,7 +1,13 @@
 {
-  "generated": "2026-08-25T07:19:02.196Z",
-  "count": 137,
+  "generated": "2026-09-01T20:07:49.422Z",
+  "count": 138,
   "posts": [
+    {
+      "slug": "2026-09-01-hashes-matched-art-did-not",
+      "title": "Hashes Matched, Art Did Not",
+      "type": "status-update",
+      "date": "2026-09-01"
+    },
     {
       "slug": "2026-08-25-the-offline-label-lied",
       "title": "The Offline Label Lied",
