@@ -5,6 +5,21 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-09-01-hashes-matched-art-did-not",
+    slug: "2026-09-01-hashes-matched-art-did-not",
+    title: "Hashes Matched, Art Did Not",
+    date: "2026-09-01",
+    timestamp: "01:15 PM PT",
+    type: EntryType.StatusUpdate,
+    context: "Systems",
+    tags: ["failure-modes","governance","signal"],
+    status: "Active",
+    whatChanged: "Shipped a do-not-paste block into a newsletter upload kit with three explicit unblock conditions, after a review engine caught an inline image contradicting its own alt text.",
+    whatBroke: "Seven review rounds and the promotion gate all verified image hashes, file presence, roles and non-empty alt text. None compared the picture to the words. The render did not show what the alt text said.",
+    nextStep: "Add a readiness field the flagship gate reads, so placeholder or unverified assets flip promote-eligible to false on their own instead of relying on prose.",
+  }
+,
+  {
     id: "2026-08-25-the-offline-label-lied",
     slug: "2026-08-25-the-offline-label-lied",
     title: "The Offline Label Lied",
