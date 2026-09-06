@@ -1,7 +1,13 @@
 {
-  "generated": "2026-09-06T03:01:05.348Z",
-  "count": 139,
+  "generated": "2026-09-06T22:48:19.238Z",
+  "count": 140,
   "posts": [
+    {
+      "slug": "2026-09-06-enumerate-dont-count",
+      "title": "Enumerate the Set, Never Compare Counts",
+      "type": "experiment-log",
+      "date": "2026-09-06"
+    },
     {
       "slug": "2026-09-05-green-until-the-second-state",
       "title": "Green Until the Second State",
