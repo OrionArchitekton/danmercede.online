@@ -5,6 +5,19 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-09-07-canary-shares-the-cursor",
+    slug: "2026-09-07-canary-shares-the-cursor",
+    title: "Your Canary Shares the Cursor",
+    date: "2026-09-07",
+    timestamp: "03:50 PM PT",
+    type: EntryType.ShortEssay,
+    context: "Systems",
+    tags: ["failure-modes","signal","systems"],
+    claim: "A liveness canary that shares the system's dedup cursor cannot prove liveness. I hit this on an incremental sync where four filtered queries returned zero. Zero has two indistinguishable causes: nothing new, or a broken query path. The canary exists to tell those apart, and mine could not, because it ran through the same cursor as the real fetch. A source I knew had produced new records came back as 'nothing new', byte-identical to a dead path. The fix is one flag: point the canary at an empty cursor, so a known-good query has to return rows or the path is genuinely broken. That buys less than it looks like. A live path says nothing about whether your filters cover the domain, and 'every filtered query returned zero' is also exactly what a filter gap looks like. So I listed the unfiltered window and classified all 194 records by hand instead of trusting four queries. The zero was real. I only know that because I stopped believing the filters.",
+    implication: "Two controls, not one. An empty-cursor canary proves the path is alive. An unfiltered listing proves the filters were looking in the right place. A zero that has passed neither is a guess wearing a green check.",
+  }
+,
+  {
     id: "2026-09-06-enumerate-dont-count",
     slug: "2026-09-06-enumerate-dont-count",
     title: "Enumerate the Set, Never Compare Counts",

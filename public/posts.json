@@ -1,7 +1,13 @@
 {
-  "generated": "2026-09-06T22:48:19.238Z",
-  "count": 140,
+  "generated": "2026-09-07T22:49:37.825Z",
+  "count": 141,
   "posts": [
+    {
+      "slug": "2026-09-07-canary-shares-the-cursor",
+      "title": "Your Canary Shares the Cursor",
+      "type": "short-essay",
+      "date": "2026-09-07"
+    },
     {
       "slug": "2026-09-06-enumerate-dont-count",
       "title": "Enumerate the Set, Never Compare Counts",
