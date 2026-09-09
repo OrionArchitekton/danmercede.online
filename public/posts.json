@@ -1,7 +1,13 @@
 {
-  "generated": "2026-09-07T22:49:37.825Z",
-  "count": 141,
+  "generated": "2026-09-09T01:14:00.985Z",
+  "count": 142,
   "posts": [
+    {
+      "slug": "2026-09-08-dead-agents-return-null",
+      "title": "Dead Agents Return Null",
+      "type": "short-essay",
+      "date": "2026-09-08"
+    },
     {
       "slug": "2026-09-07-canary-shares-the-cursor",
       "title": "Your Canary Shares the Cursor",
