@@ -1,7 +1,13 @@
 {
-  "generated": "2026-09-09T01:14:00.985Z",
-  "count": 142,
+  "generated": "2026-09-13T13:53:24.343Z",
+  "count": 143,
   "posts": [
+    {
+      "slug": "2026-09-13-persistent-is-not-a-retry",
+      "title": "Persistent Is Not a Retry",
+      "type": "status-update",
+      "date": "2026-09-13"
+    },
     {
       "slug": "2026-09-08-dead-agents-return-null",
       "title": "Dead Agents Return Null",
