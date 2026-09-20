@@ -1,7 +1,13 @@
 {
-  "generated": "2026-09-13T13:53:24.343Z",
-  "count": 143,
+  "generated": "2026-09-20T07:37:39.565Z",
+  "count": 144,
   "posts": [
+    {
+      "slug": "2026-09-20-empty-lists-lie",
+      "title": "Empty Lists Lie",
+      "type": "short-essay",
+      "date": "2026-09-20"
+    },
     {
       "slug": "2026-09-13-persistent-is-not-a-retry",
       "title": "Persistent Is Not a Retry",
