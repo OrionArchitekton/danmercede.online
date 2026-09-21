@@ -1,7 +1,13 @@
 {
-  "generated": "2026-09-20T07:37:39.565Z",
-  "count": 144,
+  "generated": "2026-09-21T21:41:29.002Z",
+  "count": 145,
   "posts": [
+    {
+      "slug": "2026-09-21-fit-gates-measure-ink",
+      "title": "Fit Gates Measure Ink",
+      "type": "short-essay",
+      "date": "2026-09-21"
+    },
     {
       "slug": "2026-09-20-empty-lists-lie",
       "title": "Empty Lists Lie",
