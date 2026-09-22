@@ -1,7 +1,13 @@
 {
-  "generated": "2026-09-21T21:41:29.002Z",
-  "count": 145,
+  "generated": "2026-09-22T07:51:53.474Z",
+  "count": 146,
   "posts": [
+    {
+      "slug": "2026-09-22-when-the-default-matches",
+      "title": "When The Default Matches",
+      "type": "short-essay",
+      "date": "2026-09-22"
+    },
     {
       "slug": "2026-09-21-fit-gates-measure-ink",
       "title": "Fit Gates Measure Ink",
