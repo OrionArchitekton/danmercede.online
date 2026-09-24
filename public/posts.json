@@ -1,7 +1,13 @@
 {
-  "generated": "2026-09-22T07:51:53.474Z",
-  "count": 146,
+  "generated": "2026-09-24T07:40:21.218Z",
+  "count": 147,
   "posts": [
+    {
+      "slug": "2026-09-24-a-quoted-hash-is-not-proof",
+      "title": "A Quoted Hash Is Not Proof",
+      "type": "experiment-log",
+      "date": "2026-09-24"
+    },
     {
       "slug": "2026-09-22-when-the-default-matches",
       "title": "When The Default Matches",
