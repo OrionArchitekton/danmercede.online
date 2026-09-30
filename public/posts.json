@@ -1,7 +1,13 @@
 {
-  "generated": "2026-09-29T23:00:19.383Z",
-  "count": 149,
+  "generated": "2026-09-30T14:07:34.366Z",
+  "count": 150,
   "posts": [
+    {
+      "slug": "2026-09-30-review-the-commit",
+      "title": "Review the Commit, Not the Branch",
+      "type": "short-essay",
+      "date": "2026-09-30"
+    },
     {
       "slug": "2026-09-29-an-alert-nobody-reads",
       "title": "An Alert Nobody Reads",
