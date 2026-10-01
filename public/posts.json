@@ -1,7 +1,13 @@
 {
-  "generated": "2026-09-30T14:07:34.366Z",
-  "count": 150,
+  "generated": "2026-10-01T18:26:38.053Z",
+  "count": 151,
   "posts": [
+    {
+      "slug": "2026-10-01-env-copies-leak-secrets",
+      "title": "Env Copies Leak Secrets",
+      "type": "experiment-log",
+      "date": "2026-10-01"
+    },
     {
       "slug": "2026-09-30-review-the-commit",
       "title": "Review the Commit, Not the Branch",
