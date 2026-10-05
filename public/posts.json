@@ -1,7 +1,13 @@
 {
-  "generated": "2026-10-04T18:33:15.299Z",
-  "count": 152,
+  "generated": "2026-10-05T19:52:33.755Z",
+  "count": 153,
   "posts": [
+    {
+      "slug": "2026-10-05-guards-parse-command-text",
+      "title": "Guards Parse Command Text",
+      "type": "short-essay",
+      "date": "2026-10-05"
+    },
     {
       "slug": "2026-10-04-empty-grep-is-not-absence",
       "title": "Empty Grep Is Not Absence",
