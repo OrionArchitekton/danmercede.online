@@ -1,7 +1,13 @@
 {
-  "generated": "2026-10-05T21:58:13.583Z",
-  "count": 153,
+  "generated": "2026-10-06T14:01:20.697Z",
+  "count": 154,
   "posts": [
+    {
+      "slug": "2026-10-06-zero-step-jobs",
+      "title": "A Zero-Step CI Job Is Not Always a Billing Wall",
+      "type": "experiment-log",
+      "date": "2026-10-06"
+    },
     {
       "slug": "2026-10-05-guards-parse-command-text",
       "title": "Guards Parse Command Text",
