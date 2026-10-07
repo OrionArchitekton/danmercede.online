@@ -1,7 +1,13 @@
 {
-  "generated": "2026-10-06T14:01:20.697Z",
-  "count": 154,
+  "generated": "2026-10-07T08:01:18.482Z",
+  "count": 155,
   "posts": [
+    {
+      "slug": "2026-10-07-find-is-not-gnu-find",
+      "title": "Your Agent's find Is Not GNU find",
+      "type": "short-essay",
+      "date": "2026-10-07"
+    },
     {
       "slug": "2026-10-06-zero-step-jobs",
       "title": "A Zero-Step CI Job Is Not Always a Billing Wall",
