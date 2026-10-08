@@ -5,6 +5,19 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-10-08-the-assistant-was-only",
+    slug: "2026-10-08-the-assistant-was-only",
+    title: "Fail-Closed Notes: The Assistant Was Only Supposed to Read",
+    date: "2026-10-08",
+    timestamp: "10:00 AM PT",
+    type: EntryType.ShortEssay,
+    context: "Governance",
+    tags: ["governance","workflow-ownership"],
+    claim: "An AI assistant's authority comes from the tools it is handed, not from the job it was given, so an assistant installed only to read can act unless the owner sets its toolset to its job.",
+    implication: "The owner of a workflow with AI assistants in it should be able to state what each assistant is permitted to do, show that it matches the job, and name who reviews a record of what each assistant did, and how often.",
+  }
+,
+  {
     id: "2026-10-07-find-is-not-gnu-find",
     slug: "2026-10-07-find-is-not-gnu-find",
     title: "Your Agent's find Is Not GNU find",
