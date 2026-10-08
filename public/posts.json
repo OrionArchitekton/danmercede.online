@@ -1,7 +1,13 @@
 {
-  "generated": "2026-10-07T08:01:18.482Z",
-  "count": 155,
+  "generated": "2026-10-08T17:00:14.999Z",
+  "count": 156,
   "posts": [
+    {
+      "slug": "2026-10-08-the-assistant-was-only",
+      "title": "Fail-Closed Notes: The Assistant Was Only Supposed to Read",
+      "type": "short-essay",
+      "date": "2026-10-08"
+    },
     {
       "slug": "2026-10-07-find-is-not-gnu-find",
       "title": "Your Agent's find Is Not GNU find",
