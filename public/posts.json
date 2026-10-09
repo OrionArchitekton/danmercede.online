@@ -1,7 +1,13 @@
 {
-  "generated": "2026-10-08T17:00:14.999Z",
-  "count": 156,
+  "generated": "2026-10-09T19:58:50.230Z",
+  "count": 157,
   "posts": [
+    {
+      "slug": "2026-10-09-npm-exit-0-hid-the-binary",
+      "title": "npm Exit 0 Hid the Binary",
+      "type": "short-essay",
+      "date": "2026-10-09"
+    },
     {
       "slug": "2026-10-08-the-assistant-was-only",
       "title": "Fail-Closed Notes: The Assistant Was Only Supposed to Read",
