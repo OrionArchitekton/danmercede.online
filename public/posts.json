@@ -1,7 +1,13 @@
 {
-  "generated": "2026-10-11T00:26:40.378Z",
-  "count": 158,
+  "generated": "2026-10-12T19:29:47.149Z",
+  "count": 159,
   "posts": [
+    {
+      "slug": "2026-10-12-browsers-need-owners",
+      "title": "Browsers need owners",
+      "type": "status-update",
+      "date": "2026-10-12"
+    },
     {
       "slug": "2026-10-10-primed-filler-scans-lie",
       "title": "Primed Filler Scans Lie",

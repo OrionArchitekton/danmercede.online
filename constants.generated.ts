@@ -5,6 +5,21 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-10-12-browsers-need-owners",
+    slug: "2026-10-12-browsers-need-owners",
+    title: "Browsers need owners",
+    date: "2026-10-12",
+    timestamp: "12:20 PM PT",
+    type: EntryType.StatusUpdate,
+    context: "Systems",
+    tags: ["systems","execution","infra"],
+    status: "Resolved",
+    whatChanged: "Released orion-browser under MIT: one persistent Chrome profile per identity and one lease holder at a time. Agents need distinct holders or separate MCP server processes to contend for leases.",
+    whatBroke: "Agents sharing one live browser can navigate away from each other's work. Separate tabs do not establish ownership.",
+    nextStep: "Use the setup guide to test lease, renewal, and release before connecting agents: https://www.danmercede.com/guides/multi-agent-browser-pool",
+  }
+,
+  {
     id: "2026-10-10-primed-filler-scans-lie",
     slug: "2026-10-10-primed-filler-scans-lie",
     title: "Primed Filler Scans Lie",
