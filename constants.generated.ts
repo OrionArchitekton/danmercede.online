@@ -14,7 +14,7 @@ export const ENTRIES: LogEntry[] = [
     context: "Systems",
     tags: ["systems","execution","infra"],
     status: "Resolved",
-    whatChanged: "Released orion-browser under MIT: one persistent Chrome profile per identity, with one agent holding its lease at a time.",
+    whatChanged: "Released orion-browser under MIT: one persistent Chrome profile per identity and one lease holder at a time. Agents need distinct holders or separate MCP server processes to contend for leases.",
     whatBroke: "Agents sharing one live browser can navigate away from each other's work. Separate tabs do not establish ownership.",
     nextStep: "Use the setup guide to test lease, renewal, and release before connecting agents: https://www.danmercede.com/guides/multi-agent-browser-pool",
   }
