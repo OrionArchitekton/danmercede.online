@@ -5,6 +5,22 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-10-19-the-canary-looked-fake",
+    slug: "2026-10-19-the-canary-looked-fake",
+    title: "The Canary Looked Fake",
+    date: "2026-10-19",
+    timestamp: "01:56 PM PT",
+    type: EntryType.ExperimentLog,
+    context: "Systems",
+    tags: ["security","governance","failure-modes"],
+    hypothesis: "Staging a fake GitHub token in a scratch repo proves my pre-commit secret gate blocks commits.",
+    constraint: "One scratch repo with a local pre-commit hook, plus a global hooks directory running gitleaks 8.24.3 on default rules. git 2.43.0.",
+    result: "Failed",
+    resultDetails: "The first canary, ghp_ plus 36 copies of one letter, committed with exit 0 and a scanner line saying no leaks found. Two controls were installed and neither one stopped it.",
+    nextStep: "Build canaries from random characters at run time, and check which control printed the verdict before trusting it.",
+  }
+,
+  {
     id: "2026-10-12-browsers-need-owners",
     slug: "2026-10-12-browsers-need-owners",
     title: "Browsers need owners",

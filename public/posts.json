@@ -1,7 +1,13 @@
 {
-  "generated": "2026-10-12T19:29:47.149Z",
-  "count": 159,
+  "generated": "2026-10-19T20:56:34.206Z",
+  "count": 160,
   "posts": [
+    {
+      "slug": "2026-10-19-the-canary-looked-fake",
+      "title": "The Canary Looked Fake",
+      "type": "experiment-log",
+      "date": "2026-10-19"
+    },
     {
       "slug": "2026-10-12-browsers-need-owners",
       "title": "Browsers need owners",
