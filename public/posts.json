@@ -1,7 +1,13 @@
 {
-  "generated": "2026-10-19T21:01:45.488Z",
-  "count": 160,
+  "generated": "2026-10-20T07:23:32.087Z",
+  "count": 161,
   "posts": [
+    {
+      "slug": "2026-10-20-record-the-shell-you-use",
+      "title": "Record the Shell You Use",
+      "type": "short-essay",
+      "date": "2026-10-20"
+    },
     {
       "slug": "2026-10-19-the-canary-looked-fake",
       "title": "The Canary Looked Fake",
