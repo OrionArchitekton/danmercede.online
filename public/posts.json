@@ -1,7 +1,13 @@
 {
-  "generated": "2026-10-20T07:23:32.087Z",
-  "count": 161,
+  "generated": "2026-10-25T17:12:47.476Z",
+  "count": 162,
   "posts": [
+    {
+      "slug": "2026-10-25-redirect-home-not-env-vars",
+      "title": "Redirect HOME, Not Env Vars",
+      "type": "short-essay",
+      "date": "2026-10-25"
+    },
     {
       "slug": "2026-10-20-record-the-shell-you-use",
       "title": "Record the Shell You Use",
