@@ -1,7 +1,13 @@
 {
-  "generated": "2026-10-25T17:12:47.476Z",
-  "count": 162,
+  "generated": "2026-10-27T22:01:35.234Z",
+  "count": 163,
   "posts": [
+    {
+      "slug": "2026-10-27-render-steps-fail-quietly",
+      "title": "Render Steps Fail Quietly",
+      "type": "short-essay",
+      "date": "2026-10-27"
+    },
     {
       "slug": "2026-10-25-redirect-home-not-env-vars",
       "title": "Redirect HOME, Not Env Vars",
