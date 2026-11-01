@@ -712,3 +712,53 @@ test('committed baseline: valid count parses, corruption is flagged invalid', ()
   assert.equal(parseCommittedCount('{"posts": []}'), 'invalid');
   assert.equal(parseCommittedCount('not json {'), 'invalid');
 });
+
+// ---------------------------------------------------------------------------
+// archiveNotice (specs/archived-entry-notice-spec.md): an optional banner that
+// marks a historical entry as archived without touching its original text.
+// ---------------------------------------------------------------------------
+
+const ARCHIVE_NOTICE =
+  'Archived log entry. Cosmocrat is now Cosmocrat OS; see https://www.cosmocrat.ai/about';
+
+function archivedEssay(noticeLine: string): string {
+  return (
+    `---\nslug: "archived-essay"\ntitle: "Archived Essay"\n` +
+    `date: "2026-02-14T20:37:33+0000"\ntype: "short-essay"\n` +
+    `claim: "An old claim."\ntags: ["systems"]\n${noticeLine}---\n\nOriginal body.\n`
+  );
+}
+
+test('readInboxEntries carries archiveNotice through and leaves the original body untouched', () => {
+  const inboxDir = mkTempDir('inbox-archive-notice-');
+  try {
+    fs.writeFileSync(
+      path.join(inboxDir, 'archived-essay.md'),
+      archivedEssay(`archiveNotice: "${ARCHIVE_NOTICE}"\n`),
+    );
+    const result = readInboxEntries(inboxDir);
+    assert.deepEqual(result.errors, []);
+    assert.equal(result.entries.length, 1);
+    assert.equal(result.entries[0].fields.archiveNotice, ARCHIVE_NOTICE);
+    assert.equal(result.entries[0].fields.claim, 'An old claim.');
+    assert.equal(result.entries[0].fields.content, 'Original body.');
+  } finally {
+    fs.rmSync(inboxDir, { recursive: true, force: true });
+  }
+});
+
+for (const bad of ['archiveNotice: true\n', 'archiveNotice: ""\n', 'archiveNotice: "   "\n', 'archiveNotice: 7\n']) {
+  test(`readInboxEntries fails closed on an invalid archiveNotice (${bad.trim()})`, () => {
+    const inboxDir = mkTempDir('inbox-archive-notice-bad-');
+    try {
+      fs.writeFileSync(path.join(inboxDir, 'archived-essay.md'), archivedEssay(bad));
+      const result = readInboxEntries(inboxDir);
+      assert.deepEqual(result.entries, []);
+      assert.equal(result.errors.length, 1);
+      assert.equal(result.errors[0].field, 'archiveNotice');
+      assert.match(result.errors[0].message, /archiveNotice must be a non-empty string/);
+    } finally {
+      fs.rmSync(inboxDir, { recursive: true, force: true });
+    }
+  });
+}

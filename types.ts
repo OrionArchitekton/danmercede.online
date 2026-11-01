@@ -29,6 +29,7 @@ export interface BaseEntry {
   tags: Tag[];
   context?: ContextLabel;
   image?: { src: string; alt: string; caption?: string }; // optional inline figure (e.g. a guide infographic)
+  archiveNotice?: string; // optional banner shown first; marks a historical entry as archived (specs/archived-entry-notice-spec.md)
 }
 
 export interface ShortEssay extends BaseEntry {

@@ -8,6 +8,7 @@ implication: "This architecture ensures that only authorized operations proceed,
 tags: ["systems"]
 context: "systems"
 context_detail: "docs"
+archiveNotice: "Archived log entry. Cosmocrat is now Cosmocrat OS; see https://www.cosmocrat.ai/about"
 ---
 
 In my system, the Cosmocrat Control Plane is USED for orchestrating system operations and enforcing policies. This Control Plane functions as the central nervous system, responsible for overall system management.

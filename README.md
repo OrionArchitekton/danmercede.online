@@ -45,7 +45,7 @@ The site publishes the following entry types:
 | Thought Snippet | `thought-snippet` | `content` (max 200 words) |
 | Working Note | `working-note` | `content`, `openQuestion` |
 
-Each post is timestamped and tagged. No retroactive editing.
+Each post is timestamped and tagged. No retroactive editing: an outdated entry stays published with its original text and gains an `archiveNotice` banner instead (see `specs/archived-entry-notice-spec.md`).
 
 ---
 
@@ -110,6 +110,8 @@ context: "systems"                  # Optional: governance, systems, infra,
 tags: ["systems", "governance"]     # Max 3 from allowed list
 claim: "Core assertion"             # Type-specific fields...
 implication: "Closing line"         # Optional for short-essay
+archiveNotice: "Archived log entry. ..."  # Optional, any type: banner shown first;
+                                    #   https URLs become links
 ---
 Optional body content (rarely used).
 ```

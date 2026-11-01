@@ -8,7 +8,7 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { renderRss, renderAtom, FEED_LIMIT } from '../scripts/renderFeed.ts';
+import { renderRss, renderAtom, FEED_LIMIT, entrySummary } from '../scripts/renderFeed.ts';
 import { getOrderedEntries, entryCanonicalUrl } from '../scripts/prerenderBody.ts';
 import { EntryType, type LogEntry } from '../types.ts';
 
@@ -152,4 +152,31 @@ test('default path projects the real ordered entries with canonical-host URLs', 
   assert.ok(firstItem.includes(entryCanonicalUrl(newest.slug)));
   assert.ok(!/href="http:\/\//.test(real));
   assert.ok(!real.includes('https://danmercede.online/'), 'must use the www canonical host');
+});
+
+// Archive banner (specs/archived-entry-notice-spec.md): feed summaries lead with
+// the notice; full content carries it via the shared article HTML.
+test('feed summary and content lead with an archived entry notice', () => {
+  const notice =
+    'Archived log entry. Cosmocrat is now Cosmocrat OS; see https://www.cosmocrat.ai/about';
+  const archived: LogEntry = {
+    id: 'archived-status',
+    slug: 'archived-status',
+    title: 'Archived Status',
+    date: '2026-02-14',
+    timestamp: '12:37 PM PT',
+    type: EntryType.StatusUpdate,
+    tags: ['infra'],
+    status: 'Paused',
+    whatChanged: 'Old change.',
+    whatBroke: 'Old break.',
+    nextStep: 'Old step.',
+    archiveNotice: notice,
+  };
+  assert.ok(entrySummary(archived).startsWith(`${notice}. Old change.`));
+  const rss = renderRss([archived]);
+  assert.ok(rss.includes(`<description>${notice}. Old change.</description>`), 'rss description leads with the notice');
+  assert.ok(rss.includes('&lt;p role=&quot;note&quot;&gt;'), 'rss content:encoded carries the banner');
+  const atom = renderAtom([archived]);
+  assert.ok(atom.includes(`<summary>${notice}. Old change.</summary>`), 'atom summary leads with the notice');
 });

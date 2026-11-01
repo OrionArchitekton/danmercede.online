@@ -1,6 +1,7 @@
 import React from 'react';
 import { LogEntry, EntryType, Tag } from '../types';
 import { ArrowUpRight, Link as LinkIcon } from 'lucide-react';
+import { noticeSegments } from '../archiveNotice';
 
 interface EntryCardProps {
   entry: LogEntry;
@@ -168,6 +169,21 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, onTagClick }) => {
       <h2 className="text-base md:text-lg font-semibold text-gray-900 mb-5 tracking-tight leading-tight">
         {entry.title}
       </h2>
+
+      {/* Archive banner: leads the entry body (specs/archived-entry-notice-spec.md) */}
+      {entry.archiveNotice && (
+        <p role="note" className="mb-5 border-l-2 border-amber-500 bg-amber-50 px-3 py-2 text-sm text-gray-800">
+          {noticeSegments(entry.archiveNotice).map((segment, idx) =>
+            segment.href ? (
+              <a key={idx} href={segment.href} className="underline hover:text-black">
+                {segment.text}
+              </a>
+            ) : (
+              <React.Fragment key={idx}>{segment.text}</React.Fragment>
+            ),
+          )}
+        </p>
+      )}
 
       {/* Optional lead figure (e.g. a guide infographic) */}
       {entry.image && (
