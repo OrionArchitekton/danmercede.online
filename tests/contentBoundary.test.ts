@@ -161,3 +161,11 @@ test('the baked body shows the banner inside each archived Cosmocrat article', (
     );
   }
 });
+
+test('every published archiveNotice fits the cap, leaving room for the original lead', async () => {
+  const { ARCHIVE_NOTICE_MAX_CHARS } = await import('../archiveNotice.ts');
+  for (const entry of getOrderedEntries()) {
+    if (!entry.archiveNotice) continue;
+    assert.ok(entry.archiveNotice.length <= ARCHIVE_NOTICE_MAX_CHARS, `archiveNotice too long on ${entry.slug}`);
+  }
+});

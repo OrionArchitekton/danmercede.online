@@ -18,6 +18,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
+import { ARCHIVE_NOTICE_MAX_CHARS } from '../archiveNotice.ts';
 
 // ES module compatibility
 const __filename = fileURLToPath(import.meta.url);
@@ -945,6 +946,14 @@ export function readInboxEntries(
     // must be real text, or the renderers would print "true"/"7" or an empty banner.
     if (data.archiveNotice !== undefined && !isNonEmptyString(data.archiveNotice)) {
       allErrors.push({ file, field: 'archiveNotice', message: 'archiveNotice must be a non-empty string' });
+      continue;
+    }
+    if (typeof data.archiveNotice === 'string' && data.archiveNotice.trim().length > ARCHIVE_NOTICE_MAX_CHARS) {
+      allErrors.push({
+        file,
+        field: 'archiveNotice',
+        message: `archiveNotice must be at most ${ARCHIVE_NOTICE_MAX_CHARS} characters so the original lead stays visible`,
+      });
       continue;
     }
 

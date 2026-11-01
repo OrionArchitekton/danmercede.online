@@ -14,7 +14,36 @@ export interface NoticeSegment {
 }
 
 const HTTPS_URL = /https:\/\/[^\s<>"']+/g;
-const TRAILING_PUNCTUATION = /[.,;:!?)\]]+$/;
+const SENTENCE_PUNCTUATION = '.,;:!?';
+const CLOSERS: Record<string, string> = { ')': '(', ']': '[' };
+
+/**
+ * Longest notice the compiler accepts. The page description (200) and feed summary (280)
+ * put the notice before the original lead, so the cap keeps room for that lead.
+ */
+export const ARCHIVE_NOTICE_MAX_CHARS = 120;
+
+function count(text: string, char: string): number {
+  return text.split(char).length - 1;
+}
+
+/**
+ * Drop sentence punctuation after a URL. A closing `)` or `]` is dropped only when
+ * it has no matching opener inside the URL, so `.../Drift_(computing)` keeps its `)`.
+ */
+function trimUrl(raw: string): string {
+  let url = raw;
+  for (;;) {
+    const last = url.slice(-1);
+    if (SENTENCE_PUNCTUATION.includes(last)) {
+      url = url.slice(0, -1);
+    } else if (last in CLOSERS && count(url, last) > count(url, CLOSERS[last])) {
+      url = url.slice(0, -1);
+    } else {
+      return url;
+    }
+  }
+}
 
 /** Split a notice into plain-text and https-link segments, in order. */
 export function noticeSegments(notice: string): NoticeSegment[] {
@@ -23,7 +52,7 @@ export function noticeSegments(notice: string): NoticeSegment[] {
   for (const match of notice.matchAll(HTTPS_URL)) {
     const start = match.index ?? 0;
     // Sentence punctuation after a URL belongs to the sentence, not the link.
-    const url = match[0].replace(TRAILING_PUNCTUATION, '');
+    const url = trimUrl(match[0]);
     if (start > cursor) segments.push({ text: notice.slice(cursor, start) });
     segments.push({ text: url, href: url });
     cursor = start + url.length;

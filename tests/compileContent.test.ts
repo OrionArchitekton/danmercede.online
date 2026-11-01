@@ -762,3 +762,45 @@ for (const bad of ['archiveNotice: true\n', 'archiveNotice: ""\n', 'archiveNotic
     }
   });
 }
+
+// --- archiveNotice review fixes (balanced URL delimiters, bounded length) ---
+import { noticeSegments, ARCHIVE_NOTICE_MAX_CHARS } from '../archiveNotice.ts';
+
+test('noticeSegments keeps a balanced closing parenthesis that belongs to the URL', () => {
+  assert.deepEqual(noticeSegments('See https://en.wikipedia.org/wiki/Drift_(computing).'), [
+    { text: 'See ' },
+    { text: 'https://en.wikipedia.org/wiki/Drift_(computing)', href: 'https://en.wikipedia.org/wiki/Drift_(computing)' },
+    { text: '.' },
+  ]);
+});
+
+test('noticeSegments keeps a balanced closing bracket that belongs to the URL', () => {
+  assert.deepEqual(noticeSegments('Ref https://example.com/list[1].'), [
+    { text: 'Ref ' },
+    { text: 'https://example.com/list[1]', href: 'https://example.com/list[1]' },
+    { text: '.' },
+  ]);
+});
+
+test('noticeSegments leaves an unbalanced closing delimiter as sentence text', () => {
+  assert.deepEqual(noticeSegments('(see https://www.cosmocrat.ai/about)'), [
+    { text: '(see ' },
+    { text: 'https://www.cosmocrat.ai/about', href: 'https://www.cosmocrat.ai/about' },
+    { text: ')' },
+  ]);
+});
+
+test('readInboxEntries rejects an archiveNotice longer than the cap', () => {
+  const inboxDir = mkTempDir('inbox-archive-notice-long-');
+  try {
+    const long = 'x'.repeat(ARCHIVE_NOTICE_MAX_CHARS + 1);
+    fs.writeFileSync(path.join(inboxDir, 'archived-essay.md'), archivedEssay(`archiveNotice: "${long}"\n`));
+    const result = readInboxEntries(inboxDir);
+    assert.deepEqual(result.entries, []);
+    assert.equal(result.errors.length, 1);
+    assert.equal(result.errors[0].field, 'archiveNotice');
+    assert.match(result.errors[0].message, /at most \d+ characters/);
+  } finally {
+    fs.rmSync(inboxDir, { recursive: true, force: true });
+  }
+});
