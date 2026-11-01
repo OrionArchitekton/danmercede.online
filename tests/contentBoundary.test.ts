@@ -127,12 +127,22 @@ const ARCHIVED_COSMOCRAT_SLUGS = [
 ];
 
 /** "Cosmocrat" as the old platform name: any mention not in the current "Cosmocrat OS" form. */
-const LEGACY_COSMOCRAT = /\bcosmocrat\b(?!\s+os\b)/i;
+const LEGACY_COSMOCRAT = /\bcosmocrat\b(?![\s_-]+os\b)/i;
+
+test('the legacy-name pattern treats hyphenated "cosmocrat-os" forms as the current name', () => {
+  for (const current of ['Cosmocrat OS', 'cosmocrat-os-launch', 'cosmocrat_os', 'tag: cosmocrat-os']) {
+    assert.equal(LEGACY_COSMOCRAT.test(current), false, `flagged current name: ${current}`);
+  }
+  for (const legacy of ['Cosmocrat Control Plane', 'the cosmocrat platform', 'cosmocrat-migration-pause']) {
+    assert.equal(LEGACY_COSMOCRAT.test(legacy), true, `missed legacy name: ${legacy}`);
+  }
+});
 
 test('every entry naming the legacy Cosmocrat platform carries an archive banner', () => {
   const unbannered = getOrderedEntries()
     .filter((entry) => {
-      const { archiveNotice: _notice, ...rest } = entry;
+      // Prose only: slug and id are filename-derived and can legitimately say "cosmocrat-os".
+      const { archiveNotice: _notice, slug: _slug, id: _id, ...rest } = entry;
       return LEGACY_COSMOCRAT.test(JSON.stringify(rest));
     })
     .filter((entry) => !entry.archiveNotice)
