@@ -1,7 +1,13 @@
 {
-  "generated": "2026-10-27T22:01:35.234Z",
-  "count": 163,
+  "generated": "2026-11-01T05:08:58.262Z",
+  "count": 164,
   "posts": [
+    {
+      "slug": "2026-10-31-your-numbers-flatter-you",
+      "title": "Your Numbers Flatter You",
+      "type": "short-essay",
+      "date": "2026-10-31"
+    },
     {
       "slug": "2026-10-27-render-steps-fail-quietly",
       "title": "Render Steps Fail Quietly",
