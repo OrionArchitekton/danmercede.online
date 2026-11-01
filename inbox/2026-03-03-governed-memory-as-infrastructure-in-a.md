@@ -8,6 +8,7 @@ implication: "This integration ensures consistency and traceability across all o
 tags: ["systems"]
 context: "systems"
 context_detail: "docs"
+archiveNotice: "Archived log entry. Cosmocrat is now Cosmocrat OS; see https://www.cosmocrat.ai/about"
 ---
 
 In the Cosmocrat system, the concept of Governed Memory is central to how operational integrity is maintained. Governed Memory is defined as a system-wide, immutable, and auditable record of all operational decisions and state changes. It serves as the single source of truth for the Cosmocrat system, ensuring consistency and traceability.

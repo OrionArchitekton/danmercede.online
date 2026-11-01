@@ -102,3 +102,80 @@ test('NEGATIVE: a synthetic CTA string is flagged by the detector', () => {
     '<p>Hypothesis: the merge gate fails closed. Result: confirmed.</p></div>';
   assert.deepEqual(ctaLeaks(clean), [], 'a clean working-log body must not be flagged');
 });
+
+// ---------------------------------------------------------------------------
+// Archived Cosmocrat entries (specs/archived-entry-notice-spec.md).
+// Cosmocrat is now Cosmocrat OS ("Tools for human-directed AI work"). Older log
+// entries that describe the retired governance platform (a control plane that
+// enforces policy at runtime, Drift Guard, the platform migration) stay
+// published as historical records, but every one must carry the archive banner
+// so no live entry presents those claims as current.
+// ---------------------------------------------------------------------------
+
+import { getOrderedEntries } from '../scripts/prerenderBody.ts';
+
+const COSMOCRAT_ARCHIVE_NOTICE =
+  'Archived log entry. Cosmocrat is now Cosmocrat OS; see https://www.cosmocrat.ai/about';
+
+/** Entries archived by this change: named by the brief, plus the Drift Guard receipts note. */
+const ARCHIVED_COSMOCRAT_SLUGS = [
+  '2026-02-14-runtime-governance-short-essay-enforce', // "Cosmocrat Control Plane ... enforces policy"
+  '2026-02-15-governance-and-the-importance-of', // "Drift Guard is a critical Cosmocrat component"
+  '2026-03-03-governed-memory-as-infrastructure-in-a', // Cosmocrat system's control plane
+  '2026-01-26-drift-guard-receipts', // Drift Guard Service remediation
+  'cosmocrat-migration-pause', // "Cosmocrat Platform Migration" (legacy constants.ts)
+];
+
+/** "Cosmocrat" as the old platform name: any mention not in the current "Cosmocrat OS" form. */
+const LEGACY_COSMOCRAT = /\bcosmocrat\b(?![\s_-]+os\b)/i;
+
+test('the legacy-name pattern treats hyphenated "cosmocrat-os" forms as the current name', () => {
+  for (const current of ['Cosmocrat OS', 'cosmocrat-os-launch', 'cosmocrat_os', 'tag: cosmocrat-os']) {
+    assert.equal(LEGACY_COSMOCRAT.test(current), false, `flagged current name: ${current}`);
+  }
+  for (const legacy of ['Cosmocrat Control Plane', 'the cosmocrat platform', 'cosmocrat-migration-pause']) {
+    assert.equal(LEGACY_COSMOCRAT.test(legacy), true, `missed legacy name: ${legacy}`);
+  }
+});
+
+test('every entry naming the legacy Cosmocrat platform carries an archive banner', () => {
+  const unbannered = getOrderedEntries()
+    .filter((entry) => {
+      // Prose only: slug and id are filename-derived and can legitimately say "cosmocrat-os".
+      const { archiveNotice: _notice, slug: _slug, id: _id, ...rest } = entry;
+      return LEGACY_COSMOCRAT.test(JSON.stringify(rest));
+    })
+    .filter((entry) => !entry.archiveNotice)
+    .map((entry) => entry.slug);
+  assert.deepEqual(unbannered, [], `legacy Cosmocrat claims without an archive banner: ${unbannered.join(', ')}`);
+});
+
+test('archived Cosmocrat entries carry the exact banner and stay published', () => {
+  const bySlug = new Map(getOrderedEntries().map((entry) => [entry.slug, entry]));
+  for (const slug of ARCHIVED_COSMOCRAT_SLUGS) {
+    const entry = bySlug.get(slug);
+    assert.ok(entry, `archived entry must stay published (not deleted): ${slug}`);
+    assert.equal(entry.archiveNotice, COSMOCRAT_ARCHIVE_NOTICE, `wrong or missing banner on ${slug}`);
+  }
+});
+
+test('the baked body shows the banner inside each archived Cosmocrat article', () => {
+  const baked = renderPrerenderBody();
+  for (const slug of ARCHIVED_COSMOCRAT_SLUGS) {
+    const start = baked.indexOf(`<article id="${slug}">`);
+    assert.ok(start >= 0, `article missing for ${slug}`);
+    const article = baked.slice(start, baked.indexOf('</article>', start));
+    assert.ok(
+      article.includes('<p role="note">Archived log entry. Cosmocrat is now Cosmocrat OS; see <a href="https://www.cosmocrat.ai/about">'),
+      `baked article for ${slug} lacks the linked banner`,
+    );
+  }
+});
+
+test('every published archiveNotice fits the cap, leaving room for the original lead', async () => {
+  const { ARCHIVE_NOTICE_MAX_CHARS } = await import('../archiveNotice.ts');
+  for (const entry of getOrderedEntries()) {
+    if (!entry.archiveNotice) continue;
+    assert.ok(entry.archiveNotice.length <= ARCHIVE_NOTICE_MAX_CHARS, `archiveNotice too long on ${entry.slug}`);
+  }
+});

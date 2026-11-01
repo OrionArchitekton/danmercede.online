@@ -712,3 +712,95 @@ test('committed baseline: valid count parses, corruption is flagged invalid', ()
   assert.equal(parseCommittedCount('{"posts": []}'), 'invalid');
   assert.equal(parseCommittedCount('not json {'), 'invalid');
 });
+
+// ---------------------------------------------------------------------------
+// archiveNotice (specs/archived-entry-notice-spec.md): an optional banner that
+// marks a historical entry as archived without touching its original text.
+// ---------------------------------------------------------------------------
+
+const ARCHIVE_NOTICE =
+  'Archived log entry. Cosmocrat is now Cosmocrat OS; see https://www.cosmocrat.ai/about';
+
+function archivedEssay(noticeLine: string): string {
+  return (
+    `---\nslug: "archived-essay"\ntitle: "Archived Essay"\n` +
+    `date: "2026-02-14T20:37:33+0000"\ntype: "short-essay"\n` +
+    `claim: "An old claim."\ntags: ["systems"]\n${noticeLine}---\n\nOriginal body.\n`
+  );
+}
+
+test('readInboxEntries carries archiveNotice through and leaves the original body untouched', () => {
+  const inboxDir = mkTempDir('inbox-archive-notice-');
+  try {
+    fs.writeFileSync(
+      path.join(inboxDir, 'archived-essay.md'),
+      archivedEssay(`archiveNotice: "${ARCHIVE_NOTICE}"\n`),
+    );
+    const result = readInboxEntries(inboxDir);
+    assert.deepEqual(result.errors, []);
+    assert.equal(result.entries.length, 1);
+    assert.equal(result.entries[0].fields.archiveNotice, ARCHIVE_NOTICE);
+    assert.equal(result.entries[0].fields.claim, 'An old claim.');
+    assert.equal(result.entries[0].fields.content, 'Original body.');
+  } finally {
+    fs.rmSync(inboxDir, { recursive: true, force: true });
+  }
+});
+
+for (const bad of ['archiveNotice: true\n', 'archiveNotice: ""\n', 'archiveNotice: "   "\n', 'archiveNotice: 7\n']) {
+  test(`readInboxEntries fails closed on an invalid archiveNotice (${bad.trim()})`, () => {
+    const inboxDir = mkTempDir('inbox-archive-notice-bad-');
+    try {
+      fs.writeFileSync(path.join(inboxDir, 'archived-essay.md'), archivedEssay(bad));
+      const result = readInboxEntries(inboxDir);
+      assert.deepEqual(result.entries, []);
+      assert.equal(result.errors.length, 1);
+      assert.equal(result.errors[0].field, 'archiveNotice');
+      assert.match(result.errors[0].message, /archiveNotice must be a non-empty string/);
+    } finally {
+      fs.rmSync(inboxDir, { recursive: true, force: true });
+    }
+  });
+}
+
+// --- archiveNotice review fixes (balanced URL delimiters, bounded length) ---
+import { noticeSegments, ARCHIVE_NOTICE_MAX_CHARS } from '../archiveNotice.ts';
+
+test('noticeSegments keeps a balanced closing parenthesis that belongs to the URL', () => {
+  assert.deepEqual(noticeSegments('See https://en.wikipedia.org/wiki/Drift_(computing).'), [
+    { text: 'See ' },
+    { text: 'https://en.wikipedia.org/wiki/Drift_(computing)', href: 'https://en.wikipedia.org/wiki/Drift_(computing)' },
+    { text: '.' },
+  ]);
+});
+
+test('noticeSegments keeps a balanced closing bracket that belongs to the URL', () => {
+  assert.deepEqual(noticeSegments('Ref https://example.com/list[1].'), [
+    { text: 'Ref ' },
+    { text: 'https://example.com/list[1]', href: 'https://example.com/list[1]' },
+    { text: '.' },
+  ]);
+});
+
+test('noticeSegments leaves an unbalanced closing delimiter as sentence text', () => {
+  assert.deepEqual(noticeSegments('(see https://www.cosmocrat.ai/about)'), [
+    { text: '(see ' },
+    { text: 'https://www.cosmocrat.ai/about', href: 'https://www.cosmocrat.ai/about' },
+    { text: ')' },
+  ]);
+});
+
+test('readInboxEntries rejects an archiveNotice longer than the cap', () => {
+  const inboxDir = mkTempDir('inbox-archive-notice-long-');
+  try {
+    const long = 'x'.repeat(ARCHIVE_NOTICE_MAX_CHARS + 1);
+    fs.writeFileSync(path.join(inboxDir, 'archived-essay.md'), archivedEssay(`archiveNotice: "${long}"\n`));
+    const result = readInboxEntries(inboxDir);
+    assert.deepEqual(result.entries, []);
+    assert.equal(result.errors.length, 1);
+    assert.equal(result.errors[0].field, 'archiveNotice');
+    assert.match(result.errors[0].message, /at most \d+ characters/);
+  } finally {
+    fs.rmSync(inboxDir, { recursive: true, force: true });
+  }
+});

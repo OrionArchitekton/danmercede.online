@@ -26,6 +26,7 @@
 import { ENTRIES as GENERATED_ENTRIES } from '../constants.generated.ts';
 import { ENTRIES as LEGACY_ENTRIES } from '../constants.ts';
 import { EntryType, type LogEntry } from '../types.ts';
+import { noticeSegments } from '../archiveNotice.ts';
 
 // ---------------------------------------------------------------------------
 // Entry ordering - mirror App.tsx exactly (newest-first by date + time-of-day).
@@ -119,6 +120,20 @@ function entryBodyHtml(entry: LogEntry): string {
   }
 }
 
+/**
+ * The archive banner as crawlable HTML (spec: specs/archived-entry-notice-spec.md).
+ * A <p>, never a <div>: perSlugPages swaps the prerender block with a lazy
+ * `<div ...>...</div>` match, so a nested div would truncate the page body.
+ */
+export function archiveNoticeHtml(notice: string): string {
+  const inner = noticeSegments(notice)
+    .map((s) =>
+      s.href ? `<a href="${escapeHtml(s.href)}">${escapeHtml(s.text)}</a>` : escapeHtml(s.text),
+    )
+    .join('');
+  return `<p role="note">${inner}</p>`;
+}
+
 export function entryArticleHtml(entry: LogEntry): string {
   const meta = `<p>${escapeHtml(entry.type)} &middot; ${escapeHtml(entry.date)} &middot; ${escapeHtml(
     entry.timestamp,
@@ -133,10 +148,12 @@ export function entryArticleHtml(entry: LogEntry): string {
       (entry.image.caption ? `<figcaption>${escapeHtml(entry.image.caption)}</figcaption>` : '') +
       `</figure>`
     : '';
+  // An archived entry leads with its banner, ahead of any claim or body text.
+  const notice = entry.archiveNotice ? archiveNoticeHtml(entry.archiveNotice) : '';
   // id == slug so the in-feed EntryCard permalink (`#${slug}`) resolves to a real
   // on-page anchor (W6), and so the per-slug page reuses this exact <article> (the
   // page's canonical URL is `/${slug}`, emitted by perSlugPagesPlugin).
-  return `<article id="${escapeHtml(entry.slug)}">${heading}${meta}${figure}${entryBodyHtml(
+  return `<article id="${escapeHtml(entry.slug)}">${heading}${meta}${notice}${figure}${entryBodyHtml(
     entry,
   )}${tags}</article>`;
 }

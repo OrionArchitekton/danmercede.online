@@ -31,6 +31,7 @@ import {
   escapeHtml,
 } from './prerenderBody.ts';
 import { EntryType, type LogEntry } from '../types.ts';
+import { withArchiveNotice } from '../archiveNotice.ts';
 
 const SITE = 'https://www.danmercede.online';
 const FEED_TITLE = 'Dan Mercede: Living Signal Surface';
@@ -114,20 +115,25 @@ function truncate(text: string, max = 280): string {
   return flat.length <= max ? flat : `${flat.slice(0, max - 1).trimEnd()}…`;
 }
 
-export function entrySummary(entry: LogEntry): string {
+function leadText(entry: LogEntry): string {
   switch (entry.type) {
     case EntryType.ShortEssay:
-      return truncate(entry.claim);
+      return entry.claim;
     case EntryType.ExperimentLog:
-      return truncate(entry.hypothesis);
+      return entry.hypothesis;
     case EntryType.StatusUpdate:
-      return truncate(entry.whatChanged);
+      return entry.whatChanged;
     case EntryType.Diagram:
-      return truncate(entry.caption);
+      return entry.caption;
     case EntryType.ThoughtSnippet:
     case EntryType.WorkingNote:
-      return truncate(entry.content);
+      return entry.content;
   }
+}
+
+/** Plain-text summary; an archived entry leads with its notice (specs/archived-entry-notice-spec.md). */
+export function entrySummary(entry: LogEntry): string {
+  return truncate(withArchiveNotice(entry.archiveNotice, leadText(entry)));
 }
 
 // ---------------------------------------------------------------------------

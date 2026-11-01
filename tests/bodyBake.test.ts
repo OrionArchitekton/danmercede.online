@@ -20,9 +20,10 @@ import {
   renderFeedJsonLd,
   getOrderedEntries,
   escapeHtml,
+  entryArticleHtml,
 } from '../scripts/prerenderBody.ts';
 import { bodyBakePlugin, findJsonLdScripts } from '../scripts/bodyBakePlugin.ts';
-import { EntryType, type Diagram } from '../types.ts';
+import { EntryType, type Diagram, type ShortEssay } from '../types.ts';
 
 /** Invoke the plugin's transformIndexHtml handler (object form) against `html`. */
 function runBake(html: string): string {
@@ -188,4 +189,56 @@ test('committed sitemap.xml covers every canonical post slug with a real page UR
   for (const lm of lastmods) {
     assert.match(lm, /^\d{4}-\d{2}-\d{2}$/, `non-ISO lastmod: ${lm}`);
   }
+});
+
+// ---------------------------------------------------------------------------
+// Archive banner (specs/archived-entry-notice-spec.md)
+// ---------------------------------------------------------------------------
+
+const NOTICE =
+  'Archived log entry. Cosmocrat is now Cosmocrat OS; see https://www.cosmocrat.ai/about';
+
+const archivedEssay: ShortEssay = {
+  id: 'archived-essay',
+  slug: 'archived-essay',
+  title: 'Archived Essay',
+  date: '2026-02-14',
+  timestamp: '12:37 PM PT',
+  type: EntryType.ShortEssay,
+  tags: ['systems'],
+  claim: 'An old claim.',
+  content: 'Original body.',
+  implication: 'An old implication.',
+  archiveNotice: NOTICE,
+};
+
+test('archived entry bakes the banner, with a real link, before its claim', () => {
+  const html = entryArticleHtml(archivedEssay);
+  const banner =
+    '<p role="note">Archived log entry. Cosmocrat is now Cosmocrat OS; see ' +
+    '<a href="https://www.cosmocrat.ai/about">https://www.cosmocrat.ai/about</a></p>';
+  assert.ok(html.includes(banner), `banner missing or malformed: ${html}`);
+  assert.ok(html.indexOf(banner) < html.indexOf('Claim: An old claim.'), 'banner must precede the claim');
+  // Original text stays intact.
+  assert.ok(html.includes('<p>Original body.</p>'));
+  assert.ok(html.includes('<p>An old implication.</p>'));
+});
+
+test('entries without archiveNotice bake no banner', () => {
+  const { archiveNotice: _drop, ...plain } = archivedEssay;
+  assert.ok(!entryArticleHtml(plain as ShortEssay).includes('role="note"'));
+});
+
+test('archive banner escapes its text and links only https URLs', () => {
+  const html = entryArticleHtml({
+    ...archivedEssay,
+    archiveNotice: 'Old <b>note</b>; see javascript:alert(1) or http://a.example or https://b.example/x.',
+  });
+  assert.ok(html.includes('Old &lt;b&gt;note&lt;/b&gt;'), 'notice text must be escaped');
+  assert.ok(!html.includes('href="javascript:'), 'non-https scheme must not be linked');
+  assert.ok(!html.includes('href="http://'), 'plain http must not be linked');
+  assert.ok(
+    html.includes('<a href="https://b.example/x">https://b.example/x</a>.</p>'),
+    'trailing punctuation stays outside the link',
+  );
 });

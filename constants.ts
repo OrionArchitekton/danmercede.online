@@ -51,6 +51,7 @@ export const ENTRIES: LogEntry[] = [
     type: EntryType.StatusUpdate,
     context: "Infra",
     tags: ["execution", "infra"],
+    archiveNotice: "Archived log entry. Cosmocrat is now Cosmocrat OS; see https://www.cosmocrat.ai/about",
     status: "Paused",
     whatChanged: "Attempted migration to high-availability cluster v1.2.",
     whatBroke: "FIFO ordering guarantee violated during auto-scaling events.",

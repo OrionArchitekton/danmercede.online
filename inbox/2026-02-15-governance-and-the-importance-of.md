@@ -8,6 +8,7 @@ implication: "Its active use is fundamental to preventing configuration drift an
 tags: ["systems"]
 context: "systems"
 context_detail: "docs"
+archiveNotice: "Archived log entry. Cosmocrat is now Cosmocrat OS; see https://www.cosmocrat.ai/about"
 ---
 
 In managing complex technical systems, maintaining the desired state of runtime environments is paramount. This is where the concept of drift becomes a significant concern. Configuration drift refers to the unauthorized or unintended changes that occur in a system's configuration over time, leading to deviations from its intended design.

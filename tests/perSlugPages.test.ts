@@ -14,6 +14,7 @@ import {
   buildEntryPageHtml,
   entryDescription,
 } from '../scripts/perSlugPages.ts';
+import { entryArticleHtml } from '../scripts/prerenderBody.ts';
 
 const SITE = 'https://www.danmercede.online';
 const PERSON = 'https://www.danmercede.com/#person';
@@ -233,4 +234,31 @@ test('buildEntryPageHtml: non-diagram page keeps the default portrait OG image u
 test('buildEntryPageHtml: guarded — throws if the shell is missing an expected anchor', () => {
   const broken = '<html><head></head><body><div id="root"></div></body></html>';
   assert.throws(() => buildEntryPageHtml(broken, thought), /perSlugPages|anchor|canonical|JSON-LD|root/i);
+});
+
+// Archive banner (specs/archived-entry-notice-spec.md): the page's plain-text
+// description and its baked body both lead with the notice.
+const ARCHIVE_NOTICE =
+  'Archived log entry. Cosmocrat is now Cosmocrat OS; see https://www.cosmocrat.ai/about';
+const archivedThought: ThoughtSnippet = { ...thought, archiveNotice: ARCHIVE_NOTICE };
+
+test('entryDescription: an archived entry leads with its notice', () => {
+  assert.ok(entryDescription(archivedThought).startsWith(`${ARCHIVE_NOTICE}. ${thought.content}`));
+  assert.ok(!entryDescription(thought).includes('Archived log entry'), 'unarchived entries unchanged');
+});
+
+test('buildEntryPageHtml: archived page carries the notice in description + og/twitter + body', () => {
+  const html = buildEntryPageHtml(shellFixture(), archivedThought);
+  // The shell splits these meta tags across lines, hence \\s+ before content=.
+  const descStart = `${ARCHIVE_NOTICE}. `.replace(/[.?/]/g, (c) => '\\' + c);
+  assert.match(html, new RegExp(`<meta name="description"\\s+content="${descStart}`));
+  assert.match(html, new RegExp(`<meta property="og:description"\\s+content="${descStart}`));
+  assert.match(html, new RegExp(`<meta name="twitter:description"\\s+content="${descStart}`));
+  assert.ok(
+    html.includes('<p role="note">Archived log entry. Cosmocrat is now Cosmocrat OS; see <a href="https://www.cosmocrat.ai/about">'),
+    'baked body leads with the linked banner',
+  );
+  // The whole article survives the prerender-block swap (banner is a <p>, not a <div>).
+  assert.ok(html.includes(entryArticleHtml(archivedThought)), 'whole article intact after the swap');
+  assert.equal((html.match(/<article /g) || []).length, 1, 'exactly one article');
 });

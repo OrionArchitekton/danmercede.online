@@ -14,6 +14,7 @@
 
 import { EntryType, type LogEntry } from '../types.ts';
 import { entryArticleHtml, escapeHtml } from './prerenderBody.ts';
+import { withArchiveNotice } from '../archiveNotice.ts';
 
 const SITE = 'https://www.danmercede.online';
 const PERSON = 'https://www.danmercede.com/#person';
@@ -63,7 +64,7 @@ function diagramImageMime(src: string): string {
   }
 }
 
-/** Plain-text lead description per type (for <meta name="description"> + og:description). */
+/** Plain-text lead description per type (for <meta name="description"> + og/twitter:description). */
 export function entryDescription(entry: LogEntry): string {
   let text: string;
   switch (entry.type) {
@@ -75,7 +76,8 @@ export function entryDescription(entry: LogEntry): string {
     case EntryType.Diagram: text = entry.caption; break;
     default: text = entry.title;
   }
-  return truncate(text);
+  // An archived entry leads with its notice (specs/archived-entry-notice-spec.md).
+  return truncate(withArchiveNotice(entry.archiveNotice, text));
 }
 
 function truncate(text: string, max = 200): string {
