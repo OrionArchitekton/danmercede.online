@@ -1,7 +1,13 @@
 {
-  "generated": "2026-11-05T06:41:24.011Z",
-  "count": 165,
+  "generated": "2026-11-06T04:23:24.585Z",
+  "count": 166,
   "posts": [
+    {
+      "slug": "2026-11-05-one-bridge-per-folder",
+      "title": "One Bridge Per Folder",
+      "type": "experiment-log",
+      "date": "2026-11-05"
+    },
     {
       "slug": "2026-11-04-hide-home-dont-block-it",
       "title": "Hide Home, Don't Block It",
