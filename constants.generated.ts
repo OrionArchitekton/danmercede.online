@@ -5,6 +5,18 @@ import { LogEntry, EntryType } from './types';
 
 export const ENTRIES: LogEntry[] = [
   {
+    id: "2026-11-10-options-carry-premises",
+    slug: "2026-11-10-options-carry-premises",
+    title: "Options Carry Premises",
+    date: "2026-11-10",
+    timestamp: "09:00 AM PT",
+    type: EntryType.ThoughtSnippet,
+    context: "Governance",
+    tags: ["governance","execution"],
+    content: "When you put a choice in front of an operator, every option that asserts a fact (already committed, identical, no longer used) turns their answer into approval of that fact, whether or not it holds. Check the premise first. If the check is still open, offer the check itself: 'delete it if it matches, and I will verify first' beats 'it matches, delete it'. The approval is real; the thing approved may not be what they think.",
+  }
+,
+  {
     id: "2026-11-05-one-bridge-per-folder",
     slug: "2026-11-05-one-bridge-per-folder",
     title: "One Bridge Per Folder",
