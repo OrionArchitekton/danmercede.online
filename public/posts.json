@@ -1,7 +1,13 @@
 {
-  "generated": "2026-11-16T22:38:25.871Z",
-  "count": 168,
+  "generated": "2026-11-18T19:20:24.329Z",
+  "count": 169,
   "posts": [
+    {
+      "slug": "2026-11-18-teach-the-writer",
+      "title": "Teach the Writer, Not the Reviewer",
+      "type": "short-essay",
+      "date": "2026-11-18"
+    },
     {
       "slug": "2026-11-16-queued-is-not-delivered",
       "title": "Queued Is Not Delivered",
