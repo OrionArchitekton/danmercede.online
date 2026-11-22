@@ -1,7 +1,13 @@
 {
-  "generated": "2026-11-18T19:20:24.329Z",
-  "count": 169,
+  "generated": "2026-11-22T03:27:38.633Z",
+  "count": 170,
   "posts": [
+    {
+      "slug": "2026-11-21-the-default-picked-the-gpu",
+      "title": "The Default Picked the GPU",
+      "type": "short-essay",
+      "date": "2026-11-21"
+    },
     {
       "slug": "2026-11-18-teach-the-writer",
       "title": "Teach the Writer, Not the Reviewer",
