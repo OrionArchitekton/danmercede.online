@@ -1,12 +1,20 @@
 ---
-title: "Assignment Is Not Ownership"
-slug: "2026-07-27-assignment-is-not-ownership"
-date: "2026-07-27T02:20:00-0700"
-type: "short-essay"
-claim: "In a multi-agent system, a task assignment message is routing metadata, not ownership; the only ownership that exists is an atomic claim on shared state."
+title: Assignment Is Not Ownership
+slug: 2026-07-27-assignment-is-not-ownership
+date: '2026-07-27T02:20:00-0700'
+type: short-essay
+claim: 'In a multi-agent system, a task assignment message is routing metadata, not ownership; the only ownership that exists is an atomic claim on shared state.'
 implication: "An agent picking up assigned work must probe the shared board first and honor a sibling's live claim; the addressee of a dispatch has no priority."
-tags: ["systems", "execution", "governance"]
-context: "systems"
+tags:
+  - systems
+  - execution
+  - governance
+context: systems
+externalContext:
+  whyItMatters: "In a multi-agent system, a task assignment message is routing metadata, not ownership; the only ownership that exists is an atomic claim on shared state. An agent picking up assigned work must probe the shared board first and honor a sibling's live claim; the addressee of a dispatch has no priority."
+  plainTermsNote: fail-closed means blocks the action on missing proof or error instead of silently continuing.
+  guideUrl: 'https://www.danmercede.com/guides/build-a-supervisor-agent'
+  guideLabel: 'Guide: Building a Supervisor Pattern for Agents on danmercede.com'
 ---
 
 This morning our dispatcher addressed a task to one agent by name: worker=claude, go verify four evidence domains. The dispatch failed closed before a session ever started, because the task row had no working directory to resolve. Fifteen minutes later a sibling agent on a different harness claimed the same task off the shared work board with an atomic O_EXCL lease. When the addressed agent finally picked the message up, the obvious move was to start working. The message says it's yours.

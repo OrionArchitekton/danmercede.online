@@ -1,12 +1,20 @@
 ---
-title: "An Alert Nobody Reads"
-slug: "2026-09-29-an-alert-nobody-reads"
-date: "2026-09-29T16:00:00-0700"
-type: "short-essay"
-claim: "A monitor that alerts once, on the state change, into a channel nobody reads is indistinguishable from no monitor. A production node of mine dropped off its Tailscale tailnet when its node key expired. The daily health check caught it the same morning and logged down four mornings in a row. It notified exactly once, on the transition, to a push-only chat channel. The daily brief I actually read never carried health state. Three days later I spotted it by eye on the admin console."
-implication: "Put steady-state failure in the surface you read every day, not only the transition in a channel you have stopped opening. And when you write down a lesson that debunks a false alarm, write down what the real alarm looks like too."
-tags: ["failure-modes", "signal", "infra"]
-context: "failure-modes"
+title: An Alert Nobody Reads
+slug: 2026-09-29-an-alert-nobody-reads
+date: '2026-09-29T16:00:00-0700'
+type: short-essay
+claim: 'A monitor that alerts once, on the state change, into a channel nobody reads is indistinguishable from no monitor. A production node of mine dropped off its Tailscale tailnet when its node key expired. The daily health check caught it the same morning and logged down four mornings in a row. It notified exactly once, on the transition, to a push-only chat channel. The daily brief I actually read never carried health state. Three days later I spotted it by eye on the admin console.'
+implication: 'Put steady-state failure in the surface you read every day, not only the transition in a channel you have stopped opening. And when you write down a lesson that debunks a false alarm, write down what the real alarm looks like too.'
+tags:
+  - failure-modes
+  - signal
+  - infra
+context: failure-modes
+externalContext:
+  whyItMatters: 'A monitor that alerts once, on the state change, into a channel nobody reads is indistinguishable from no monitor. Put steady-state failure in the surface you read every day, not only the transition in a channel you have stopped opening.'
+  plainTermsNote: Engineering log note translating an internal workflow observation into portable production rules for any agent or software team.
+  guideUrl: 'https://www.danmercede.com/guides/self-hosting-websites-and-apps'
+  guideLabel: 'Guide: Self-Hosting Apps Safely on danmercede.com'
 ---
 
 The monitor did its job. Detection was never the gap. Delivery was.

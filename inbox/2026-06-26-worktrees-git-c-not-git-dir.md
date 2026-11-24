@@ -1,12 +1,20 @@
 ---
-title: "Worktrees: git -C, Not GIT_DIR"
-slug: "2026-06-26-worktrees-git-c-not-git-dir"
-date: "2026-06-26T16:53:54-0700"
-type: "short-essay"
+title: 'Worktrees: git -C, Not GIT_DIR'
+slug: 2026-06-26-worktrees-git-c-not-git-dir
+date: '2026-06-26T16:53:54-0700'
+type: short-essay
 claim: "Never export GIT_DIR or GIT_WORK_TREE into a shell — address a worktree with `git -C <path>` so concurrent git operations can't clobber each other."
 implication: "Exported git env bleeds into every later command in that shell; with a second git op running against a different repo, one operation can rewrite the wrong repo's refs and check its worktree out to a foreign tree."
-tags: ["failure-modes", "execution", "systems"]
-context: "execution"
+tags:
+  - failure-modes
+  - execution
+  - systems
+context: execution
+externalContext:
+  whyItMatters: "Working log observation on Worktrees: git -C, Not GIT_DIR. Exported git env bleeds into every later command in that shell; with a second git op running against a different repo, one operation can rewrite the wrong repo's refs and check its worktree out to a foreign tree."
+  plainTermsNote: 'worktree means an isolated branch checkout keeping parallel edits separate from clean main; hook means an automated script triggered before a tool call, commit, or push completes.'
+  guideUrl: 'https://www.danmercede.com/guides/git-worktree-overlap-report'
+  guideLabel: 'Guide: Isolating Concurrent Agent Worktrees on danmercede.com'
 ---
 
 When you run git against a linked worktree, it's tempting to set

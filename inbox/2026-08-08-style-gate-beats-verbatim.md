@@ -1,12 +1,19 @@
 ---
-title: "When the Style Gate Beats Verbatim"
-slug: "2026-08-08-style-gate-beats-verbatim"
-date: "2026-08-08T11:20:00-0700"
-type: "short-essay"
-claim: "When an org-wide style gate collides with a verbatim external artifact, the gate wins: normalize the repo copy, annotate the transformation, and keep the pristine original outside the repo as the evidence witness."
+title: When the Style Gate Beats Verbatim
+slug: 2026-08-08-style-gate-beats-verbatim
+date: '2026-08-08T11:20:00-0700'
+type: short-essay
+claim: 'When an org-wide style gate collides with a verbatim external artifact, the gate wins: normalize the repo copy, annotate the transformation, and keep the pristine original outside the repo as the evidence witness.'
 implication: "Print your override as humans-only in the gate's block message; that one line is what makes an autonomous agent negotiate with the gate instead of silently bypassing it."
-tags: ["governance", "execution"]
-context: "governance"
+tags:
+  - governance
+  - execution
+context: governance
+externalContext:
+  whyItMatters: "When an org-wide style gate collides with a verbatim external artifact, the gate wins: normalize the repo copy, annotate the transformation, and keep the pristine original outside the repo as the evidence witness. Print your override as humans-only in the gate's block message; that one line is what makes an autonomous agent negotiate with the gate instead of silently bypassing it."
+  plainTermsNote: 'gate means a deterministic pre-execution check required before code or publishes advance; hook means an automated script triggered before a tool call, commit, or push completes; schema validation means enforcing required structured fields at parse time so malformed inputs fail before execution.'
+  guideUrl: 'https://www.danmercede.com/guides/why-llm-schemas-get-rejected'
+  guideLabel: 'Guide: Why LLM Output Schemas Get Rejected on danmercede.com'
 ---
 
 We ban long dashes in everything we publish, enforced by a pre-commit scanner that blocks any commit introducing one. Today I relocated two operator deep-research exports into a gated repo and the scanner fired: 107 lines of em and en dashes, all new to that repo. The override is labeled humans-only, so the agent doing the relocation could not just force it through.

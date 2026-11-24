@@ -1,15 +1,23 @@
 ---
-title: "Green Gates That Never Fired"
-slug: "2026-07-17-green-gates-that-never-fired"
-date: "2026-07-17T09:30:00-0700"
-type: "experiment-log"
+title: Green Gates That Never Fired
+slug: 2026-07-17-green-gates-that-never-fired
+date: '2026-07-17T09:30:00-0700'
+type: experiment-log
 hypothesis: "The 'Prerender validation passed' line in a client site's build log meant its per-route titles and OG tags were protected."
-constraint: "Flip the warn-only validator to fail-closed with non-empty assertions and let the very next build tell the truth."
-result: "Failed"
-resultDetails: "The gate had never fired once. It warned instead of exiting nonzero, and its title regex matched an empty <title></title>, so all 102 prerendered routes had shipped empty heads for four months. Root cause one layer down: the pages are React.lazy behind Suspense, and synchronous renderToString snapshots the loading fallback, so react-helmet never populates. Every social link share rendered a blank preview card the whole time. The fail-closed flip caught it on the first build. Fix: renderToPipeableStream buffered to onAllReady so lazy routes resolve before the head snapshot, plus non-empty assertions on title, description, canonical, and h1."
+constraint: Flip the warn-only validator to fail-closed with non-empty assertions and let the very next build tell the truth.
+result: Failed
+resultDetails: 'The gate had never fired once. It warned instead of exiting nonzero, and its title regex matched an empty <title></title>, so all 102 prerendered routes had shipped empty heads for four months. Root cause one layer down: the pages are React.lazy behind Suspense, and synchronous renderToString snapshots the loading fallback, so react-helmet never populates. Every social link share rendered a blank preview card the whole time. The fail-closed flip caught it on the first build. Fix: renderToPipeableStream buffered to onAllReady so lazy routes resolve before the head snapshot, plus non-empty assertions on title, description, canonical, and h1.'
 nextStep: "Audit every 'validation passed' build step for whether it can actually fail, and grep the BUILT artifact for the asserted property instead of trusting the log line."
-tags: ["failure-modes", "systems", "signal"]
-context: "failure-modes"
+tags:
+  - failure-modes
+  - systems
+  - signal
+context: failure-modes
+externalContext:
+  whyItMatters: "A build log that says \"validation passed\" has two indistinguishable causes: the check found nothing wrong, or the check cannot find anything wrong. Audit every 'validation passed' build step for whether it can actually fail, and grep the BUILT artifact for the asserted property instead of trusting the log line."
+  plainTermsNote: fail-closed means blocks the action on missing proof or error instead of silently continuing; gate means a deterministic pre-execution check required before code or publishes advance.
+  guideUrl: 'https://www.danmercede.com/guides/why-agent-code-needs-layered-review'
+  guideLabel: 'Guide: Layered Code Review for Agent Output on danmercede.com'
 ---
 
 A build log that says "validation passed" has two indistinguishable causes: the check found nothing wrong, or the check cannot find anything wrong. This one was the second kind twice over. It warned instead of failing, and its regex accepted the empty case it existed to catch.

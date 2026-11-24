@@ -27,6 +27,7 @@ import { ENTRIES as GENERATED_ENTRIES } from '../constants.generated.ts';
 import { ENTRIES as LEGACY_ENTRIES } from '../constants.ts';
 import { EntryType, type LogEntry } from '../types.ts';
 import { noticeSegments } from '../archiveNotice.ts';
+import { resolveExternalContext } from '../externalContext.ts';
 
 // ---------------------------------------------------------------------------
 // Entry ordering - mirror App.tsx exactly (newest-first by date + time-of-day).
@@ -150,12 +151,19 @@ export function entryArticleHtml(entry: LogEntry): string {
     : '';
   // An archived entry leads with its banner, ahead of any claim or body text.
   const notice = entry.archiveNotice ? archiveNoticeHtml(entry.archiveNotice) : '';
+  const ext = resolveExternalContext(entry);
+  const externalCard =
+    `<aside aria-label="Why This Matters Outside Orion">` +
+    `<p><strong>Why This Matters Outside Orion:</strong> ${escapeHtml(ext.whyItMatters)}</p>` +
+    `<p><strong>Plain terms:</strong> ${escapeHtml(ext.plainTermsNote)}</p>` +
+    `<p><a href="${escapeHtml(ext.guideUrl)}">${escapeHtml(ext.guideLabel)}</a></p>` +
+    `</aside>`;
   // id == slug so the in-feed EntryCard permalink (`#${slug}`) resolves to a real
   // on-page anchor (W6), and so the per-slug page reuses this exact <article> (the
   // page's canonical URL is `/${slug}`, emitted by perSlugPagesPlugin).
   return `<article id="${escapeHtml(entry.slug)}">${heading}${meta}${notice}${figure}${entryBodyHtml(
     entry,
-  )}${tags}</article>`;
+  )}${externalCard}${tags}</article>`;
 }
 
 /**

@@ -2,6 +2,7 @@ import React from 'react';
 import { LogEntry, EntryType, Tag } from '../types';
 import { ArrowUpRight, Link as LinkIcon } from 'lucide-react';
 import { noticeSegments } from '../archiveNotice';
+import { resolveExternalContext } from '../externalContext';
 
 interface EntryCardProps {
   entry: LogEntry;
@@ -195,6 +196,37 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, onTagClick }) => {
 
       {/* Body */}
       {renderBody()}
+
+      {/* HOOK-003: External-reader context card */}
+      {(() => {
+        const externalContext = resolveExternalContext(entry);
+        return (
+          <aside
+            aria-label="Why This Matters Outside Orion"
+            className="mt-5 border-l-2 border-gray-300 bg-gray-50/80 px-3.5 py-2.5 text-sm text-gray-700 space-y-1.5"
+          >
+            <p className="font-mono text-[11px] uppercase tracking-wider text-gray-500">
+              Why This Matters Outside Orion
+            </p>
+            <p className="leading-relaxed text-gray-800">
+              {externalContext.whyItMatters}
+            </p>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              <span className="font-semibold text-gray-700">Plain terms:</span>{' '}
+              {externalContext.plainTermsNote}
+            </p>
+            <p className="text-xs">
+              <a
+                href={externalContext.guideUrl}
+                className="inline-flex items-center gap-1 text-gray-900 underline underline-offset-2 hover:text-black"
+              >
+                <span>{externalContext.guideLabel}</span>
+                <ArrowUpRight size={12} aria-hidden="true" />
+              </a>
+            </p>
+          </aside>
+        );
+      })()}
 
       {/* Footer */}
       <div className="mt-8 flex items-center justify-between">

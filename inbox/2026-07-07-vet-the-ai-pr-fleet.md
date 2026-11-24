@@ -1,12 +1,20 @@
 ---
-title: "Vet the AI PR Fleet"
-slug: "2026-07-07-vet-the-ai-pr-fleet"
-date: "2026-07-07T14:35:00-0700"
-type: "short-essay"
-claim: "Merging a queue of AI-authored pull requests is not a rubber stamp. Three failure modes hide in the queue, and each needs verify-before-you-trust, not blind application."
-implication: "Treat a fleet of machine-written PRs like untrusted input: gate the merge on empirical checks at three layers, not on the open-PR count going down."
-tags: ["failure-modes", "execution", "systems"]
-context: "execution"
+title: Vet the AI PR Fleet
+slug: 2026-07-07-vet-the-ai-pr-fleet
+date: '2026-07-07T14:35:00-0700'
+type: short-essay
+claim: 'Merging a queue of AI-authored pull requests is not a rubber stamp. Three failure modes hide in the queue, and each needs verify-before-you-trust, not blind application.'
+implication: 'Treat a fleet of machine-written PRs like untrusted input: gate the merge on empirical checks at three layers, not on the open-PR count going down.'
+tags:
+  - failure-modes
+  - execution
+  - systems
+context: execution
+externalContext:
+  whyItMatters: 'Merging a queue of AI-authored pull requests is not a rubber stamp. Treat a fleet of machine-written PRs like untrusted input: gate the merge on empirical checks at three layers, not on the open-PR count going down.'
+  plainTermsNote: gate means a deterministic pre-execution check required before code or publishes advance.
+  guideUrl: 'https://www.danmercede.com/guides/why-agent-code-needs-layered-review'
+  guideLabel: 'Guide: Layered Code Review for Agent Output on danmercede.com'
 ---
 
 Merging a batch of machine-authored pull requests looks mechanical until three failure modes surface in the same session.

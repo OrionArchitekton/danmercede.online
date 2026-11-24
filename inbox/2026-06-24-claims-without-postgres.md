@@ -1,12 +1,20 @@
 ---
-title: "Claims Without Postgres"
-slug: "2026-06-24-claims-without-postgres"
-date: "2026-06-24T17:18:09-0700"
-type: "short-essay"
-claim: "Atomic work-claiming for autonomous agents needs no database — and a fail-open status hook actively forbids one."
-implication: "Reach for the database as the second move, when the work spans hosts, not the first."
-tags: ["systems", "failure-modes", "infra"]
-context: "systems"
+title: Claims Without Postgres
+slug: 2026-06-24-claims-without-postgres
+date: '2026-06-24T17:18:09-0700'
+type: short-essay
+claim: Atomic work-claiming for autonomous agents needs no database — and a fail-open status hook actively forbids one.
+implication: 'Reach for the database as the second move, when the work spans hosts, not the first.'
+tags:
+  - systems
+  - failure-modes
+  - infra
+context: systems
+externalContext:
+  whyItMatters: 'Working log observation on Claims Without Postgres. Reach for the database as the second move, when the work spans hosts, not the first.'
+  plainTermsNote: 'hook means an automated script triggered before a tool call, commit, or push completes.'
+  guideUrl: 'https://www.danmercede.com/guides/coordinate-local-agents-with-orion-pm'
+  guideLabel: 'Guide: Coordinating Parallel Local Agents on danmercede.com'
 ---
 
 I built a layer that keeps multiple autonomous agents from grabbing the same task. The reflex is a database — Postgres with `SELECT … FOR UPDATE SKIP LOCKED`, which hands each caller a different row or nothing, never the same one. Two constraints flipped that.

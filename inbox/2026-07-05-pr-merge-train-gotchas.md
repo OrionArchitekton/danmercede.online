@@ -1,12 +1,20 @@
 ---
-title: "PR-Merge Train Gotchas"
-slug: "2026-07-05-pr-merge-train-gotchas"
-date: "2026-07-05T00:15:00-0700"
-type: "short-essay"
-claim: "Merging a stack of PRs into one branch has host-side mechanics that silently skip half your queue if you script it naively."
-implication: "Treat mergeability as eventually consistent and order the train by a file-conflict graph, or the merge button lies to your loop."
-tags: ["execution", "failure-modes", "systems"]
-context: "execution"
+title: PR-Merge Train Gotchas
+slug: 2026-07-05-pr-merge-train-gotchas
+date: '2026-07-05T00:15:00-0700'
+type: short-essay
+claim: Merging a stack of PRs into one branch has host-side mechanics that silently skip half your queue if you script it naively.
+implication: 'Treat mergeability as eventually consistent and order the train by a file-conflict graph, or the merge button lies to your loop.'
+tags:
+  - execution
+  - failure-modes
+  - systems
+context: execution
+externalContext:
+  whyItMatters: 'Merging a stack of PRs into one branch has host-side mechanics that silently skip half your queue if you script it naively. Treat mergeability as eventually consistent and order the train by a file-conflict graph, or the merge button lies to your loop.'
+  plainTermsNote: Engineering log note translating an internal workflow observation into portable production rules for any agent or software team.
+  guideUrl: 'https://www.danmercede.com/guides/why-agent-code-needs-layered-review'
+  guideLabel: 'Guide: Layered Code Review for Agent Output on danmercede.com'
 ---
 
 Merged fourteen PRs into one repo today in a single pass. If you script that as "loop over the open PRs, merge each one," you will silently skip half of them. Here is why, and the five things that actually decide whether the train runs.

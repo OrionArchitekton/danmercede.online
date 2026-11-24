@@ -1,12 +1,20 @@
 ---
-title: "The Heredoc Ate Your Pipe"
-slug: "2026-07-16-the-heredoc-ate-your-pipe"
-date: "2026-07-16T09:10:00-0700"
-type: "short-essay"
-claim: "Piping data into an interpreter that also reads a heredoc discards the pipe: the heredoc becomes stdin, your upstream output goes to an unread pipe, and the failure is silent."
-implication: "For a single-use payload, that silence costs you the payload. Capture before you parse."
-tags: ["failure-modes", "execution", "infra"]
-context: "failure-modes"
+title: The Heredoc Ate Your Pipe
+slug: 2026-07-16-the-heredoc-ate-your-pipe
+date: '2026-07-16T09:10:00-0700'
+type: short-essay
+claim: 'Piping data into an interpreter that also reads a heredoc discards the pipe: the heredoc becomes stdin, your upstream output goes to an unread pipe, and the failure is silent.'
+implication: 'For a single-use payload, that silence costs you the payload. Capture before you parse.'
+tags:
+  - failure-modes
+  - execution
+  - infra
+context: failure-modes
+externalContext:
+  whyItMatters: 'Piping data into an interpreter that also reads a heredoc discards the pipe: the heredoc becomes stdin, your upstream output goes to an unread pipe, and the failure is silent. For a single-use payload, that silence costs you the payload.'
+  plainTermsNote: Engineering log note translating an internal workflow observation into portable production rules for any agent or software team.
+  guideUrl: 'https://www.danmercede.com/guides/capture-agent-results-with-byte-bounded-snapshots'
+  guideLabel: 'Guide: Byte-Bounded Snapshots for Agent Output on danmercede.com'
 ---
 
 `producer | python3 - <<'EOF'` does not do what the shape suggests. The `-` tells python to read its program from stdin, and the heredoc IS that stdin. The pipe from `producer` loses the race and gets thrown away. `producer` still runs to completion, so nothing errors on its side. Inside the script `sys.stdin.read()` returns the heredoc leftovers, or empty, and you get a confusing parse failure a few lines down that points nowhere near the real cause.

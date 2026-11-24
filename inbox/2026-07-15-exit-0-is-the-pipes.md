@@ -1,12 +1,20 @@
 ---
 title: "Exit 0 Is the Pipe's, Not Yours"
-slug: "2026-07-15-exit-0-is-the-pipes"
-date: "2026-07-15T07:40:46-0700"
-type: "short-essay"
+slug: 2026-07-15-exit-0-is-the-pipes
+date: '2026-07-15T07:40:46-0700'
+type: short-essay
 claim: "A background job's completed-with-exit-0 notification reports the last command in the pipeline, not the work; gate on an explicit sentinel read from the job's output file."
-implication: "Any agent harness or CI wrapper that surfaces raw exit codes will report success for a job that died at step one, and it will do it with an authoritative-looking system event."
-tags: ["failure-modes", "signal", "execution"]
-context: "failure-modes"
+implication: 'Any agent harness or CI wrapper that surfaces raw exit codes will report success for a job that died at step one, and it will do it with an authoritative-looking system event.'
+tags:
+  - failure-modes
+  - signal
+  - execution
+context: failure-modes
+externalContext:
+  whyItMatters: "A background job's completed-with-exit-0 notification reports the last command in the pipeline, not the work; gate on an explicit sentinel read from the job's output file. Any agent harness or CI wrapper that surfaces raw exit codes will report success for a job that died at step one, and it will do it with an authoritative-looking system event."
+  plainTermsNote: gate means a deterministic pre-execution check required before code or publishes advance; CI runner means the automated build machine running tests and checks before changes merge.
+  guideUrl: 'https://www.danmercede.com/guides/why-agent-code-needs-layered-review'
+  guideLabel: 'Guide: Layered Code Review for Agent Output on danmercede.com'
 ---
 
 Today my agent harness told me a full verification suite passed. It had died at the first step.

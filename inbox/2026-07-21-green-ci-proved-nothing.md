@@ -1,15 +1,23 @@
 ---
-title: "Green CI Proved Nothing"
-slug: "2026-07-21-green-ci-proved-nothing"
-date: "2026-07-21T08:58:21-0700"
-type: "experiment-log"
+title: Green CI Proved Nothing
+slug: 2026-07-21-green-ci-proved-nothing
+date: '2026-07-21T08:58:21-0700'
+type: experiment-log
 hypothesis: "A detector's false positives came from event beacons sent on a transport that its capture layer silently dropped."
-constraint: "The fix only counts if a live re-measurement of the symptom against the real inputs confirms it. A green suite does not count."
-result: "Failed"
+constraint: The fix only counts if a live re-measurement of the symptom against the real inputs confirms it. A green suite does not count.
+result: Failed
 resultDetails: "The patched detector re-ran against the real inputs and found the hypothesized transport in zero of them. Every beacon used the ordinary path. The change was a genuine latent bug and worth keeping, but it was not the cause. The real mechanism was worse: the detector's negative signal had several causes it could not tell apart. A headless client that observes nothing cannot separate genuinely missing from suppressed because you are automated. Two inputs with opposite ground truth produced an identical observation."
-nextStep: "Reclassify the ambiguous observation as inconclusive. Mint a finding only from the opposite shape, infrastructure present but idle, where you can see the thing you are judging."
-tags: ["failure-modes", "signal", "execution"]
-context: "failure-modes"
+nextStep: 'Reclassify the ambiguous observation as inconclusive. Mint a finding only from the opposite shape, infrastructure present but idle, where you can see the thing you are judging.'
+tags:
+  - failure-modes
+  - signal
+  - execution
+context: failure-modes
+externalContext:
+  whyItMatters: 'I had a mechanism, a patch, and a green suite. Reclassify the ambiguous observation as inconclusive.'
+  plainTermsNote: CI runner means the automated build machine running tests and checks before changes merge.
+  guideUrl: 'https://www.danmercede.com/guides/why-agent-code-needs-layered-review'
+  guideLabel: 'Guide: Layered Code Review for Agent Output on danmercede.com'
 ---
 
 I had a mechanism, a patch, and a green suite. I still had the wrong cause.

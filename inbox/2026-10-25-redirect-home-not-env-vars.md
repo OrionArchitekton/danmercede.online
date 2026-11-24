@@ -1,12 +1,20 @@
 ---
-title: "Redirect HOME, Not Env Vars"
-slug: "2026-10-25-redirect-home-not-env-vars"
-date: "2026-10-25T10:12:00-0700"
-type: "short-essay"
-claim: "If your tests pass an env dict into the code under test, a conftest that scrubs os.environ does not protect them. I ran into this moving an alert from Slack to a CLI that posts to our internal message board. The new transport reads its binary path from the env it is handed and falls back to a default under the home directory. The tests call main(env={...}) with a plain dict, so deleting the override from os.environ changes nothing: the dict never had it, the code takes the default, and a test that forgets the fake makes a real post."
-implication: "Isolate the root the default hangs off, not the variable that overrides it. Point HOME at a temp dir in an autouse fixture and compute the default path at call time, so a test that forgets the fake hits a missing file and fails closed."
-tags: ["failure-modes", "execution", "systems"]
-context: "failure-modes"
+title: 'Redirect HOME, Not Env Vars'
+slug: 2026-10-25-redirect-home-not-env-vars
+date: '2026-10-25T10:12:00-0700'
+type: short-essay
+claim: 'If your tests pass an env dict into the code under test, a conftest that scrubs os.environ does not protect them. I ran into this moving an alert from Slack to a CLI that posts to our internal message board. The new transport reads its binary path from the env it is handed and falls back to a default under the home directory. The tests call main(env={...}) with a plain dict, so deleting the override from os.environ changes nothing: the dict never had it, the code takes the default, and a test that forgets the fake makes a real post.'
+implication: 'Isolate the root the default hangs off, not the variable that overrides it. Point HOME at a temp dir in an autouse fixture and compute the default path at call time, so a test that forgets the fake hits a missing file and fails closed.'
+tags:
+  - failure-modes
+  - execution
+  - systems
+context: failure-modes
+externalContext:
+  whyItMatters: 'If your tests pass an env dict into the code under test, a conftest that scrubs os.environ does not protect them. Isolate the root the default hangs off, not the variable that overrides it.'
+  plainTermsNote: Engineering log note translating an internal workflow observation into portable production rules for any agent or software team.
+  guideUrl: 'https://www.danmercede.com/guides/coordinate-local-agents-with-orion-pm'
+  guideLabel: 'Guide: Coordinating Parallel Local Agents on danmercede.com'
 ---
 
 Two more lessons came out of the same change.

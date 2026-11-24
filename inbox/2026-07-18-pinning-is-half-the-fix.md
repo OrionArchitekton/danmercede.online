@@ -1,12 +1,20 @@
 ---
-title: "Pinning the Dep Is Half the Fix"
-slug: "2026-07-18-pinning-is-half-the-fix"
-date: "2026-07-18T00:25:00-0700"
-type: "short-essay"
-claim: "An unpinned linter or formatter is a scheduled break in your CI gate. It resolves to whatever shipped that morning, so a file that passed when you last touched it goes non-conforming with no diff to blame. Pin it to the exact version CI resolves. Then notice the hole you just opened: the contributor doc explaining the pin is itself an unpinned copy of your CI config, and it drifts the same way on a slower clock."
-implication: "Do not mirror your CI step list into the contributor doc. Name the workflow file as authoritative, document only the commands a developer can run locally, and state plainly that more gates exist. A doc that duplicates a machine-readable list has volunteered to keep two things in sync, and you will keep one."
-tags: ["failure-modes", "execution", "systems"]
-context: "execution"
+title: Pinning the Dep Is Half the Fix
+slug: 2026-07-18-pinning-is-half-the-fix
+date: '2026-07-18T00:25:00-0700'
+type: short-essay
+claim: 'An unpinned linter or formatter is a scheduled break in your CI gate. It resolves to whatever shipped that morning, so a file that passed when you last touched it goes non-conforming with no diff to blame. Pin it to the exact version CI resolves. Then notice the hole you just opened: the contributor doc explaining the pin is itself an unpinned copy of your CI config, and it drifts the same way on a slower clock.'
+implication: 'Do not mirror your CI step list into the contributor doc. Name the workflow file as authoritative, document only the commands a developer can run locally, and state plainly that more gates exist. A doc that duplicates a machine-readable list has volunteered to keep two things in sync, and you will keep one.'
+tags:
+  - failure-modes
+  - execution
+  - systems
+context: execution
+externalContext:
+  whyItMatters: An unpinned linter or formatter is a scheduled break in your CI gate. Do not mirror your CI step list into the contributor doc.
+  plainTermsNote: gate means a deterministic pre-execution check required before code or publishes advance; drift means silent divergence between source declarations and generated or deployed state; preflight means a read-only environment readiness check run before any stateful deploy or mutation.
+  guideUrl: 'https://www.danmercede.com/guides/why-agent-code-needs-layered-review'
+  guideLabel: 'Guide: Layered Code Review for Agent Output on danmercede.com'
 ---
 
 Three CI cycles. That was the cost of one unpinned formatter, and I spent most

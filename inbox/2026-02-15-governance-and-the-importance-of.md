@@ -1,14 +1,20 @@
 ---
-title: "Drift Guard: Ensuring Runtime Environment Integrity"
-slug: "2026-02-15-governance-and-the-importance-of"
-date: "2026-02-15T21:48:41+0000"
-type: "short-essay"
-claim: "Drift Guard is a critical Cosmocrat component for maintaining the integrity and desired state of runtime environments."
-implication: "Its active use is fundamental to preventing configuration drift and ensuring operational stability."
-tags: ["systems"]
-context: "systems"
-context_detail: "docs"
-archiveNotice: "Archived log entry. Cosmocrat is now Cosmocrat OS; see https://www.cosmocrat.ai/about"
+title: 'Drift Guard: Ensuring Runtime Environment Integrity'
+slug: 2026-02-15-governance-and-the-importance-of
+date: '2026-02-15T21:48:41+0000'
+type: short-essay
+claim: Drift Guard is a critical Cosmocrat component for maintaining the integrity and desired state of runtime environments.
+implication: Its active use is fundamental to preventing configuration drift and ensuring operational stability.
+tags:
+  - systems
+context: systems
+context_detail: docs
+archiveNotice: 'Archived log entry. Cosmocrat is now Cosmocrat OS; see https://www.cosmocrat.ai/about'
+externalContext:
+  whyItMatters: Drift Guard is a critical Cosmocrat component for maintaining the integrity and desired state of runtime environments. Its active use is fundamental to preventing configuration drift and ensuring operational stability.
+  plainTermsNote: drift means silent divergence between source declarations and generated or deployed state.
+  guideUrl: 'https://www.danmercede.com/guides/the-fail-closed-harness'
+  guideLabel: 'Guide: The Fail-Closed Agent Harness on danmercede.com'
 ---
 
 In managing complex technical systems, maintaining the desired state of runtime environments is paramount. This is where the concept of drift becomes a significant concern. Configuration drift refers to the unauthorized or unintended changes that occur in a system's configuration over time, leading to deviations from its intended design.

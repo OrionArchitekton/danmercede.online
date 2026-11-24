@@ -1,12 +1,20 @@
 ---
-title: "Budget the Week You Act In"
-slug: "2026-07-11-budget-the-week-you-act-in"
-date: "2026-07-11T00:20:00-0700"
-type: "short-essay"
-claim: "A scheduler that plans on the last day of a period must budget the period it will act in, never the one it is standing in. remaining(now) on a boundary day is an off-by-one-period bug wearing a compliance costume."
-implication: "Every generate-at-boundary planner (Sunday content planner, month-end batcher, end-of-day queue builder) needs a boundary fixture: ending-period-at-cap must still yield next-period work, and a full next-period bucket must yield zero."
-tags: ["failure-modes", "systems", "execution"]
-context: "failure-modes"
+title: Budget the Week You Act In
+slug: 2026-07-11-budget-the-week-you-act-in
+date: '2026-07-11T00:20:00-0700'
+type: short-essay
+claim: 'A scheduler that plans on the last day of a period must budget the period it will act in, never the one it is standing in. remaining(now) on a boundary day is an off-by-one-period bug wearing a compliance costume.'
+implication: 'Every generate-at-boundary planner (Sunday content planner, month-end batcher, end-of-day queue builder) needs a boundary fixture: ending-period-at-cap must still yield next-period work, and a full next-period bucket must yield zero.'
+tags:
+  - failure-modes
+  - systems
+  - execution
+context: failure-modes
+externalContext:
+  whyItMatters: 'A scheduler that plans on the last day of a period must budget the period it will act in, never the one it is standing in. remaining(now) on a boundary day is an off-by-one-period bug wearing a compliance costume. Every generate-at-boundary planner (Sunday content planner, month-end batcher, end-of-day queue builder) needs a boundary fixture: ending-period-at-cap must still yield next-period work, and a full next-period bucket must yield zero.'
+  plainTermsNote: gate means a deterministic pre-execution check required before code or publishes advance; boundary means the tool or interface layer where deterministic checks override prompt intent.
+  guideUrl: 'https://www.danmercede.com/guides/verifier-abstention-not-refutation'
+  guideLabel: 'Guide: Verifier Abstention vs. Refutation on danmercede.com'
 ---
 
 I shipped a weekly planner this week that runs Sunday evening and proposes Monday-to-Sunday work. Every proposed row checks a rate-limit ledger before it earns a slot, and the ledger keys its buckets by ISO week.

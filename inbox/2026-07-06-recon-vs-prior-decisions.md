@@ -1,12 +1,20 @@
 ---
-title: "Recon vs Prior Decisions"
-slug: "2026-07-06-recon-vs-prior-decisions"
-date: "2026-07-06T00:20:00-0700"
-type: "short-essay"
-claim: "A fresh recon-and-synthesis agent sees only live system state, not the decisions you already made about it, so it will confidently recommend something you already rejected."
-implication: "Reconcile the raw synthesis against your prior decision docs before acting; the reconciliation, not the recon, is the trustworthy output."
-tags: ["execution", "systems", "signal"]
-context: "execution"
+title: Recon vs Prior Decisions
+slug: 2026-07-06-recon-vs-prior-decisions
+date: '2026-07-06T00:20:00-0700'
+type: short-essay
+claim: 'A fresh recon-and-synthesis agent sees only live system state, not the decisions you already made about it, so it will confidently recommend something you already rejected.'
+implication: 'Reconcile the raw synthesis against your prior decision docs before acting; the reconciliation, not the recon, is the trustworthy output.'
+tags:
+  - execution
+  - systems
+  - signal
+context: execution
+externalContext:
+  whyItMatters: 'A fresh recon-and-synthesis agent sees only live system state, not the decisions you already made about it, so it will confidently recommend something you already rejected. Reconcile the raw synthesis against your prior decision docs before acting; the reconciliation, not the recon, is the trustworthy output.'
+  plainTermsNote: 'GPU/CUDA fallback means explicit hardware pin checks verifying compute runs on CPU or GPU as intended rather than silently falling back; prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it.'
+  guideUrl: 'https://www.danmercede.com/guides/done-needs-a-receipt'
+  guideLabel: 'Guide: Why Done Needs a Verification Receipt on danmercede.com'
 ---
 
 Fan a recon pass out over live state, let an agent synthesize it, and the result is grounded, plausible, and blind. It answers "what is the state" but not "what has already been decided about it." So it surfaces the obvious move, say "route all the inference to the idle GPU," when an earlier analysis already found the real constraint was model reliability, not spare capacity, and rejected exactly that. The synthesis is well cited and wrong.

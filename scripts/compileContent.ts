@@ -19,6 +19,7 @@ import * as path from 'path';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
 import { ARCHIVE_NOTICE_MAX_CHARS } from '../archiveNotice.ts';
+import { deriveExternalContext, validateExternalContext } from '../externalContext.ts';
 
 // ES module compatibility
 const __filename = fileURLToPath(import.meta.url);
@@ -753,6 +754,14 @@ export function mapSubstrateToEntry(
         alt: altText as string,
         caption: caption as string,
         content: body,
+        externalContext: deriveExternalContext({
+          title: titleValue,
+          type: consumerType,
+          context,
+          tags,
+          caption: caption as string,
+          content: body,
+        }),
       },
       body,
       source: 'substrate',
@@ -774,6 +783,15 @@ export function mapSubstrateToEntry(
   if (typeof implication === 'string' && implication.trim()) {
     fields.implication = implication;
   }
+  fields.externalContext = deriveExternalContext({
+    title: titleValue,
+    type: consumerType,
+    context,
+    tags,
+    claim: claim as string,
+    implication: typeof implication === 'string' ? implication : undefined,
+    content: body,
+  });
 
   return {
     slug: slugValue,
@@ -957,6 +975,14 @@ export function readInboxEntries(
       continue;
     }
 
+    const externalContextErrors = validateExternalContext(data.externalContext, file, false);
+    if (externalContextErrors.length > 0) {
+      for (const message of externalContextErrors) {
+        allErrors.push({ file, field: 'externalContext', message });
+      }
+      continue;
+    }
+
     const fullContent = JSON.stringify(data) + body;
     const forbiddenViolations = validateForbiddenContent(fullContent, file);
     if (forbiddenViolations.length > 0) {
@@ -999,6 +1025,26 @@ export function readInboxEntries(
       if (!fields['content'] && body) {
         fields['content'] = body;
       }
+    }
+
+    if (!fields['externalContext']) {
+      fields['externalContext'] = deriveExternalContext({
+        title: data.title as string,
+        type,
+        context,
+        tags,
+        claim: typeof data.claim === 'string' ? data.claim : undefined,
+        implication: typeof data.implication === 'string' ? data.implication : undefined,
+        content: typeof fields['content'] === 'string' ? fields['content'] : body,
+        hypothesis: typeof data.hypothesis === 'string' ? data.hypothesis : undefined,
+        result: typeof data.result === 'string' ? data.result : undefined,
+        resultDetails: typeof data.resultDetails === 'string' ? data.resultDetails : undefined,
+        nextStep: typeof data.nextStep === 'string' ? data.nextStep : undefined,
+        whatChanged: typeof data.whatChanged === 'string' ? data.whatChanged : undefined,
+        whatBroke: typeof data.whatBroke === 'string' ? data.whatBroke : undefined,
+        openQuestion: typeof data.openQuestion === 'string' ? data.openQuestion : undefined,
+        caption: typeof data.caption === 'string' ? data.caption : undefined,
+      });
     }
 
     entries.push({

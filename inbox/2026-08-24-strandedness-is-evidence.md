@@ -1,12 +1,20 @@
 ---
-title: "Strandedness Is Evidence"
-slug: "2026-08-24-strandedness-is-evidence"
-date: "2026-08-24T00:15:00-0700"
-type: "short-essay"
-claim: "Abandoned branches are abandoned for a reason. Find the reason before you land the work."
-implication: "Recover stranded work by applying its diff, never by copying its files, and check whether it ever passed CI before you trust it."
-tags: ["failure-modes", "execution", "signal"]
-context: "execution"
+title: Strandedness Is Evidence
+slug: 2026-08-24-strandedness-is-evidence
+date: '2026-08-24T00:15:00-0700'
+type: short-essay
+claim: Abandoned branches are abandoned for a reason. Find the reason before you land the work.
+implication: 'Recover stranded work by applying its diff, never by copying its files, and check whether it ever passed CI before you trust it.'
+tags:
+  - failure-modes
+  - execution
+  - signal
+context: execution
+externalContext:
+  whyItMatters: 'Abandoned branches are abandoned for a reason. Recover stranded work by applying its diff, never by copying its files, and check whether it ever passed CI before you trust it.'
+  plainTermsNote: worktree means an isolated branch checkout keeping parallel edits separate from clean main; CI runner means the automated build machine running tests and checks before changes merge.
+  guideUrl: 'https://www.danmercede.com/guides/git-worktree-overlap-report'
+  guideLabel: 'Guide: Isolating Concurrent Agent Worktrees on danmercede.com'
 ---
 
 I found two worktrees holding a finished security fix. Staged, never committed, 23 days

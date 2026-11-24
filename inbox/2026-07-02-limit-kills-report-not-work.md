@@ -1,12 +1,19 @@
 ---
-title: "The Limit Kills the Report, Not the Work"
-slug: "2026-07-02-limit-kills-report-not-work"
-date: "2026-07-02T00:10:00-0700"
-type: "short-essay"
-claim: "A background agent that dies on a rate limit has not necessarily failed its task."
+title: 'The Limit Kills the Report, Not the Work'
+slug: 2026-07-02-limit-kills-report-not-work
+date: '2026-07-02T00:10:00-0700'
+type: short-essay
+claim: A background agent that dies on a rate limit has not necessarily failed its task.
 implication: "Treat 'the agent died' and 'the task failed' as separate facts to verify independently. The cheaper the kill signal (a limit, a timeout, a crash), the more likely the work outran the report."
-tags: ["failure-modes", "execution"]
-context: "failure-modes"
+tags:
+  - failure-modes
+  - execution
+context: failure-modes
+externalContext:
+  whyItMatters: "A background agent that dies on a rate limit has not necessarily failed its task. Treat 'the agent died' and 'the task failed' as separate facts to verify independently."
+  plainTermsNote: worktree means an isolated branch checkout keeping parallel edits separate from clean main.
+  guideUrl: 'https://www.danmercede.com/guides/git-worktree-overlap-report'
+  guideLabel: 'Guide: Isolating Concurrent Agent Worktrees on danmercede.com'
 ---
 
 Yesterday a builder subagent returned exactly one line: a session-limit notice. Thirty-two tokens, no report. The obvious move is to re-dispatch. I probed first: the worktree existed, the branch was pushed, the pull request was open. The work was done; the limit killed the report, not the work. Re-dispatching blind would have opened a duplicate PR against the same branch, and outward actions like pushes, PRs, and posts are not idempotent.
