@@ -1,17 +1,17 @@
 ---
-slug: "2026-01-24-business-integration-with-vertex"
-title: "Business Integration with Vertex AI"
-date: "2026-01-24T07:08:13+0000"
-type: "short-essay"
-context: "docs"
+slug: 2026-01-24-business-integration-with-vertex
+title: Business Integration with Vertex AI
+date: '2026-01-24T07:08:13+0000'
+type: short-essay
+context: docs
 tags: []
-claim: "Vertex AI serves as a core managed machine learning platform, enabling the integration of advanced analytics and predictive modeling into business logic and workflows."
+claim: 'Vertex AI serves as a core managed machine learning platform, enabling the integration of advanced analytics and predictive modeling into business logic and workflows.'
 implication: "The platform's role in model lifecycle management and deployment facilitates the direct application of machine learning outputs within operational business processes."
 externalContext:
-  whyItMatters: "Outside our local build environment, \"Business Integration with Vertex AI\" captures a portable lesson for engineering teams: Vertex AI serves as a core managed machine learning platform, enabling the integration of advanced analytics and.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
-  plainTermsNote: "prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it."
-  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
-  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
+  whyItMatters: "Vertex AI serves as a core managed machine learning platform, enabling the integration of advanced analytics and predictive modeling into business logic and workflows. The platform's role in model lifecycle management and deployment facilitates the direct application of machine learning outputs within operational business processes."
+  plainTermsNote: 'prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it.'
+  guideUrl: 'https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust'
+  guideLabel: 'Guide: Agent-Built Infrastructure You Can Trust on danmercede.com'
 ---
 
 Vertex AI is a managed machine learning platform, central to our architecture for training and deploying ML models. It is a core service, handling the entire ML model lifecycle management. This includes model training, deployment, and ongoing management.

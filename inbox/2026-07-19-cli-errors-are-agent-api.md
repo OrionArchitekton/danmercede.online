@@ -1,17 +1,20 @@
 ---
-title: "CLI Errors Are Part of Your Agent API"
-slug: "2026-07-19-cli-errors-are-agent-api"
-date: "2026-07-19T00:10:00-0700"
-type: "short-essay"
-claim: "Autonomous agents diagnose failures by pattern-matching error shapes, so a CLI rejection message that names the wrong failure class sends an agent down a phantom-bug branch. If agents drive your tooling, the error text is the API contract."
-implication: "Error messages written for humans who will read the docs become misinformation for agents that act on the literal text."
-tags: ["failure-modes", "systems", "workflow-ownership"]
-context: "failure-modes"
+title: CLI Errors Are Part of Your Agent API
+slug: 2026-07-19-cli-errors-are-agent-api
+date: '2026-07-19T00:10:00-0700'
+type: short-essay
+claim: 'Autonomous agents diagnose failures by pattern-matching error shapes, so a CLI rejection message that names the wrong failure class sends an agent down a phantom-bug branch. If agents drive your tooling, the error text is the API contract.'
+implication: Error messages written for humans who will read the docs become misinformation for agents that act on the literal text.
+tags:
+  - failure-modes
+  - systems
+  - workflow-ownership
+context: failure-modes
 externalContext:
-  whyItMatters: "Outside our local build environment, \"CLI Errors Are Part of Your Agent API\" captures a portable lesson for engineering teams: Autonomous agents diagnose failures by pattern-matching error shapes, so a CLI rejection message that names the.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
-  plainTermsNote: "gate means a deterministic pre-execution check required before code or publishes advance."
-  guideUrl: "https://www.danmercede.com/guides/governed-double-send-safe-delivery"
-  guideLabel: "Guide: Double-Send-Safe Delivery in Agent Pipelines on danmercede.com"
+  whyItMatters: 'Autonomous agents diagnose failures by pattern-matching error shapes, so a CLI rejection message that names the wrong failure class sends an agent down a phantom-bug branch. Error messages written for humans who will read the docs become misinformation for agents that act on the literal text.'
+  plainTermsNote: gate means a deterministic pre-execution check required before code or publishes advance.
+  guideUrl: 'https://www.danmercede.com/guides/governed-double-send-safe-delivery'
+  guideLabel: 'Guide: Double-Send-Safe Delivery in Agent Pipelines on danmercede.com'
 ---
 
 Tonight my agent diagnosed three different phantom bugs in a row. The tool was fine every time. The error messages lied.

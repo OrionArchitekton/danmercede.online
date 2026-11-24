@@ -1,17 +1,20 @@
 ---
-title: "A Checkpoint Is Not Durable Until the Write Lands"
-slug: "2026-08-03-checkpoint-durability"
-date: "2026-08-03T11:50:00-0700"
-type: "short-essay"
+title: A Checkpoint Is Not Durable Until the Write Lands
+slug: 2026-08-03-checkpoint-durability
+date: '2026-08-03T11:50:00-0700'
+type: short-essay
 claim: "An autonomous agent's handoff checkpoint only counts once the durable write completes; a crash mid-checkpoint strands it in volatile temp storage, and a salvaged checkpoint is one step behind reality."
-implication: "Checkpoint to durable storage as you go, and on crash recovery re-verify every fact in the salvaged plan against ground truth before resuming from it."
-tags: ["failure-modes", "execution", "systems"]
-context: "failure-modes"
+implication: 'Checkpoint to durable storage as you go, and on crash recovery re-verify every fact in the salvaged plan against ground truth before resuming from it.'
+tags:
+  - failure-modes
+  - execution
+  - systems
+context: failure-modes
 externalContext:
-  whyItMatters: "Outside our local build environment, \"A Checkpoint Is Not Durable Until the Write Lands\" captures a portable lesson for engineering teams: An autonomous agent's handoff checkpoint only counts once the durable write completes; a crash mid-checkpoint st.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
-  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
-  guideUrl: "https://www.danmercede.com/guides/hand-off-local-agent-tasks"
-  guideLabel: "Guide: Handing Off Long-Running Agent Tasks on danmercede.com"
+  whyItMatters: "An autonomous agent's handoff checkpoint only counts once the durable write completes; a crash mid-checkpoint strands it in volatile temp storage, and a salvaged checkpoint is one step behind reality. Checkpoint to durable storage as you go, and on crash recovery re-verify every fact in the salvaged plan against ground truth before resuming from it."
+  plainTermsNote: Engineering log note translating an internal workflow observation into portable production rules for any agent or software team.
+  guideUrl: 'https://www.danmercede.com/guides/hand-off-local-agent-tasks'
+  guideLabel: 'Guide: Handing Off Long-Running Agent Tasks on danmercede.com'
 ---
 
 Today an agent session died with SIGABRT in the middle of writing its own handoff checkpoint. The draft existed in exactly one place: the session's temp scratchpad, which gets wiped on reboot. Hours of verified state, one power cycle from gone.

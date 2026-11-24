@@ -1,20 +1,23 @@
 ---
-title: "Read the Docs, Not the Marketing Page"
-slug: "2026-07-25-read-the-docs-not-marketing"
-date: "2026-07-25T00:20:00-0700"
-type: "experiment-log"
+title: 'Read the Docs, Not the Marketing Page'
+slug: 2026-07-25-read-the-docs-not-marketing
+date: '2026-07-25T00:20:00-0700'
+type: experiment-log
 hypothesis: "A first-pass competitive scan's verdict of 'an incumbent already ships this' is reliable enough to kill a build decision."
 constraint: "Re-verify every load-bearing claim against the vendor's own product docs rather than its platform page, and record GA versus private beta for each."
-result: "Failed"
+result: Failed
 resultDetails: "The first pass scored an incumbent as shipping three of four claimed differentiators, including hard floors that block promotion, and cited the platform page: 'LLM judges score each candidate against your defined thresholds, and only what clears the bar gets to production.' The product docs for that same feature describe promotion as a manual human action: 'Deploy opens the config targeting page for the agent so that you can promote it to your chosen targeting rules.' No automatic gate is documented anywhere, and the feature is private beta, not GA. Corrected read: two of four solidly shipped, the blocking-gate axis still open. Same scan, second correction: an Apache-2.0 optimizer was reported as auto-tuning from logged traces, but its actual signature is optimize_prompt(prompt, dataset, metric), so the trace-to-dataset step is still the user's problem."
 nextStep: "Before any 'already shipped' claim is allowed to kill a build, require three things: a product docs or changelog URL that was actually fetched, an explicit GA/beta/waitlist status, and for any 'automatic' claim, the specific doc sentence showing no human step."
-tags: ["signal", "failure-modes", "execution"]
-context: "signal"
+tags:
+  - signal
+  - failure-modes
+  - execution
+context: signal
 externalContext:
-  whyItMatters: "Outside our local build environment, \"Read the Docs, Not the Marketing Page\" captures a portable lesson for engineering teams: A first-pass competitive scan's verdict of 'an incumbent already ships this' is reliable enough to kill a build.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
-  plainTermsNote: "gate means a deterministic pre-execution check required before code or publishes advance; lane means an isolated publishing or execution pipeline consuming frozen source artifacts; prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it."
-  guideUrl: "https://www.danmercede.com/guides/regression-test-ai-agent-prompt-model-change"
-  guideLabel: "Guide: Regression-Testing Agent Prompt Changes on danmercede.com"
+  whyItMatters: "Vendor marketing and vendor docs disagree in a predictable direction. Before any 'already shipped' claim is allowed to kill a build, require three things: a product docs or changelog URL that was actually fetched, an explicit GA/beta/waitlist status, and for any 'automatic' claim, the specific doc sentence showing no human step."
+  plainTermsNote: 'gate means a deterministic pre-execution check required before code or publishes advance; lane means an isolated publishing or execution pipeline consuming frozen source artifacts; prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it.'
+  guideUrl: 'https://www.danmercede.com/guides/regression-test-ai-agent-prompt-model-change'
+  guideLabel: 'Guide: Regression-Testing Agent Prompt Changes on danmercede.com'
 ---
 
 Vendor marketing and vendor docs disagree in a predictable direction. Marketing

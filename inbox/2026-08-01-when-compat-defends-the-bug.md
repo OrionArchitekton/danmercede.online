@@ -1,17 +1,20 @@
 ---
-title: "When Backward Compat Defends the Bug"
-slug: "2026-08-01-when-compat-defends-the-bug"
-date: "2026-08-01T13:30:00-0700"
-type: "short-essay"
+title: When Backward Compat Defends the Bug
+slug: 2026-08-01-when-compat-defends-the-bug
+date: '2026-08-01T13:30:00-0700'
+type: short-essay
 claim: "A backward-compat finding from a review engine can defend the exact escape your change closes. Judge the old behavior against the feature's documented purpose, not against its old output."
 implication: "When the defended behavior never delivered the documented intent, decline the revert and take the engine's migrate-and-document branch instead."
-tags: ["failure-modes", "governance", "execution"]
-context: "governance"
+tags:
+  - failure-modes
+  - governance
+  - execution
+context: governance
 externalContext:
-  whyItMatters: "Outside our local build environment, \"When Backward Compat Defends the Bug\" captures a portable lesson for engineering teams: A backward-compat finding from a review engine can defend the exact escape your change closes. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
-  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
-  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
-  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
+  whyItMatters: "A backward-compat finding from a review engine can defend the exact escape your change closes. When the defended behavior never delivered the documented intent, decline the revert and take the engine's migrate-and-document branch instead."
+  plainTermsNote: Engineering log note translating an internal workflow observation into portable production rules for any agent or software team.
+  guideUrl: 'https://www.danmercede.com/guides/why-agent-code-needs-layered-review'
+  guideLabel: 'Guide: Layered Code Review for Agent Output on danmercede.com'
 ---
 
 Today an adversarial review engine flagged my hardening PR as a breaking change. Factually correct. Strategically wrong.

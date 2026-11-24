@@ -1,17 +1,20 @@
 ---
-title: "Subset Render Is a Delete"
-slug: "2026-07-26-subset-render-is-a-delete"
-date: "2026-07-26T08:09:00-0700"
-type: "short-essay"
-claim: "A generator that renders one section of a shared multi-section artifact is a destructive overwrite wearing the costume of a normal write."
-implication: "Every ordinary success signal reads green on that write, so the only tripwire left is the diff line delta and a count of the sibling sections on both sides."
-tags: ["failure-modes", "signal", "execution"]
-context: "failure-modes"
+title: Subset Render Is a Delete
+slug: 2026-07-26-subset-render-is-a-delete
+date: '2026-07-26T08:09:00-0700'
+type: short-essay
+claim: A generator that renders one section of a shared multi-section artifact is a destructive overwrite wearing the costume of a normal write.
+implication: 'Every ordinary success signal reads green on that write, so the only tripwire left is the diff line delta and a count of the sibling sections on both sides.'
+tags:
+  - failure-modes
+  - signal
+  - execution
+context: failure-modes
 externalContext:
-  whyItMatters: "Outside our local build environment, \"Subset Render Is a Delete\" captures a portable lesson for engineering teams: A generator that renders one section of a shared multi-section artifact is a destructive overwrite wearing the c.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
-  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
-  guideUrl: "https://www.danmercede.com/guides/capture-agent-results-with-byte-bounded-snapshots"
-  guideLabel: "Guide: Byte-Bounded Snapshots for Agent Output on danmercede.com"
+  whyItMatters: 'A generator that renders one section of a shared multi-section artifact is a destructive overwrite wearing the costume of a normal write. Every ordinary success signal reads green on that write, so the only tripwire left is the diff line delta and a count of the sibling sections on both sides.'
+  plainTermsNote: Engineering log note translating an internal workflow observation into portable production rules for any agent or software team.
+  guideUrl: 'https://www.danmercede.com/guides/capture-agent-results-with-byte-bounded-snapshots'
+  guideLabel: 'Guide: Byte-Bounded Snapshots for Agent Output on danmercede.com'
 ---
 
 A documented runbook said to refresh a shared report by redirecting a render command over the file. The runbook predated the file growing from one section into several. The renderer emits only the section you ask it for, so the redirect would have deleted every other section, including measurements that cost real money to collect days earlier.

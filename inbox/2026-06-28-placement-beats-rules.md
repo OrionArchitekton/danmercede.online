@@ -1,17 +1,20 @@
 ---
-title: "Placement Beats Rules"
-slug: "2026-06-28-placement-beats-rules"
-date: "2026-06-28T14:40:12-0700"
-type: "short-essay"
-claim: "Most agent-instruction files already encode the popular best-practice rules. The failures that remain are rarely a missing rule — they are a rule that never loads and a claim that was never verified."
-implication: "Audit the two things the rule lists skip: is your recurring-failure list in always-loaded context or behind a retrieval step the agent only hits when it remembers to; and does your context file silently truncate above a size cap. Verify what the model actually loaded, keep the highest-value lessons at the top, and trust your own old notes least when they contradict live behavior."
-tags: ["failure-modes", "execution", "systems"]
-context: "execution"
+title: Placement Beats Rules
+slug: 2026-06-28-placement-beats-rules
+date: '2026-06-28T14:40:12-0700'
+type: short-essay
+claim: Most agent-instruction files already encode the popular best-practice rules. The failures that remain are rarely a missing rule — they are a rule that never loads and a claim that was never verified.
+implication: 'Audit the two things the rule lists skip: is your recurring-failure list in always-loaded context or behind a retrieval step the agent only hits when it remembers to; and does your context file silently truncate above a size cap. Verify what the model actually loaded, keep the highest-value lessons at the top, and trust your own old notes least when they contradict live behavior.'
+tags:
+  - failure-modes
+  - execution
+  - systems
+context: execution
 externalContext:
-  whyItMatters: "Outside our local build environment, \"Placement Beats Rules\" captures a portable lesson for engineering teams: Most agent-instruction files already encode the popular best-practice rules. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
-  plainTermsNote: "prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it."
-  guideUrl: "https://www.danmercede.com/guides/capture-agent-results-with-byte-bounded-snapshots"
-  guideLabel: "Guide: Byte-Bounded Snapshots for Agent Output on danmercede.com"
+  whyItMatters: 'Most agent-instruction files already encode the popular best-practice rules. Audit the two things the rule lists skip: is your recurring-failure list in always-loaded context or behind a retrieval step the agent only hits when it remembers to; and does your context file silently truncate above a size cap.'
+  plainTermsNote: 'prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it.'
+  guideUrl: 'https://www.danmercede.com/guides/why-agent-code-needs-layered-review'
+  guideLabel: 'Guide: Layered Code Review for Agent Output on danmercede.com'
 ---
 
 A popular checklist of rules for agent-instruction files made the rounds again

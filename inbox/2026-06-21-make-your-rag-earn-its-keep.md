@@ -1,18 +1,21 @@
 ---
-title: "Make Your RAG Earn Its Keep"
-slug: "2026-06-21-make-your-rag-earn-its-keep"
-date: "2026-06-21T07:20:00-0700"
-type: "experiment-log"
+title: Make Your RAG Earn Its Keep
+slug: 2026-06-21-make-your-rag-earn-its-keep
+date: '2026-06-21T07:20:00-0700'
+type: experiment-log
 hypothesis: "An internal structural code-search RAG tool beats the agent's own ripgrep-and-read loop on cross-repo lookups — by enough to justify keeping it."
-constraint: "Equal corpus, same agent and model, a pre-registered case suite, and a +25-point margin required to KEEP. Gate-then-wire: read-only until it passed."
-result: "Failed"
-resultDetails: "On the cross-repo queries where a structural retriever was supposed to win, the grep-and-read agent resolved ~14 of 16; the RAG tool managed ~5 and timed out on the hard ones — a 56-point loss. Retired it. A small live dry-run also caught two verdict-corrupting bugs that hundreds of hermetic tests had passed green: a scoring-format mismatch that would have faked the verdict, and a database wiring bug. Hermetic tests mock the very things that decide the outcome — so read the per-row data, not the summary."
-nextStep: "Keep the falsifiable gate; point any future code-RAG — including an off-the-shelf one — at it before trusting, or keeping, it."
-tags: ["failure-modes", "execution", "systems"]
-context: "execution"
+constraint: 'Equal corpus, same agent and model, a pre-registered case suite, and a +25-point margin required to KEEP. Gate-then-wire: read-only until it passed.'
+result: Failed
+resultDetails: 'On the cross-repo queries where a structural retriever was supposed to win, the grep-and-read agent resolved ~14 of 16; the RAG tool managed ~5 and timed out on the hard ones — a 56-point loss. Retired it. A small live dry-run also caught two verdict-corrupting bugs that hundreds of hermetic tests had passed green: a scoring-format mismatch that would have faked the verdict, and a database wiring bug. Hermetic tests mock the very things that decide the outcome — so read the per-row data, not the summary.'
+nextStep: 'Keep the falsifiable gate; point any future code-RAG — including an off-the-shelf one — at it before trusting, or keeping, it.'
+tags:
+  - failure-modes
+  - execution
+  - systems
+context: execution
 externalContext:
-  whyItMatters: "Outside our local build environment, \"Make Your RAG Earn Its Keep\" captures a portable lesson for engineering teams: An internal structural code-search RAG tool beats the agent's own ripgrep-and-read loop on cross-repo lookups :.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
-  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
-  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
-  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
+  whyItMatters: 'Retired it. A small live dry-run also caught two verdict-corrupting bugs that hundreds of hermetic tests had passed green: a scoring-format mismatch that would have faked the verdict, and a database wiring bug.'
+  plainTermsNote: gate means a deterministic pre-execution check required before code or publishes advance.
+  guideUrl: 'https://www.danmercede.com/guides/the-fail-closed-harness'
+  guideLabel: 'Guide: The Fail-Closed Agent Harness on danmercede.com'
 ---

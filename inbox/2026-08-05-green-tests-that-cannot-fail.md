@@ -1,20 +1,23 @@
 ---
-title: "Green Tests That Cannot Fail"
-slug: "2026-08-05-green-tests-that-cannot-fail"
-date: "2026-08-05T01:30:00-0700"
-type: "experiment-log"
-hypothesis: "New tests covering the partial-byte mask branch of a CIDR prefix matcher will catch a regression in that mask."
-constraint: "Prove it by mutating the mask in both directions, too wide and too narrow. The tests must fail on each mutant."
-result: "Failed"
-resultDetails: "Both mutants stayed green. The inside probes were .1 and a v6 address ending 0x281, whose low-order bits are all zero, so they satisfy a correct mask and an off-by-one one identically. Re-probing with values that carry bits below the prefix boundary (.64, .127, 0x288, 0x28f) made both mutants fail correctly."
-nextStep: "For any mask, rounding, clamping or boundary test, stop probing with round numbers. Pick a value just inside the edge, and run the mutant in both directions."
-tags: ["failure-modes", "execution", "systems"]
-context: "failure-modes"
+title: Green Tests That Cannot Fail
+slug: 2026-08-05-green-tests-that-cannot-fail
+date: '2026-08-05T01:30:00-0700'
+type: experiment-log
+hypothesis: New tests covering the partial-byte mask branch of a CIDR prefix matcher will catch a regression in that mask.
+constraint: 'Prove it by mutating the mask in both directions, too wide and too narrow. The tests must fail on each mutant.'
+result: Failed
+resultDetails: 'Both mutants stayed green. The inside probes were .1 and a v6 address ending 0x281, whose low-order bits are all zero, so they satisfy a correct mask and an off-by-one one identically. Re-probing with values that carry bits below the prefix boundary (.64, .127, 0x288, 0x28f) made both mutants fail correctly.'
+nextStep: 'For any mask, rounding, clamping or boundary test, stop probing with round numbers. Pick a value just inside the edge, and run the mutant in both directions.'
+tags:
+  - failure-modes
+  - execution
+  - systems
+context: failure-modes
 externalContext:
-  whyItMatters: "Outside our local build environment, \"Green Tests That Cannot Fail\" captures a portable lesson for engineering teams: New tests covering the partial-byte mask branch of a CIDR prefix matcher will catch a regression in that mask. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
-  plainTermsNote: "boundary means the tool or interface layer where deterministic checks override prompt intent."
-  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
-  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
+  whyItMatters: "A review flagged that an IP allowlist's prefix matcher had no coverage for prefix lengths that are not multiples of eight. For any mask, rounding, clamping or boundary test, stop probing with round numbers."
+  plainTermsNote: boundary means the tool or interface layer where deterministic checks override prompt intent.
+  guideUrl: 'https://www.danmercede.com/guides/why-agent-code-needs-layered-review'
+  guideLabel: 'Guide: Layered Code Review for Agent Output on danmercede.com'
 ---
 
 A review flagged that an IP allowlist's prefix matcher had no coverage for

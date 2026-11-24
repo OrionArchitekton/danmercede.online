@@ -1,17 +1,17 @@
 ---
-slug: "2026-01-24-ops-developing-ocf-x-conductor"
-title: "Orchestrating Services: OCF and Conductor in Operations and Development"
-date: "2026-01-24T07:31:18+0000"
-type: "short_essay"
-context: "docs"
+slug: 2026-01-24-ops-developing-ocf-x-conductor
+title: 'Orchestrating Services: OCF and Conductor in Operations and Development'
+date: '2026-01-24T07:31:18+0000'
+type: short_essay
+context: docs
 tags: []
-claim: "Conductor serves as the workflow orchestration engine that integrates with and leverages independently deployable OCF microservices to manage complex processes."
-implication: "This architectural pattern enables modular development and automated execution of multi-step technical workflows."
+claim: Conductor serves as the workflow orchestration engine that integrates with and leverages independently deployable OCF microservices to manage complex processes.
+implication: This architectural pattern enables modular development and automated execution of multi-step technical workflows.
 externalContext:
-  whyItMatters: "Outside our local build environment, \"Orchestrating Services: OCF and Conductor in Operations and Development\" captures a portable lesson for engineering teams: Conductor serves as the workflow orchestration engine that integrates with and leverages independently deployabl.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
-  plainTermsNote: "prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it."
-  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
-  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
+  whyItMatters: Conductor serves as the workflow orchestration engine that integrates with and leverages independently deployable OCF microservices to manage complex processes. This architectural pattern enables modular development and automated execution of multi-step technical workflows.
+  plainTermsNote: 'prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it.'
+  guideUrl: 'https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust'
+  guideLabel: 'Guide: Agent-Built Infrastructure You Can Trust on danmercede.com'
 ---
 
 The Open Core Framework (OCF) provides a foundation for standardized, modular, and extensible microservices. These OCF services are designed to be deployed independently and expose APIs for interaction. Conductor, on the other hand, functions as a workflow orchestration platform, specifically engineered to manage complex, multi-step processes.

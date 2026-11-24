@@ -1,17 +1,17 @@
 ---
-slug: "2026-01-25-building-traces-into-every-step"
-title: "Building Observability into Every Step"
-date: "2026-01-25T08:48:29+0000"
-type: "short_essay"
-context: "docs"
+slug: 2026-01-25-building-traces-into-every-step
+title: Building Observability into Every Step
+date: '2026-01-25T08:48:29+0000'
+type: short_essay
+context: docs
 tags: []
 claim: "The system's distributed architecture necessitates integrated observability, achieved through robust logging, monitoring, and dedicated tools, to ensure reliability and understand data flow across services."
-implication: "Integrating observability from the outset is fundamental for maintaining operational understanding and reliability in a complex, service-oriented environment."
+implication: 'Integrating observability from the outset is fundamental for maintaining operational understanding and reliability in a complex, service-oriented environment.'
 externalContext:
-  whyItMatters: "Outside our local build environment, \"Building Observability into Every Step\" captures a portable lesson for engineering teams: The system's distributed architecture necessitates integrated observability, achieved through robust logging, mo.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
-  plainTermsNote: "CI runner means the automated build machine running tests and checks before changes merge."
-  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
-  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
+  whyItMatters: "The system's distributed architecture necessitates integrated observability, achieved through robust logging, monitoring, and dedicated tools, to ensure reliability and understand data flow across services. Integrating observability from the outset is fundamental for maintaining operational understanding and reliability in a complex, service-oriented environment."
+  plainTermsNote: CI runner means the automated build machine running tests and checks before changes merge.
+  guideUrl: 'https://www.danmercede.com/guides/why-agent-code-needs-layered-review'
+  guideLabel: 'Guide: Layered Code Review for Agent Output on danmercede.com'
 ---
 
 Our system is built on a service-oriented architecture, comprising independent services that interact through an API gateway. This design facilitates scalable data processing, from ingestion to storage and API exposure. Understanding the flow of data and operations across these distributed components is critical for maintaining reliability and diagnosing issues.

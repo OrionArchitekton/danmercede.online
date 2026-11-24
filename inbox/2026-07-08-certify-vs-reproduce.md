@@ -1,21 +1,24 @@
 ---
-title: "Certify vs Reproduce"
-slug: "2026-07-08-certify-vs-reproduce"
-date: "2026-07-08T09:20:00-0700"
-type: "short-essay"
-claim: "A reviewer that reasons about your code and one that runs it have different blind spots: certification is an argument, reproduction is a fact."
+title: Certify vs Reproduce
+slug: 2026-07-08-certify-vs-reproduce
+date: '2026-07-08T09:20:00-0700'
+type: short-essay
+claim: 'A reviewer that reasons about your code and one that runs it have different blind spots: certification is an argument, reproduction is a fact.'
 implication: "For AI-written code, stack independent review layers so one layer's blind spot is another layer's catch."
-tags: ["failure-modes", "execution", "security"]
-context: "failure-modes"
+tags:
+  - failure-modes
+  - execution
+  - security
+context: failure-modes
 image:
-  src: "/assets/signals/independent-review-stack.webp"
-  alt: "The independent review stack: four orthogonal review layers for agent-written code (live environment recon, a pre-PR multi-model fleet, post-push functional execution, and the CI merge gate), each sensing a different modality and catching a defect the others miss."
-  caption: "Four review layers, each sensing a different modality. Independent ones do not share blind spots."
+  src: /assets/signals/independent-review-stack.webp
+  alt: 'The independent review stack: four orthogonal review layers for agent-written code (live environment recon, a pre-PR multi-model fleet, post-push functional execution, and the CI merge gate), each sensing a different modality and catching a defect the others miss.'
+  caption: 'Four review layers, each sensing a different modality. Independent ones do not share blind spots.'
 externalContext:
-  whyItMatters: "Outside our local build environment, \"Certify vs Reproduce\" captures a portable lesson for engineering teams: A reviewer that reasons about your code and one that runs it have different blind spots: certification is an arg.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
-  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
-  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
-  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
+  whyItMatters: "A reviewer that reasons about your code and one that runs it have different blind spots: certification is an argument, reproduction is a fact. For AI-written code, stack independent review layers so one layer's blind spot is another layer's catch."
+  plainTermsNote: Engineering log note translating an internal workflow observation into portable production rules for any agent or software team.
+  guideUrl: 'https://www.danmercede.com/guides/why-agent-code-needs-layered-review'
+  guideLabel: 'Guide: Layered Code Review for Agent Output on danmercede.com'
 ---
 
 A security reviewer read my credential scrubber and certified it: no overlap mis-redaction. One review layer later, a different reviewer ran the code and reproduced a partial secret in the logs. Same function, opposite verdict.

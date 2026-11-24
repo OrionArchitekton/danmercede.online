@@ -12,7 +12,7 @@ import {
 import { entryArticleHtml } from '../scripts/prerenderBody.ts';
 import { buildEntryPageHtml } from '../scripts/perSlugPages.ts';
 import { mapSubstrateToEntry } from '../scripts/compileContent.ts';
-import { EntryType, type WorkingNote } from '../types.ts';
+import { EntryType, type LogEntry, type WorkingNote } from '../types.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -129,5 +129,38 @@ test('all inbox/*.md files carry valid backfilled externalContext without long d
     assert.deepEqual(errors, [], `${file} invalid externalContext: ${errors.join('; ')}`);
     const serialized = JSON.stringify(parsed.data.externalContext);
     assert.ok(!/[\u2013\u2014\u2015]/.test(serialized), `${file} contains long dash in externalContext`);
+    const why = (parsed.data.externalContext as { whyItMatters: string }).whyItMatters;
+    assert.ok(!/\.{4}|\.{3}(?:\s*$|\s*[.!?])/.test(why), `${file} contains truncated ellipsis in whyItMatters: ${why}`);
+    assert.ok(
+      !why.includes('Outside our local build environment,'),
+      `${file} contains canned boilerplate prefix`,
+    );
   }
+});
+
+test('experiment-log entries summarize observed resultDetails/nextStep rather than disproved hypothesis', () => {
+  const exp: LogEntry = {
+    id: '2026-11-05-one-bridge-per-folder',
+    slug: '2026-11-05-one-bridge-per-folder',
+    title: 'One Bridge Per Folder',
+    date: '2026-11-05',
+    timestamp: '08:23 PM PT',
+    type: EntryType.ExperimentLog,
+    hypothesis: 'Restart=always would keep the bridge alive.',
+    constraint: 'One folder per bridge.',
+    result: 'Failed',
+    resultDetails: 'The first start exited 1 on a blank screen because a folder allows only one bridge server.',
+    nextStep: 'Gate unattended starts on the folder being free instead of trusting a restart loop.',
+    tags: ['failure-modes'],
+  };
+  const ctx = resolveExternalContext({ ...exp, externalContext: undefined });
+  assert.ok(!ctx.whyItMatters.includes('Restart=always would keep'));
+  assert.match(ctx.whyItMatters, /exited 1|one bridge server/i);
+
+  const oneBridge = matter(
+    fs.readFileSync(path.join(projectRoot, 'inbox', '2026-11-05-one-bridge-per-folder.md'), 'utf8'),
+  );
+  const storedWhy = (oneBridge.data.externalContext as { whyItMatters: string }).whyItMatters;
+  assert.ok(!storedWhy.includes('I could keep Claude Code'), `Stale hypothesis summary still in frontmatter: ${storedWhy}`);
+  assert.match(storedWhy, /exited 1|one server per folder|blank screen/i);
 });

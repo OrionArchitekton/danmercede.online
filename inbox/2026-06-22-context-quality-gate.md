@@ -1,14 +1,17 @@
 ---
-title: "Context Quality Gate"
-slug: "2026-06-22-context-quality-gate"
-date: "2026-06-22T12:30:00-0700"
-type: "thought-snippet"
-content: "A context optimization that saves tokens but drops the file, test, or citation that mattered is not optimization. The useful pattern is measurement first: count tool-schema cost, select the smallest tool surface that can still do the job, and keep a quality gate beside the token gate. For coding work, that means the agent still finds the right files and preserves source truth. For governance or memory work, it means recall stays advisory until current sources verify it. The next useful move is not a broader cache or another retriever. It is making the measurement repeatable enough that every proposed context cut has to prove it did not make the work worse."
-tags: ["systems", "execution", "infra"]
-context: "systems"
+title: Context Quality Gate
+slug: 2026-06-22-context-quality-gate
+date: '2026-06-22T12:30:00-0700'
+type: thought-snippet
+content: 'A context optimization that saves tokens but drops the file, test, or citation that mattered is not optimization. The useful pattern is measurement first: count tool-schema cost, select the smallest tool surface that can still do the job, and keep a quality gate beside the token gate. For coding work, that means the agent still finds the right files and preserves source truth. For governance or memory work, it means recall stays advisory until current sources verify it. The next useful move is not a broader cache or another retriever. It is making the measurement repeatable enough that every proposed context cut has to prove it did not make the work worse.'
+tags:
+  - systems
+  - execution
+  - infra
+context: systems
 externalContext:
-  whyItMatters: "Outside our local build environment, \"Context Quality Gate\" captures a portable lesson for engineering teams: A context optimization that saves tokens but drops the file, test, or citation that mattered is not optimization. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
-  plainTermsNote: "gate means a deterministic pre-execution check required before code or publishes advance; schema validation means enforcing required structured fields at parse time so malformed inputs fail before execution."
-  guideUrl: "https://www.danmercede.com/guides/why-llm-schemas-get-rejected"
-  guideLabel: "Guide: Why LLM Output Schemas Get Rejected on danmercede.com"
+  whyItMatters: 'A context optimization that saves tokens but drops the file, test, or citation that mattered is not optimization. The useful pattern is measurement first: count tool-schema cost, select the smallest tool surface that can still do the job, and keep a quality gate beside the token gate.'
+  plainTermsNote: gate means a deterministic pre-execution check required before code or publishes advance; schema validation means enforcing required structured fields at parse time so malformed inputs fail before execution.
+  guideUrl: 'https://www.danmercede.com/guides/why-llm-schemas-get-rejected'
+  guideLabel: 'Guide: Why LLM Output Schemas Get Rejected on danmercede.com'
 ---

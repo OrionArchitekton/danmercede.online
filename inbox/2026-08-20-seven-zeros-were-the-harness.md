@@ -1,20 +1,23 @@
 ---
-title: "Seven Zeros Were the Harness"
-slug: "2026-08-20-seven-zeros-were-the-harness"
-date: "2026-08-20T19:30:00-0700"
-type: "experiment-log"
-hypothesis: "Seven consecutive weekly evidence packets reporting zero trades for a strategy rebuild were observing the strategy."
-constraint: "Before accepting the streak, prove the simulator can fire at all on the window it is fed. Read the loop bounds, not the summary."
-result: "Failed"
-resultDetails: "The weekly bundle holds 7 daily bars. The momentum simulator needs a 28-bar lookback and starts at max(window_start, 28), so the trade loop was range(28, 28): empty by construction. A single signal needs at least 35 bars. Six of the seven packets had already merged through review, each one individually clean, and a go/no-go deadline was counting them as evidence. An adversarial review pass caught it by reading the simulator instead of the packet."
-nextStep: "Regenerate with a warm-up window longer than the lookback, score only the observed week, and add an end-to-end test that feeds the harness data which MUST produce a trade. Treat any streak of identical zero results from an automated evidence pipeline as the trigger for that positive control."
-tags: ["failure-modes", "signal", "governance"]
-context: "failure-modes"
+title: Seven Zeros Were the Harness
+slug: 2026-08-20-seven-zeros-were-the-harness
+date: '2026-08-20T19:30:00-0700'
+type: experiment-log
+hypothesis: Seven consecutive weekly evidence packets reporting zero trades for a strategy rebuild were observing the strategy.
+constraint: 'Before accepting the streak, prove the simulator can fire at all on the window it is fed. Read the loop bounds, not the summary.'
+result: Failed
+resultDetails: 'The weekly bundle holds 7 daily bars. The momentum simulator needs a 28-bar lookback and starts at max(window_start, 28), so the trade loop was range(28, 28): empty by construction. A single signal needs at least 35 bars. Six of the seven packets had already merged through review, each one individually clean, and a go/no-go deadline was counting them as evidence. An adversarial review pass caught it by reading the simulator instead of the packet.'
+nextStep: 'Regenerate with a warm-up window longer than the lookback, score only the observed week, and add an end-to-end test that feeds the harness data which MUST produce a trade. Treat any streak of identical zero results from an automated evidence pipeline as the trigger for that positive control.'
+tags:
+  - failure-modes
+  - signal
+  - governance
+context: failure-modes
 externalContext:
-  whyItMatters: "Outside our local build environment, \"Seven Zeros Were the Harness\" captures a portable lesson for engineering teams: Seven consecutive weekly evidence packets reporting zero trades for a strategy rebuild were observing the strategy. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
-  plainTermsNote: "gate means a deterministic pre-execution check required before code or publishes advance; CI runner means the automated build machine running tests and checks before changes merge."
-  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
-  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
+  whyItMatters: 'Seven weeks in a row, the weekly evidence job reported zero trades. Regenerate with a warm-up window longer than the lookback, score only the observed week, and add an end-to-end test that feeds the harness data which MUST produce a trade.'
+  plainTermsNote: gate means a deterministic pre-execution check required before code or publishes advance; CI runner means the automated build machine running tests and checks before changes merge.
+  guideUrl: 'https://www.danmercede.com/guides/why-agent-code-needs-layered-review'
+  guideLabel: 'Guide: Layered Code Review for Agent Output on danmercede.com'
 ---
 
 Seven weeks in a row, the weekly evidence job reported zero trades. Seven weeks in a

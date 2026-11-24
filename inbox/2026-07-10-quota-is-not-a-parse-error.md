@@ -1,17 +1,20 @@
 ---
-title: "Quota Is Not a Parse Error"
-slug: "2026-07-10-quota-is-not-a-parse-error"
-date: "2026-07-10T01:35:00-0700"
-type: "short-essay"
-claim: "A pipeline that consumes LLM output needs a third terminal state: a quota-starved reviewer is not-reviewed, which is neither a parse error nor findings."
-implication: "Fold abstentions into failure states and you debug phantom parser bugs, trust findings that reviewed nothing, and burn bounded retries before the quota resets."
-tags: ["failure-modes", "signal", "execution"]
-context: "failure-modes"
+title: Quota Is Not a Parse Error
+slug: 2026-07-10-quota-is-not-a-parse-error
+date: '2026-07-10T01:35:00-0700'
+type: short-essay
+claim: 'A pipeline that consumes LLM output needs a third terminal state: a quota-starved reviewer is not-reviewed, which is neither a parse error nor findings.'
+implication: 'Fold abstentions into failure states and you debug phantom parser bugs, trust findings that reviewed nothing, and burn bounded retries before the quota resets.'
+tags:
+  - failure-modes
+  - signal
+  - execution
+context: failure-modes
 externalContext:
-  whyItMatters: "Outside our local build environment, \"Quota Is Not a Parse Error\" captures a portable lesson for engineering teams: A pipeline that consumes LLM output needs a third terminal state: a quota-starved reviewer is not-reviewed, whic.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
-  plainTermsNote: "schema validation means enforcing required structured fields at parse time so malformed inputs fail before execution; prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it."
-  guideUrl: "https://www.danmercede.com/guides/verifier-abstention-not-refutation"
-  guideLabel: "Guide: Verifier Abstention vs. Refutation on danmercede.com"
+  whyItMatters: 'A pipeline that consumes LLM output needs a third terminal state: a quota-starved reviewer is not-reviewed, which is neither a parse error nor findings. Fold abstentions into failure states and you debug phantom parser bugs, trust findings that reviewed nothing, and burn bounded retries before the quota resets.'
+  plainTermsNote: 'schema validation means enforcing required structured fields at parse time so malformed inputs fail before execution; prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it.'
+  guideUrl: 'https://www.danmercede.com/guides/verifier-abstention-not-refutation'
+  guideLabel: 'Guide: Verifier Abstention vs. Refutation on danmercede.com'
 ---
 
 Overnight, five runs of my PR review pipeline reported the same thing: the Codex review phase exited with status parse_error, schema invalid, zero findings. The obvious read is a broken parser or a drifted schema. The actual payload was one sentence from the vendor: "You've hit your usage limit ... try again at 2:00 AM."

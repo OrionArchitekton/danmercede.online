@@ -1,17 +1,17 @@
 ---
-slug: "2026-01-24-working-hard-on-integrating-a-kernel"
-title: "Integrating a Kernel for Governed AI Execution"
-date: "2026-01-24T23:46:16+0000"
-type: "short_essay"
-context: "docs"
+slug: 2026-01-24-working-hard-on-integrating-a-kernel
+title: Integrating a Kernel for Governed AI Execution
+date: '2026-01-24T23:46:16+0000'
+type: short_essay
+context: docs
 tags: []
-claim: "We are integrating a specialized kernel to enforce fail-closed AI execution, governed memory, and audit-grade run records."
-implication: "This foundational work is critical for ensuring secure, compliant, and transparent AI operations."
+claim: 'We are integrating a specialized kernel to enforce fail-closed AI execution, governed memory, and audit-grade run records.'
+implication: 'This foundational work is critical for ensuring secure, compliant, and transparent AI operations.'
 externalContext:
-  whyItMatters: "Outside our local build environment, \"Integrating a Kernel for Governed AI Execution\" captures a portable lesson for engineering teams: We are integrating a specialized kernel to enforce fail-closed AI execution, governed memory, and audit-grade ru.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
-  plainTermsNote: "fail-closed means blocks the action on missing proof or error instead of silently continuing."
-  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
-  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
+  whyItMatters: 'We are integrating a specialized kernel to enforce fail-closed AI execution, governed memory, and audit-grade run records. This foundational work is critical for ensuring secure, compliant, and transparent AI operations.'
+  plainTermsNote: fail-closed means blocks the action on missing proof or error instead of silently continuing.
+  guideUrl: 'https://www.danmercede.com/guides/why-agent-code-needs-layered-review'
+  guideLabel: 'Guide: Layered Code Review for Agent Output on danmercede.com'
 ---
 
 I am currently focused on the integration of a specialized kernel. This kernel forms the foundation of our system, operating at a low level to manage critical aspects of AI execution. The system operates on a kernel-level foundation, with the core being a specialized kernel.

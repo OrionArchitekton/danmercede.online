@@ -789,6 +789,7 @@ export function mapSubstrateToEntry(
     context,
     tags,
     claim: claim as string,
+    implication: typeof implication === 'string' ? implication : undefined,
     content: body,
   });
 
@@ -1033,10 +1034,15 @@ export function readInboxEntries(
         context,
         tags,
         claim: typeof data.claim === 'string' ? data.claim : undefined,
+        implication: typeof data.implication === 'string' ? data.implication : undefined,
         content: typeof fields['content'] === 'string' ? fields['content'] : body,
         hypothesis: typeof data.hypothesis === 'string' ? data.hypothesis : undefined,
+        result: typeof data.result === 'string' ? data.result : undefined,
         resultDetails: typeof data.resultDetails === 'string' ? data.resultDetails : undefined,
+        nextStep: typeof data.nextStep === 'string' ? data.nextStep : undefined,
         whatChanged: typeof data.whatChanged === 'string' ? data.whatChanged : undefined,
+        whatBroke: typeof data.whatBroke === 'string' ? data.whatBroke : undefined,
+        openQuestion: typeof data.openQuestion === 'string' ? data.openQuestion : undefined,
         caption: typeof data.caption === 'string' ? data.caption : undefined,
       });
     }

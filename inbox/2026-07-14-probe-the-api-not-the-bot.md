@@ -1,17 +1,20 @@
 ---
-title: "Probe the API, Not the Bot"
-slug: "2026-07-14-probe-the-api-not-the-bot"
-date: "2026-07-14T01:45:00-0700"
-type: "short-essay"
+title: 'Probe the API, Not the Bot'
+slug: 2026-07-14-probe-the-api-not-the-bot
+date: '2026-07-14T01:45:00-0700'
+type: short-essay
 claim: "A code-review bot's confidence is a statement about its own output, not evidence about a third party's API contract. Verify any claim about an external response shape with one live call before you apply the fix."
 implication: "The engine's job is to raise the hypothesis. Yours is to settle it with a probe."
-tags: ["workflow-ownership", "failure-modes", "signal"]
-context: "execution"
+tags:
+  - workflow-ownership
+  - failure-modes
+  - signal
+context: execution
 externalContext:
-  whyItMatters: "Outside our local build environment, \"Probe the API, Not the Bot\" captures a portable lesson for engineering teams: A code-review bot's confidence is a statement about its own output, not evidence about a third party's API contr.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
-  plainTermsNote: "fail-closed means blocks the action on missing proof or error instead of silently continuing; gate means a deterministic pre-execution check required before code or publishes advance."
-  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
-  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
+  whyItMatters: "A code-review bot's confidence is a statement about its own output, not evidence about a third party's API contract. The engine's job is to raise the hypothesis."
+  plainTermsNote: fail-closed means blocks the action on missing proof or error instead of silently continuing; gate means a deterministic pre-execution check required before code or publishes advance.
+  guideUrl: 'https://www.danmercede.com/guides/why-agent-code-needs-layered-review'
+  guideLabel: 'Guide: Layered Code Review for Agent Output on danmercede.com'
 ---
 
 A code-review bot's confidence is a statement about its own output, not about a third party's API. Probe the API before you trust the finding.

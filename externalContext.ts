@@ -183,19 +183,6 @@ const TERM_GLOSSARY: Array<{ pattern: RegExp; term: string; definition: string }
   },
 ];
 
-const CONTEXT_VALUE_LINE: Record<string, string> = {
-  Governance:
-    'External engineering teams face this whenever prompt policies fail under edge cases and only hard runtime controls prevent silent side effects.',
-  Systems:
-    'Outside teams hit this same failure class as autonomous workflows scale past single scripts and hidden coupling starts breaking state.',
-  Infra:
-    'In any production environment, environment assumptions and transport checks must hold cleanly before traffic or deploys run.',
-  Execution:
-    'For teams shipping agentic tooling, reliable handoffs and verifiable execution steps determine whether automation compounds or creates cleanup debt.',
-  Signal:
-    'Engineering leaders evaluating real AI operations need concrete observations from live builds rather than polished hype.',
-};
-
 const FORBIDDEN_CTA = [
   'book a',
   '/book',
@@ -217,10 +204,15 @@ export interface ContextSeed {
   context?: string;
   tags?: string[];
   claim?: string;
+  implication?: string;
   content?: string;
   hypothesis?: string;
+  result?: string;
   resultDetails?: string;
+  nextStep?: string;
   whatChanged?: string;
+  whatBroke?: string;
+  openQuestion?: string;
   caption?: string;
   externalContext?: Partial<ExternalContext>;
 }
@@ -231,10 +223,14 @@ function collectSearchText(seed: ContextSeed): string {
     seed.context ?? '',
     ...(seed.tags ?? []),
     seed.claim ?? '',
+    seed.implication ?? '',
     seed.content ?? '',
-    seed.hypothesis ?? '',
     seed.resultDetails ?? '',
+    seed.nextStep ?? '',
     seed.whatChanged ?? '',
+    seed.whatBroke ?? '',
+    seed.openQuestion ?? '',
+    seed.hypothesis ?? '',
     seed.caption ?? '',
   ]
     .join(' ')
@@ -242,16 +238,45 @@ function collectSearchText(seed: ContextSeed): string {
     .trim();
 }
 
-function cleanSnippet(text: string, maxLen = 140): string {
-  const cleaned = text
-    .replace(/[\u2013\u2014\u2015]/g, ': ')
-    .replace(/`+/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+function normalizeSentence(raw: string): string {
+  const cleaned = raw.replace(/`+/g, '').replace(/\s+/g, ' ').trim();
   if (!cleaned) return '';
-  const firstSentence = cleaned.split(/(?<=[.!?])\s+/)[0] ?? cleaned;
-  if (firstSentence.length <= maxLen) return firstSentence.replace(/[.!?]+$/, '');
-  return `${firstSentence.slice(0, maxLen - 3).trimEnd()}...`;
+  if (/[.!?]$/.test(cleaned)) return cleaned;
+  return `${cleaned}.`;
+}
+
+function extractSentences(text: string): string[] {
+  const cleaned = text.replace(/`+/g, '').replace(/\s+/g, ' ').trim();
+  if (!cleaned) return [];
+  return cleaned
+    .split(/(?<!\.\.)(?<=[.!?]["']?)\s+(?=[A-Z0-9"'])/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0 && !/\.{4}|\.{3}$/.test(s) && !/[\u2013\u2014\u2015]/.test(s))
+    .map(normalizeSentence);
+}
+
+function firstCompleteSentence(text: string | undefined): string {
+  if (!text) return '';
+  const sentences = extractSentences(text);
+  return sentences[0] ?? '';
+}
+
+function fallbackContextSecondSentence(seed: ContextSeed, cleanTitle: string): string {
+  const topic = cleanTitle.replace(/[.!?]+$/, '');
+  const ctx = seed.context ?? '';
+  if (ctx === 'Governance') {
+    return `For external engineering teams, "${topic}" shows why policy limits only hold when enforced at the tool boundary rather than in prompt prose.`;
+  }
+  if (ctx === 'Systems') {
+    return `In multi-agent or distributed pipelines, "${topic}" prevents silent state assumptions from propagating across runs.`;
+  }
+  if (ctx === 'Infra') {
+    return `Production operators outside Orion hit this exact boundary once services restart or move across hosts.`;
+  }
+  if (ctx === 'Execution') {
+    return `When coding agents run unattended across sessions, "${topic}" keeps verification checks bound to actual workspace state.`;
+  }
+  return `Documented for builders adapting fail-closed verification patterns to production software systems.`;
 }
 
 export function selectGuide(seed: ContextSeed): { url: string; label: string } {
@@ -274,19 +299,34 @@ export function buildPlainTermsNote(seed: ContextSeed): string {
 }
 
 export function deriveExternalContext(seed: ContextSeed): ExternalContext {
-  const cleanTitle = cleanSnippet(seed.title, 95) || 'this operational lesson';
-  const lead =
-    cleanSnippet(
-      seed.claim || seed.hypothesis || seed.whatChanged || seed.caption || seed.content || '',
-      115,
-    ) || cleanTitle;
-  const secondSentence =
-    (seed.context && CONTEXT_VALUE_LINE[seed.context]) ||
-    'Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production.';
-  const firstSentence = `Outside our local build environment, "${cleanTitle}" captures a portable lesson for engineering teams: ${lead}.`;
+  const cleanTitle = seed.title.replace(/`+/g, '').replace(/\s+/g, ' ').trim() || 'this operational lesson';
+  const primaryField =
+    seed.type === EntryType.ExperimentLog
+      ? seed.resultDetails || seed.nextStep || seed.claim || seed.content || ''
+      : seed.claim ||
+        seed.whatChanged ||
+        seed.caption ||
+        seed.content ||
+        seed.resultDetails ||
+        '';
+  const primarySentences = extractSentences(primaryField);
+  const sentence1 =
+    primarySentences[0] ||
+    normalizeSentence(`Working log observation on ${cleanTitle}`);
+
+  const candidateSeconds = [
+    firstCompleteSentence(seed.implication),
+    firstCompleteSentence(seed.whatBroke),
+    firstCompleteSentence(seed.nextStep),
+    firstCompleteSentence(seed.openQuestion),
+    primarySentences[1] ?? '',
+    seed.type === EntryType.ExperimentLog ? '' : firstCompleteSentence(seed.resultDetails),
+  ].filter((s) => s.length > 0 && s !== sentence1);
+
+  const sentence2 = candidateSeconds[0] || fallbackContextSecondSentence(seed, cleanTitle);
   const guide = selectGuide(seed);
   return {
-    whyItMatters: `${firstSentence} ${secondSentence}`,
+    whyItMatters: `${sentence1} ${sentence2}`,
     plainTermsNote: buildPlainTermsNote(seed),
     guideUrl: guide.url,
     guideLabel: guide.label,
@@ -338,6 +378,9 @@ export function validateExternalContext(
     const sentences = why.trim().split(/[.!?]+(?:\s|$)/).filter(Boolean);
     if (sentences.length < 2) {
       errors.push(`${file}: externalContext.whyItMatters must contain at least 2 sentences`);
+    }
+    if (/\.{4}|\.{3}(?:\s*$|\s*[.!?])/.test(why)) {
+      errors.push(`${file}: externalContext.whyItMatters must contain complete sentences without ellipses truncation`);
     }
   }
   const plain = obj.plainTermsNote;

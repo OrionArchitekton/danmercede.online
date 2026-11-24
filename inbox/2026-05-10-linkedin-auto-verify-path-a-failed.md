@@ -1,19 +1,21 @@
 ---
-title: "LinkedIn Auto-Verify: Path A Failed"
-slug: "2026-05-10-linkedin-auto-verify-path-a-failed"
-date: "2026-05-10T21:30:00+0000"
-type: "experiment-log"
-hypothesis: "A headless fetch can confirm a LinkedIn post is publicly visible, with no authenticated session."
-constraint: "Anonymous request only; no stored LinkedIn auth."
-result: "Failed"
-resultDetails: "Zero of four test URLs cleared. LinkedIn served an auth wall, not the post — visibility is unverifiable without a logged-in session."
-nextStep: "Path C: a LinkedIn post terminates as a manual receipt against a documented closure, or it does not terminate at all."
-tags: ["execution", "failure-modes"]
-context: "execution"
+title: 'LinkedIn Auto-Verify: Path A Failed'
+slug: 2026-05-10-linkedin-auto-verify-path-a-failed
+date: '2026-05-10T21:30:00+0000'
+type: experiment-log
+hypothesis: 'A headless fetch can confirm a LinkedIn post is publicly visible, with no authenticated session.'
+constraint: Anonymous request only; no stored LinkedIn auth.
+result: Failed
+resultDetails: 'Zero of four test URLs cleared. LinkedIn served an auth wall, not the post — visibility is unverifiable without a logged-in session.'
+nextStep: 'Path C: a LinkedIn post terminates as a manual receipt against a documented closure, or it does not terminate at all.'
+tags:
+  - execution
+  - failure-modes
+context: execution
 externalContext:
-  whyItMatters: "Outside our local build environment, \"LinkedIn Auto-Verify: Path A Failed\" captures a portable lesson for engineering teams: A headless fetch can confirm a LinkedIn post is publicly visible, with no authenticated session. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
-  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
-  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
-  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
+  whyItMatters: 'Working log observation on LinkedIn Auto-Verify: Path A Failed. Path C: a LinkedIn post terminates as a manual receipt against a documented closure, or it does not terminate at all.'
+  plainTermsNote: receipt means an immutable record tying an action to its verified inputs and exact outcome.
+  guideUrl: 'https://www.danmercede.com/guides/done-needs-a-receipt'
+  guideLabel: 'Guide: Why Done Needs a Verification Receipt on danmercede.com'
 ---
 
