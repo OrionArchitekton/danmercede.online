@@ -10,4 +10,9 @@ resultDetails: "The per-claim refuter design fired roughly 75 agents within seco
 nextStep: "Treat a 0-0 'refuted' as a failures-block smell, not a verdict. Default the verify fan-out to source-grouped readers, and bucket any errored or rate-limited lens as PENDING to re-run independently, never silently as 'refuted'."
 tags: ["failure-modes", "systems", "signal"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Refuted or Rate Limited\" captures a portable lesson for engineering teams: When a multi-agent research run reports 'all claims refuted (0-0 votes)', re-verifying with a few source-grouped.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/build-a-supervisor-agent"
+  guideLabel: "Guide: Building a Supervisor Pattern for Agents on danmercede.com"
 ---

@@ -7,6 +7,11 @@ claim: "Python's `Path.glob` silently ignores scan errors like PermissionError a
 implication: "A guard that can't fire is worse than no guard: it reads as protection while doing nothing."
 tags: ["failure-modes", "execution", "systems"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Path.glob Swallows Errors\" captures a portable lesson for engineering teams: Python's Path.glob silently ignores scan errors like PermissionError and yields nothing : so a fail-safe built o.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/the-fail-closed-harness"
+  guideLabel: "Guide: The Fail-Closed Agent Harness on danmercede.com"
 ---
 
 I wrote a fail-toward-safe check: "does any matching file exist here? If the

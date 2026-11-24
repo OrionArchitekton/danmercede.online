@@ -10,4 +10,9 @@ resultDetails: "The useful pattern was not more memory by default. It was read-o
 nextStep: "Promote only the optimizations that pass the quality gate; keep semantic replay out of coding, governance, incident, and current-state answers until it earns trust."
 tags: ["systems", "governance", "execution"]
 context: "systems"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Context Routing\" captures a portable lesson for engineering teams: A coding agent can spend fewer tokens without losing quality if retrieval, cache, and tool surfaces are gated by.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
+  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
 ---

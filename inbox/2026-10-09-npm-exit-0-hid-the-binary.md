@@ -7,4 +7,9 @@ claim: "An npm install that exits 0 does not prove a CLI with per-platform binar
 implication: "Verify the platform package directory exists after the install, not the exit code. If it is missing, confirm the platform tarball returns 200 before reinstalling, then pin the exact version instead of latest. And grep the npm debug log for 'failed optional' whenever a fresh install will not start."
 tags: ["failure-modes", "execution", "infra"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"npm Exit 0 Hid the Binary\" captures a portable lesson for engineering teams: An npm install that exits 0 does not prove a CLI with per-platform binaries installed. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
+  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
 ---

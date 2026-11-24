@@ -7,6 +7,11 @@ claim: "If your tests pass an env dict into the code under test, a conftest that
 implication: "Isolate the root the default hangs off, not the variable that overrides it. Point HOME at a temp dir in an autouse fixture and compute the default path at call time, so a test that forgets the fake hits a missing file and fails closed."
 tags: ["failure-modes", "execution", "systems"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Redirect HOME, Not Env Vars\" captures a portable lesson for engineering teams: If your tests pass an env dict into the code under test, a conftest that scrubs os.environ does not protect them. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/coordinate-local-agents-with-orion-pm"
+  guideLabel: "Guide: Coordinating Parallel Local Agents on danmercede.com"
 ---
 
 Two more lessons came out of the same change.

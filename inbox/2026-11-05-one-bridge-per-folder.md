@@ -10,4 +10,9 @@ resultDetails: "The first start exited 1 on a blank screen. The TUI clears itsel
 nextStep: "Watch the first real handover when the terminal closes. And if you run rc unattended, gate the start on the folder being free instead of trusting a restart loop."
 tags: ["failure-modes", "infra", "execution"]
 context: "infra"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"One Bridge Per Folder\" captures a portable lesson for engineering teams: I could keep Claude Code's Remote Control bridge (claude rc) alive across WSL restarts by wrapping it in a syste.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "systemd isolation means Linux service sandboxing that restricts filesystem and network access per process."
+  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
+  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
 ---

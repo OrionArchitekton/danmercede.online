@@ -10,4 +10,9 @@ resultDetails: "The primed pass flagged 21 fillers. I re-heard 13 of them alone,
 nextStep: "Treat a primed hit as a lead, never a verdict. Cut only where an unprimed pass agrees, put each edge at the quietest 10 ms of the audio envelope, re-transcribe the cut, and revert any cut that shortens a word. A natural um costs less than a clipped word."
 tags: ["failure-modes", "signal", "execution"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Primed Filler Scans Lie\" captures a portable lesson for engineering teams: Priming Whisper with fillers in the prompt ('Umm, uh, so, like, hmm') finds every um left in a talking-head edit.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it."
+  guideUrl: "https://www.danmercede.com/guides/regression-test-ai-agent-prompt-model-change"
+  guideLabel: "Guide: Regression-Testing Agent Prompt Changes on danmercede.com"
 ---

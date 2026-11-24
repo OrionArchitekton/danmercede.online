@@ -7,6 +7,11 @@ claim: "On a prerendered SPA, a copy reframe has to land on two independent surf
 implication: "Reword the page and skip the structured data and you ship a split identity: humans read the new positioning, crawlers read the old one. When you reframe copy, grep the schema, not just the rendered page."
 tags: ["failure-modes", "systems", "signal"]
 context: "systems"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Schema Is a Second Surface\" captures a portable lesson for engineering teams: On a prerendered SPA, a copy reframe has to land on two independent surfaces, not one. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "schema validation means enforcing required structured fields at parse time so malformed inputs fail before execution; CI runner means the automated build machine running tests and checks before changes merge."
+  guideUrl: "https://www.danmercede.com/guides/why-llm-schemas-get-rejected"
+  guideLabel: "Guide: Why LLM Output Schemas Get Rejected on danmercede.com"
 ---
 
 A reframe of a small site network looked done. Visible copy updated everywhere, tests green, CI passing. Then review caught a stale line no test asserted: the JSON-LD `WebPage.name` in the page head still carried the old title, while every rendered surface had moved on.

@@ -10,6 +10,11 @@ resultDetails: "The gate had never fired once. It warned instead of exiting nonz
 nextStep: "Audit every 'validation passed' build step for whether it can actually fail, and grep the BUILT artifact for the asserted property instead of trusting the log line."
 tags: ["failure-modes", "systems", "signal"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Green Gates That Never Fired\" captures a portable lesson for engineering teams: The 'Prerender validation passed' line in a client site's build log meant its per-route titles and OG tags were.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "fail-closed means blocks the action on missing proof or error instead of silently continuing; gate means a deterministic pre-execution check required before code or publishes advance."
+  guideUrl: "https://www.danmercede.com/guides/capture-agent-results-with-byte-bounded-snapshots"
+  guideLabel: "Guide: Byte-Bounded Snapshots for Agent Output on danmercede.com"
 ---
 
 A build log that says "validation passed" has two indistinguishable causes: the check found nothing wrong, or the check cannot find anything wrong. This one was the second kind twice over. It warned instead of failing, and its regex accepted the empty case it existed to catch.

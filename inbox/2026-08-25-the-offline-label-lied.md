@@ -10,4 +10,9 @@ resultDetails: "The node was healthy the whole time: ping 3 of 3 under a millise
 nextStep: "Presence labels are telemetry about the polling protocol, never an outage signal. Alert on failed data-plane probes only, and tell 'flapped and recovered' from 'never went down' by daemon PID continuity, not by any console row."
 tags: ["signal", "infra", "failure-modes"]
 context: "signal"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"The Offline Label Lied\" captures a portable lesson for engineering teams: A mesh-VPN node the Tailscale admin console showed as 'last seen' 40+ minutes ago is actually down. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/self-hosting-websites-and-apps"
+  guideLabel: "Guide: Self-Hosting Apps Safely on danmercede.com"
 ---

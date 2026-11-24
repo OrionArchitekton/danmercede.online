@@ -7,4 +7,9 @@ claim: "You cannot regression-test a nondeterministic agent by demanding yesterd
 implication: "Agent QA needs layered partial oracles: exact rules where truth is deterministic, bounded similarity where variation is legitimate, and human authority where the contract changes. I built that pattern into Proctor and presented it in the UiPath AgentHack 2026 live finale. Architecture, quickstart, and source: https://www.danmercede.com/works/proctor/"
 tags: ["systems", "governance", "execution"]
 context: "systems"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Partial Oracles for Agent Testing\" captures a portable lesson for engineering teams: You cannot regression-test a nondeterministic agent by demanding yesterday's exact words. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "boundary means the tool or interface layer where deterministic checks override prompt intent."
+  guideUrl: "https://www.danmercede.com/guides/regression-test-ai-agent-prompt-model-change"
+  guideLabel: "Guide: Regression-Testing Agent Prompt Changes on danmercede.com"
 ---

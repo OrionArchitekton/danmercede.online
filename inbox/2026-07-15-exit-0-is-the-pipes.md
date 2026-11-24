@@ -7,6 +7,11 @@ claim: "A background job's completed-with-exit-0 notification reports the last c
 implication: "Any agent harness or CI wrapper that surfaces raw exit codes will report success for a job that died at step one, and it will do it with an authoritative-looking system event."
 tags: ["failure-modes", "signal", "execution"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Exit 0 Is the Pipe's, Not Yours\" captures a portable lesson for engineering teams: A background job's completed-with-exit-0 notification reports the last command in the pipeline, not the work; ga.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "gate means a deterministic pre-execution check required before code or publishes advance."
+  guideUrl: "https://www.danmercede.com/guides/capture-agent-results-with-byte-bounded-snapshots"
+  guideLabel: "Guide: Byte-Bounded Snapshots for Agent Output on danmercede.com"
 ---
 
 Today my agent harness told me a full verification suite passed. It had died at the first step.

@@ -7,6 +7,11 @@ claim: "Merging a queue of AI-authored pull requests is not a rubber stamp. Thre
 implication: "Treat a fleet of machine-written PRs like untrusted input: gate the merge on empirical checks at three layers, not on the open-PR count going down."
 tags: ["failure-modes", "execution", "systems"]
 context: "execution"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Vet the AI PR Fleet\" captures a portable lesson for engineering teams: Merging a queue of AI-authored pull requests is not a rubber stamp. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "gate means a deterministic pre-execution check required before code or publishes advance."
+  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
+  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
 ---
 
 Merging a batch of machine-authored pull requests looks mechanical until three failure modes surface in the same session.

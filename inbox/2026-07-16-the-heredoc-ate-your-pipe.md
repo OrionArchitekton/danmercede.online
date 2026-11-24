@@ -7,6 +7,11 @@ claim: "Piping data into an interpreter that also reads a heredoc discards the p
 implication: "For a single-use payload, that silence costs you the payload. Capture before you parse."
 tags: ["failure-modes", "execution", "infra"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"The Heredoc Ate Your Pipe\" captures a portable lesson for engineering teams: Piping data into an interpreter that also reads a heredoc discards the pipe: the heredoc becomes stdin, your ups.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/capture-agent-results-with-byte-bounded-snapshots"
+  guideLabel: "Guide: Byte-Bounded Snapshots for Agent Output on danmercede.com"
 ---
 
 `producer | python3 - <<'EOF'` does not do what the shape suggests. The `-` tells python to read its program from stdin, and the heredoc IS that stdin. The pipe from `producer` loses the race and gets thrown away. `producer` still runs to completion, so nothing errors on its side. Inside the script `sys.stdin.read()` returns the heredoc leftovers, or empty, and you get a confusing parse failure a few lines down that points nowhere near the real cause.

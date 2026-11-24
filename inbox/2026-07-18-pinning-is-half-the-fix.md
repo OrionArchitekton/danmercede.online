@@ -7,6 +7,11 @@ claim: "An unpinned linter or formatter is a scheduled break in your CI gate. It
 implication: "Do not mirror your CI step list into the contributor doc. Name the workflow file as authoritative, document only the commands a developer can run locally, and state plainly that more gates exist. A doc that duplicates a machine-readable list has volunteered to keep two things in sync, and you will keep one."
 tags: ["failure-modes", "execution", "systems"]
 context: "execution"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Pinning the Dep Is Half the Fix\" captures a portable lesson for engineering teams: An unpinned linter or formatter is a scheduled break in your CI gate. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "gate means a deterministic pre-execution check required before code or publishes advance; drift means silent divergence between source declarations and generated or deployed state; preflight means a read-only environment readiness check run before any stateful deploy or mutation."
+  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
+  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
 ---
 
 Three CI cycles. That was the cost of one unpinned formatter, and I spent most

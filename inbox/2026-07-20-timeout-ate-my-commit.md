@@ -7,4 +7,9 @@ claim: "An agent harness's default command timeout will eat your git commit whol
 implication: "Hooks moved real work into git's critical section, but agent harnesses still budget commands as if git were instant. Any wrapper that imposes a default exec timeout needs a per-command override at exactly the commands that run someone else's code: commit, push, merge."
 tags: ["failure-modes", "execution", "workflow-ownership"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"The Timeout That Ate My Commit\" captures a portable lesson for engineering teams: An agent harness's default command timeout will eat your git commit whole. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "hook means an automated script triggered before a tool call, commit, or push completes."
+  guideUrl: "https://www.danmercede.com/guides/governed-double-send-safe-delivery"
+  guideLabel: "Guide: Double-Send-Safe Delivery in Agent Pipelines on danmercede.com"
 ---

@@ -9,6 +9,11 @@ tags: ["systems"]
 context: "systems"
 context_detail: "docs"
 archiveNotice: "Archived log entry. Cosmocrat is now Cosmocrat OS; see https://www.cosmocrat.ai/about"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Drift Guard: Ensuring Runtime Environment Integrity\" captures a portable lesson for engineering teams: Drift Guard is a critical Cosmocrat component for maintaining the integrity and desired state of runtime environ.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "drift means silent divergence between source declarations and generated or deployed state."
+  guideUrl: "https://www.danmercede.com/guides/the-fail-closed-harness"
+  guideLabel: "Guide: The Fail-Closed Agent Harness on danmercede.com"
 ---
 
 In managing complex technical systems, maintaining the desired state of runtime environments is paramount. This is where the concept of drift becomes a significant concern. Configuration drift refers to the unauthorized or unintended changes that occur in a system's configuration over time, leading to deviations from its intended design.

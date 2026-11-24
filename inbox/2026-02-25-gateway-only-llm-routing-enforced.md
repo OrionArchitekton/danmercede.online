@@ -9,5 +9,10 @@ whatBroke: "Un-migrated call sites that still imported a provider client directl
 nextStep: "Enforce-readiness verification: confirm no code path can reach a model except through the gateway."
 tags: ["governance", "execution", "infra"]
 context: "governance"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Gateway-Only LLM Routing Enforced\" captures a portable lesson for engineering teams: Collapsed every LLM call path to a single mediated gateway and removed the provider API keys from the environment. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it."
+  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
+  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
 ---
 

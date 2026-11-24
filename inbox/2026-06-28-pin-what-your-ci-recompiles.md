@@ -7,6 +7,11 @@ claim: "A CI verify step that recompiles a generated artifact from an unpinned u
 implication: "Pin the upstream the verify job compiles, or auto-refresh the artifact on a schedule; and when the check fails, diff the PR before you trust the red."
 tags: ["failure-modes", "infra", "systems"]
 context: "infra"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Pin What Your CI Recompiles\" captures a portable lesson for engineering teams: A CI verify step that recompiles a generated artifact from an unpinned upstream turns red for every open PR the.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "drift means silent divergence between source declarations and generated or deployed state; CI runner means the automated build machine running tests and checks before changes merge."
+  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
+  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
 ---
 
 A common "don't hand-edit generated output" guard works like this: a CI job checks out the upstream source, recompiles the derived artifact (a config bundle, a lockfile, a generated client), and diffs the result against the version committed in the PR. Differ, and the check fails — the artifact may only change by regenerating from source.

@@ -10,4 +10,9 @@ resultDetails: "The web half lost 45 of 141 agents to account rate limits mid-ru
 nextStep: "Default first move for any repo-subject benchmark: shallow-clone and code-read in parallel with the web sweep. A dead web half is a labeling problem, not a blocker."
 tags: ["execution", "signal", "failure-modes"]
 context: "execution"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Clone the Repo You Benchmark\" captures a portable lesson for engineering teams: Benchmarking our trading system against an external OSS agent framework works better with two parallel evidence.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
+  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
 ---

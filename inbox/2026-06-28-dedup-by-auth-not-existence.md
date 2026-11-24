@@ -10,4 +10,9 @@ resultDetails: "The existence rule inverts. While indexing the CLIs and MCP serv
 nextStep: "Probe both sides' live auth before recommending any prune; keep the prune recommend-only and human-gated; never auto-disable a working provider."
 tags: ["failure-modes", "systems", "execution"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Dedup By Auth, Not Existence\" captures a portable lesson for engineering teams: When two tools cover the same surface : a CLI and an MCP server : it's safe to dedup by existence: if a CLI exis.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/governed-double-send-safe-delivery"
+  guideLabel: "Guide: Double-Send-Safe Delivery in Agent Pipelines on danmercede.com"
 ---

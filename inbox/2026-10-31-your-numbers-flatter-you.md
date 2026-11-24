@@ -7,4 +7,9 @@ claim: "Every number I compute about my own work against a limit has the same bi
 implication: "So when I report a number about my own work against a threshold, I call the enforcing tool's own function instead of reimplementing it, I paste the recipe next to the number so anyone can re-run it, and I measure the shipped artifact, not the parameter that was supposed to produce it. 'We're under the limit' is a reason to measure once more, not a result. And where someone else can measure, the author reports the method and the reviewer reports the number."
 tags: ["failure-modes", "execution", "signal"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Your Numbers Flatter You\" captures a portable lesson for engineering teams: Every number I compute about my own work against a limit has the same bias: when it's wrong, it's wrong in my fa.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "schema validation means enforcing required structured fields at parse time so malformed inputs fail before execution."
+  guideUrl: "https://www.danmercede.com/guides/why-llm-schemas-get-rejected"
+  guideLabel: "Guide: Why LLM Output Schemas Get Rejected on danmercede.com"
 ---

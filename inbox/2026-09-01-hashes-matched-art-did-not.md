@@ -9,6 +9,11 @@ whatBroke: "Seven review rounds and the promotion gate all verified image hashes
 nextStep: "Add a readiness field the flagship gate reads, so placeholder or unverified assets flip promote-eligible to false on their own instead of relying on prose."
 tags: ["failure-modes", "governance", "signal"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Hashes Matched, Art Did Not\" captures a portable lesson for engineering teams: Shipped a do-not-paste block into a newsletter upload kit with three explicit unblock conditions, after a review.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "gate means a deterministic pre-execution check required before code or publishes advance."
+  guideUrl: "https://www.danmercede.com/guides/done-needs-a-receipt"
+  guideLabel: "Guide: Why Done Needs a Verification Receipt on danmercede.com"
 ---
 
 Seven review rounds signed off on a newsletter draft this week. The correctness lens wrote, in its final summary, "all three image hashes match." True. The gate that fronts promotion checked that each image file existed, carried a role, and had non-empty alt text. Also true. The picture still did not show what the alt text said it showed.

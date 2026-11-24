@@ -7,4 +7,9 @@ claim: "A terminal recording runs in a shell that is not the one you work in, an
 implication: "Treat the recording environment like a deploy target and write its setup down once. Otherwise each episode finds the same breakage on camera, one take at a time."
 tags: ["failure-modes", "execution"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Record the Shell You Use\" captures a portable lesson for engineering teams: A terminal recording runs in a shell that is not the one you work in, and the differences only show up in the vi.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "hook means an automated script triggered before a tool call, commit, or push completes; prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it."
+  guideUrl: "https://www.danmercede.com/guides/regression-test-ai-agent-prompt-model-change"
+  guideLabel: "Guide: Regression-Testing Agent Prompt Changes on danmercede.com"
 ---

@@ -7,6 +7,11 @@ claim: "An override a model can grant itself is the permission prompt again in a
 implication: "State what your safety control does NOT have (authentication, command binding, single-use, an audit trail) instead of describing the hardened version you meant to build."
 tags: ["security", "governance", "failure-modes"]
 context: "governance"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Name the Override Gap\" captures a portable lesson for engineering teams: An override a model can grant itself is the permission prompt again in a different hat. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "fail-closed means blocks the action on missing proof or error instead of silently continuing; gate means a deterministic pre-execution check required before code or publishes advance; prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it."
+  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
+  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
 ---
 
 I shipped a guide arguing that a safe agent harness fails closed, then described its destructive-action override as authenticated, bound to the exact command, single-use, and audited. Review caught the gap: the real override is an environment variable the operator sets. None of those four properties held.

@@ -7,4 +7,9 @@ claim: "A subagent that dies on a usage limit resolves to null. It does not reje
 implication: "When a fan-out does die, the journal is the wrong place to look if it died early. Every line in mine was empty because no agent had finished. The disk was not empty. The agents had already written their fetched pages, archive snapshots and parsed metrics to the scratch directory before they were killed. Inventorying those files into the resumed run's prompt preamble, as a salvage block that says reuse before refetching and confirm the dates yourself, meant the second run reproduced none of them. Persisting bulk to disk gets sold as a context control. It is also the crash-recovery substrate, and that is the better reason to do it."
 tags: ["failure-modes", "execution", "systems"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Dead Agents Return Null\" captures a portable lesson for engineering teams: A subagent that dies on a usage limit resolves to null. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/the-fail-closed-harness"
+  guideLabel: "Guide: The Fail-Closed Agent Harness on danmercede.com"
 ---

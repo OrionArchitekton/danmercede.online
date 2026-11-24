@@ -10,4 +10,9 @@ resultDetails: "The grep came back empty, and so did `docker image ls --digests 
 nextStep: "Answer 'is X present?' with a probe addressed to X that fails loudly when X is missing: `docker image inspect <exact ref>` and its exit code. An empty grep over a listing with default filters you did not choose cannot tell absent from not shown."
 tags: ["failure-modes", "signal", "execution"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Empty Grep Is Not Absence\" captures a portable lesson for engineering teams: Grepping docker image ls --digests for a digest proves whether an image pulled by that digest is on the host. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/done-needs-a-receipt"
+  guideLabel: "Guide: Why Done Needs a Verification Receipt on danmercede.com"
 ---

@@ -9,5 +9,10 @@ whatBroke: "Anything that used to boot on the legacy path. That is the point —
 nextStep: "Shadow-soak the cutover, then watch for anything still reaching for the deleted path."
 tags: ["execution", "infra", "governance"]
 context: "infra"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Atlas Memory: Legacy Fallback Deleted\" captures a portable lesson for engineering teams: Deleted the bridge-mode memory fallback. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
+  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
 ---
 

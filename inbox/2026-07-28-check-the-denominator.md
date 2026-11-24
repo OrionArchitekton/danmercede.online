@@ -10,4 +10,9 @@ resultDetails: "One surface flagged 13 of 13 in-flight items as stale. It fires 
 nextStep: "Before treating any 'N items are stale, failing, or degraded' surface as a priority signal, get the denominator. If N equals the population, that is a definition firing, not a measurement."
 tags: ["signal", "failure-modes", "systems"]
 context: "signal"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Check the Denominator\" captures a portable lesson for engineering teams: Two independent-looking surfaces both reporting a large pile of stalled work are corroborating a real signal tha.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
+  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
 ---

@@ -10,4 +10,9 @@ resultDetails: "Every response shape that would carry message bodies came back a
 nextStep: "Consumers fail closed on shape, not status: a record missing its content fields is PROBE_FAILED, never no-results. Before concluding emptiness from any middleware, re-run the same call on an alternate transport. The sweep now refuses to classify stubs and routes them back into the next run."
 tags: ["failure-modes", "signal", "systems"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"The Empty Envelope That Says Success\" captures a portable lesson for engineering teams: A tool result with successful true and no error field means the requested data came back. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
+  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
 ---

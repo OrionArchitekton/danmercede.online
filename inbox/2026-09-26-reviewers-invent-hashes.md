@@ -7,4 +7,9 @@ claim: "An LLM code reviewer will quote exact evidence for content it never read
 implication: "Before acting on a finding, ask whether the reviewer could have seen the thing it describes. If the evidence points outside what it read, its precision is a warning sign. Settle it with the check the repo already enforces, then decline the finding with that output attached."
 tags: ["failure-modes", "signal", "execution"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Reviewers Invent Hashes\" captures a portable lesson for engineering teams: An LLM code reviewer will quote exact evidence for content it never read. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it."
+  guideUrl: "https://www.danmercede.com/guides/done-needs-a-receipt"
+  guideLabel: "Guide: Why Done Needs a Verification Receipt on danmercede.com"
 ---

@@ -8,6 +8,11 @@ implication: "Without authoritative OCF context, the claims about market archite
 tags: ["systems"]
 context: "systems"
 context_detail: "general"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"AI Regulation and Runtime Governance: Context Not Available\" captures a portable lesson for engineering teams: The provided assertions regarding AI regulation and runtime governance cannot be substantiated by available OCF.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
+  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
 ---
 
 I've been asked to synthesize content regarding AI regulation and its potential impact on market architecture, specifically pointing towards "Runtime governance." The raw input suggests that "Execution must depend on authority" and that "If governance isn't enforced before mutation, it isn't governance."

@@ -6,5 +6,10 @@ type: "thought-snippet"
 content: "A dashboard tells you what already happened. It cannot refuse. Most AI governance is telemetry wearing the word governance — alerts that fire after the state has already changed. A governance claim you cannot run is a claim you are hoping holds. The proof obligation is not a manifesto; it is a runnable artifact a skeptic can clone and watch deny the case it promised to deny. Until then it is advisory, however well argued."
 tags: ["governance", "signal"]
 context: "governance"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Telemetry Is Not Enforcement\" captures a portable lesson for engineering teams: A dashboard tells you what already happened. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/coordinate-local-agents-with-orion-pm"
+  guideLabel: "Guide: Coordinating Parallel Local Agents on danmercede.com"
 ---
 

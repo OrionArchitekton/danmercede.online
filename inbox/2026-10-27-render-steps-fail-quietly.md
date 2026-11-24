@@ -7,4 +7,9 @@ claim: "Three render steps in one afternoon produced clean-looking files that we
 implication: "A render pipeline fails visually, so its checks have to be visual too: one measured pixel or dimension per stage catches what exit codes never will."
 tags: ["failure-modes", "execution", "signal"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Render Steps Fail Quietly\" captures a portable lesson for engineering teams: Three render steps in one afternoon produced clean-looking files that were wrong, and none of them raised an error. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "gate means a deterministic pre-execution check required before code or publishes advance."
+  guideUrl: "https://www.danmercede.com/guides/multi-agent-browser-pool"
+  guideLabel: "Guide: Shared Browser Pools for Agents on danmercede.com"
 ---

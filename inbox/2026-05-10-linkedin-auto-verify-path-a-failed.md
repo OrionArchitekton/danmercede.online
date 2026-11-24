@@ -10,5 +10,10 @@ resultDetails: "Zero of four test URLs cleared. LinkedIn served an auth wall, no
 nextStep: "Path C: a LinkedIn post terminates as a manual receipt against a documented closure, or it does not terminate at all."
 tags: ["execution", "failure-modes"]
 context: "execution"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"LinkedIn Auto-Verify: Path A Failed\" captures a portable lesson for engineering teams: A headless fetch can confirm a LinkedIn post is publicly visible, with no authenticated session. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
+  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
 ---
 

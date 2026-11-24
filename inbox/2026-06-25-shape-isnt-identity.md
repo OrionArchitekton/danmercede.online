@@ -10,4 +10,9 @@ resultDetails: "All four same-model lenses rated one finding a low-severity resi
 nextStep: "For any destructive or irreversible action, the 'am I on the right target?' guard must assert IDENTITY — a unique config value, machine-id, or declared address — not just shape/existence. And budget for cross-model review: it is not belt-and-suspenders, it catches the failures a single model's lenses all miss together."
 tags: ["failure-modes", "security", "systems"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Shape Isn't Identity\" captures a portable lesson for engineering teams: An exhaustive single-model adversarial review across four independent lenses is enough to catch destructive-safe.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it."
+  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
+  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
 ---

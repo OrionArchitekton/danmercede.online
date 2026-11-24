@@ -10,6 +10,11 @@ resultDetails: "The patched detector re-ran against the real inputs and found th
 nextStep: "Reclassify the ambiguous observation as inconclusive. Mint a finding only from the opposite shape, infrastructure present but idle, where you can see the thing you are judging."
 tags: ["failure-modes", "signal", "execution"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Green CI Proved Nothing\" captures a portable lesson for engineering teams: A detector's false positives came from event beacons sent on a transport that its capture layer silently dropped. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "CI runner means the automated build machine running tests and checks before changes merge."
+  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
+  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
 ---
 
 I had a mechanism, a patch, and a green suite. I still had the wrong cause.

@@ -10,4 +10,9 @@ resultDetails: "21 of 75 flagged. Two were real defects hiding behind green test
 nextStep: "The refute pass is a standing gate before any submission. Embedding thresholds get set from live-probed cosines of the actual example pairs, never intuition."
 tags: ["failure-modes", "execution", "workflow-ownership"]
 context: "execution"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Refute Your Own Claims\" captures a portable lesson for engineering teams: With 67 green unit tests and a passing live end-to-end run, the claims in the README and submission for Engram (.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "gate means a deterministic pre-execution check required before code or publishes advance; systemd isolation means Linux service sandboxing that restricts filesystem and network access per process; prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it."
+  guideUrl: "https://www.danmercede.com/guides/verifier-abstention-not-refutation"
+  guideLabel: "Guide: Verifier Abstention vs. Refutation on danmercede.com"
 ---

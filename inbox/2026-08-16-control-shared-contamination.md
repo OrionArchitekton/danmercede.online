@@ -10,4 +10,9 @@ resultDetails: "git stores only the executable bit; every other mode bit comes f
 nextStep: "When a control run must exonerate the base branch, vary the environment too: a second checkout under a clean umask, then compare."
 tags: ["failure-modes", "execution"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"The Control That Shared the Contamination\" captures a portable lesson for engineering teams: A test that fails in my fresh worktree and still fails with my edit stashed must be broken on the base branch, n.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "worktree means an isolated branch checkout keeping parallel edits separate from clean main."
+  guideUrl: "https://www.danmercede.com/guides/git-worktree-overlap-report"
+  guideLabel: "Guide: Isolating Concurrent Agent Worktrees on danmercede.com"
 ---

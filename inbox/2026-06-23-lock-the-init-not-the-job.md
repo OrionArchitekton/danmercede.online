@@ -10,4 +10,9 @@ resultDetails: "Held for the ENTIRE job with a job-length acquire timeout, the l
 nextStep: "Cap the relocated state DB (prune when large and idle); surface the swallowed child error with a re-run diagnostic; and never retry deterministic failures (buffer overflow, auth-token rotation) the way you retry transient contention."
 tags: ["failure-modes", "systems", "execution"]
 context: "systems"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Lock the Init, Not the Job\" captures a portable lesson for engineering teams: One cross-process lock held for a whole job will safely serialize the contention-prone init step that crashes a.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "gate means a deterministic pre-execution check required before code or publishes advance."
+  guideUrl: "https://www.danmercede.com/guides/the-fail-closed-harness"
+  guideLabel: "Guide: The Fail-Closed Agent Harness on danmercede.com"
 ---

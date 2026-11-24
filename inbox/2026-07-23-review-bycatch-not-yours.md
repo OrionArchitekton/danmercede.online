@@ -7,4 +7,9 @@ claim: "An adversarial review pass that scans the whole repo will hand your scop
 implication: "Applying bycatch converts a docs PR into a code PR and whack-a-moles one instance of a fleet-wide pattern. Scope discipline in the apply tail is what keeps an autonomous review pipeline from smearing unrelated changes across every PR it touches."
 tags: ["execution", "signal", "governance"]
 context: "execution"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Review Bycatch Is Not Yours to Fix\" captures a portable lesson for engineering teams: An adversarial review pass that scans the whole repo will hand your scoped PR findings it cannot legitimately ca.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
+  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
 ---

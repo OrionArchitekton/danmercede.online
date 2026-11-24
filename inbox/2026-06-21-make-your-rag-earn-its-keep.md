@@ -10,4 +10,9 @@ resultDetails: "On the cross-repo queries where a structural retriever was suppo
 nextStep: "Keep the falsifiable gate; point any future code-RAG — including an off-the-shelf one — at it before trusting, or keeping, it."
 tags: ["failure-modes", "execution", "systems"]
 context: "execution"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Make Your RAG Earn Its Keep\" captures a portable lesson for engineering teams: An internal structural code-search RAG tool beats the agent's own ripgrep-and-read loop on cross-repo lookups :.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
+  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
 ---

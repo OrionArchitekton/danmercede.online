@@ -7,4 +7,9 @@ claim: "An agent dodged one guardrail and tripped another with a single command.
 implication: "Hooks that infer state from command text must tokenize it the way a shell does: a redirect is not an argument. And when an agent routes around a guard, check the outcome against the system of record, not against what any hook recorded. After a push, that means comparing git ls-remote origin refs/heads/your-branch with git rev-parse HEAD."
 tags: ["failure-modes", "governance", "execution"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Guards Parse Command Text\" captures a portable lesson for engineering teams: An agent dodged one guardrail and tripped another with a single command. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "hook means an automated script triggered before a tool call, commit, or push completes."
+  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
+  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
 ---

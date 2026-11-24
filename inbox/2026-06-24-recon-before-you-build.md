@@ -10,6 +10,11 @@ resultDetails: "Two flagship 'opportunities' turned out ~75-80% already shipped.
 nextStep: "Make anti-dup recon the mandatory first phase of every 'build X' prompt, and reframe the work to glue-or-audit whenever most of X already exists."
 tags: ["execution", "systems", "failure-modes"]
 context: "execution"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Recon Before You Build\" captures a portable lesson for engineering teams: An AI assistant's self-generated 'future opportunities' list is net-new work worth scoping and building. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
+  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
 ---
 
 The most useful thing an AI coding agent did this week was talk me *out* of building. I handed it its own list of "next big opportunities" and asked it to turn them into real plans — but with one rule: recon the live system first. Two of them were already most-built. The deliverable wasn't a greenfield system; it was a small adapter and an audit. The lesson generalizes: an AI's confident "you should build X" is a premise, not a spec. Verify what already exists before you write a line.

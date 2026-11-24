@@ -7,4 +7,9 @@ claim: "My review pipeline flagged an optional-field weakness in a consumer serv
 implication: "Before applying a review fix to a PR that mirrors a sibling repo's contract (a closed vocabulary, a schema twin, a duplicated sanitizer), diff the twin definitions against the partner's live main and check for partner commits dated after the PR was authored. The literal suggested fix can ship a worse failure than the one it flags."
 tags: ["failure-modes", "systems", "execution"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Review the Paired Repo Too\" captures a portable lesson for engineering teams: My review pipeline flagged an optional-field weakness in a consumer service's event validation. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
+  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
 ---

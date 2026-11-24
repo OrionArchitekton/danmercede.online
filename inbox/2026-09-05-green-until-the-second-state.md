@@ -10,4 +10,9 @@ resultDetails: "Five tests broke on the append. Every one had snapshotted the la
 nextStep: "When a spec promises an operation is code-free, run the operation once in a branch before trusting the green: append the second entry and watch the suite. A snapshot of shipped state is a coupling to a moment, and it fails on the exact day the routine path is used for real."
 tags: ["failure-modes", "execution", "systems"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Green Until the Second State\" captures a portable lesson for engineering teams: The hub's test suite proves the spec's promise that publishing an already packaged video is a data edit plus a s.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/quality-video-on-local-hardware"
+  guideLabel: "Guide: Local Media Pipelines on danmercede.com"
 ---

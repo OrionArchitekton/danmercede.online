@@ -10,4 +10,9 @@ resultDetails: "The first canary, ghp_ plus 36 copies of one letter, committed w
 nextStep: "Build canaries from random characters at run time, and check which control printed the verdict before trusting it. Green has two causes: nothing to catch, or catching nothing. Full writeup: danmercede.com/guides/done-needs-a-receipt"
 tags: ["security", "governance", "failure-modes"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"The Canary Looked Fake\" captures a portable lesson for engineering teams: Staging a fake GitHub token in a scratch repo proves my pre-commit secret gate blocks commits. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "gate means a deterministic pre-execution check required before code or publishes advance; canary means a deliberate violation test proving a control actually fires rather than resting green; hook means an automated script triggered before a tool call, commit, or push completes."
+  guideUrl: "https://www.danmercede.com/guides/regression-test-ai-agent-prompt-model-change"
+  guideLabel: "Guide: Regression-Testing Agent Prompt Changes on danmercede.com"
 ---

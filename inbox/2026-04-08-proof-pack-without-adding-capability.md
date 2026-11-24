@@ -10,5 +10,10 @@ resultDetails: "Built a three-beat scenario runner with replay verification agai
 nextStep: "First-slice parity proof against the real wire contract."
 tags: ["governance", "execution"]
 context: "governance"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Proof Pack Without Adding Capability\" captures a portable lesson for engineering teams: A stop, authorize, replay proof pack can demonstrate the governed path convincingly without changing it. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "CI runner means the automated build machine running tests and checks before changes merge."
+  guideUrl: "https://www.danmercede.com/guides/done-needs-a-receipt"
+  guideLabel: "Guide: Why Done Needs a Verification Receipt on danmercede.com"
 ---
 

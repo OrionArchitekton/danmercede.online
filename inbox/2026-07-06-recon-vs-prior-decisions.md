@@ -7,6 +7,11 @@ claim: "A fresh recon-and-synthesis agent sees only live system state, not the d
 implication: "Reconcile the raw synthesis against your prior decision docs before acting; the reconciliation, not the recon, is the trustworthy output."
 tags: ["execution", "systems", "signal"]
 context: "execution"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Recon vs Prior Decisions\" captures a portable lesson for engineering teams: A fresh recon-and-synthesis agent sees only live system state, not the decisions you already made about it, so i.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "GPU/CUDA fallback means explicit hardware pin checks verifying compute runs on CPU or GPU as intended rather than silently falling back; prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it."
+  guideUrl: "https://www.danmercede.com/guides/done-needs-a-receipt"
+  guideLabel: "Guide: Why Done Needs a Verification Receipt on danmercede.com"
 ---
 
 Fan a recon pass out over live state, let an agent synthesize it, and the result is grounded, plausible, and blind. It answers "what is the state" but not "what has already been decided about it." So it surfaces the obvious move, say "route all the inference to the idle GPU," when an earlier analysis already found the real constraint was model reliability, not spare capacity, and rejected exactly that. The synthesis is well cited and wrong.

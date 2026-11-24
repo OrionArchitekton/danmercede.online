@@ -10,6 +10,11 @@ resultDetails: "One skeptic returned a confident 'CONFIRMED — corrected' verdi
 nextStep: "Treat a skeptic's correction as a claim, not a verdict: (1) check its cited evidence names the thing in question, not a sibling; (2) cross-check the other agents in the fan-out — a lone flip against draft + prior knowledge is a flag, not a resolution; (3) run one direct probe to break the tie. A 'CONFIRMED' with mismatched evidence refutes the skeptic; it does not correct the premise."
 tags: ["failure-modes", "systems", "execution"]
 context: "systems"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Verify the Verifier\" captures a portable lesson for engineering teams: In a two-tier verification pattern : a cheap draft, then a skeptic agent that fact-checks each claim against liv.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/verifier-abstention-not-refutation"
+  guideLabel: "Guide: Verifier Abstention vs. Refutation on danmercede.com"
 ---
 
 A verification agent is still a single source. The two-tier pattern (draft cheap, then verify adversarially) earns its keep when the skeptic catches the draft's errors — but it quietly inverts when the skeptic introduces its own. The asymmetry that makes the pattern work (assume the draft is wrong) is the same one that makes a wrong correction dangerous: you have pre-committed to trusting the second voice.

@@ -10,4 +10,9 @@ resultDetails: "The benchmark passed its own per-request keep_alive and also loa
 nextStep: "Treat resident-model residency as mutable runtime state a probe can perturb. Re-warm the canonical model with keep_alive of -1 after benchmarking, never interleave two models on one GPU expecting both to stay hot, and assert on the output text, not the token count."
 tags: ["infra", "failure-modes", "systems"]
 context: "infra"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Benchmarks Evict Hot Models\" captures a portable lesson for engineering teams: Benchmarking a locally-served LLM is read-only and won't disturb whatever model is already loaded on the GPU. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "GPU/CUDA fallback means explicit hardware pin checks verifying compute runs on CPU or GPU as intended rather than silently falling back; prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it."
+  guideUrl: "https://www.danmercede.com/guides/quality-video-on-local-hardware"
+  guideLabel: "Guide: Local Media Pipelines on danmercede.com"
 ---

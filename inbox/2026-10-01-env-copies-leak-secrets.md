@@ -10,4 +10,9 @@ resultDetails: "The tests never print the helper. Pytest does. Assertion rewriti
 nextStep: "Build the subprocess env from an allowlist instead of copying os.environ, and grep new test harness code for **os.environ before its first failing run, not after."
 tags: ["security", "failure-modes", "execution"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Env Copies Leak Secrets\" captures a portable lesson for engineering teams: Copying os.environ into a pytest helper object, so a CLI under test runs against fake binaries on PATH, is harml.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "canary means a deliberate violation test proving a control actually fires rather than resting green."
+  guideUrl: "https://www.danmercede.com/guides/regression-test-ai-agent-prompt-model-change"
+  guideLabel: "Guide: Regression-Testing Agent Prompt Changes on danmercede.com"
 ---

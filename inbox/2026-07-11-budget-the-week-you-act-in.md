@@ -7,6 +7,11 @@ claim: "A scheduler that plans on the last day of a period must budget the perio
 implication: "Every generate-at-boundary planner (Sunday content planner, month-end batcher, end-of-day queue builder) needs a boundary fixture: ending-period-at-cap must still yield next-period work, and a full next-period bucket must yield zero."
 tags: ["failure-modes", "systems", "execution"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Budget the Week You Act In\" captures a portable lesson for engineering teams: A scheduler that plans on the last day of a period must budget the period it will act in, never the one it is st.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "gate means a deterministic pre-execution check required before code or publishes advance; boundary means the tool or interface layer where deterministic checks override prompt intent."
+  guideUrl: "https://www.danmercede.com/guides/verifier-abstention-not-refutation"
+  guideLabel: "Guide: Verifier Abstention vs. Refutation on danmercede.com"
 ---
 
 I shipped a weekly planner this week that runs Sunday evening and proposes Monday-to-Sunday work. Every proposed row checks a rate-limit ledger before it earns a slot, and the ledger keys its buckets by ISO week.

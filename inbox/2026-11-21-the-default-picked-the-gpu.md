@@ -7,4 +7,9 @@ claim: "A comment that says CPU doesn't prove the job ran on the CPU. I had a na
 implication: "So pass the device explicitly, device='cpu', or export an empty CUDA_VISIBLE_DEVICES before the model loads, in any script that has to stay off a shared GPU. And before a record says no GPU was used, read the device the model landed on, or find a timing that only a CPU explains. A comment tells you what the author meant to run, and you still have to look at what ran."
 tags: ["failure-modes", "infra", "governance"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"The Default Picked the GPU\" captures a portable lesson for engineering teams: A comment that says CPU doesn't prove the job ran on the CPU. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "GPU/CUDA fallback means explicit hardware pin checks verifying compute runs on CPU or GPU as intended rather than silently falling back."
+  guideUrl: "https://www.danmercede.com/guides/quality-video-on-local-hardware"
+  guideLabel: "Guide: Local Media Pipelines on danmercede.com"
 ---

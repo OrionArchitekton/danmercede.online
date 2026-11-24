@@ -10,4 +10,9 @@ resultDetails: "Worked, after two traps. First: the exact request that returned 
 nextStep: "Bake both into the default zero-dep client template: explicit User-Agent and content-or-reasoning parsing land before any key or scope debugging starts."
 tags: ["failure-modes", "execution"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Two Traps in a Zero-Dep LLM Client\" captures a portable lesson for engineering teams: Python stdlib urllib can drive an OpenAI-compatible inference API end to end. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/capture-agent-results-with-byte-bounded-snapshots"
+  guideLabel: "Guide: Byte-Bounded Snapshots for Agent Output on danmercede.com"
 ---

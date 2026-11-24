@@ -7,4 +7,9 @@ claim: "We moved CI off GitHub-hosted minutes onto self-hosted runners, hardened
 implication: "Hardening that turns 'not found' into 'denied' changes how programs behave, not just what they can reach. When you sandbox a runner, match what the code expects on a clean machine: absent, not forbidden."
 tags: ["failure-modes", "infra", "security"]
 context: "infra"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Hide Home, Don't Block It\" captures a portable lesson for engineering teams: We moved CI off GitHub-hosted minutes onto self-hosted runners, hardened the systemd units with ProtectHome=yes,.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "systemd isolation means Linux service sandboxing that restricts filesystem and network access per process; CI runner means the automated build machine running tests and checks before changes merge."
+  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
+  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
 ---

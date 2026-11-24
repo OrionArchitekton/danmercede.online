@@ -10,4 +10,9 @@ resultDetails: "The CLI printed 'Queued message ... for thread ...' and exited 0
 nextStep: "Treat a queue receipt like any send receipt. Re-read the recipient's own log a few minutes later, and if it hasn't changed, the message is undelivered. Leave the message where the worker will look, don't re-send it on a second channel, and wake the thread with something that actually starts a turn."
 tags: ["failure-modes", "execution", "signal"]
 context: "execution"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Queued Is Not Delivered\" captures a portable lesson for engineering teams: Assumption tested (it failed): the 'Queued message' line from codex queue proves an idle Codex thread got the me.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "receipt means an immutable record tying an action to its verified inputs and exact outcome."
+  guideUrl: "https://www.danmercede.com/guides/done-needs-a-receipt"
+  guideLabel: "Guide: Why Done Needs a Verification Receipt on danmercede.com"
 ---

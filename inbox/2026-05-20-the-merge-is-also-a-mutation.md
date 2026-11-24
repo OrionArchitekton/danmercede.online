@@ -7,5 +7,10 @@ content: "Hardening the release gate to fail closed on the merge itself. A merge
 openQuestion: "Should the gate evaluate the merge SHA or the head SHA — and does CI parity hold across both?"
 tags: ["governance", "execution", "systems"]
 context: "governance"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"The Merge Is Also a Mutation\" captures a portable lesson for engineering teams: Hardening the release gate to fail closed on the merge itself. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "fail-closed means blocks the action on missing proof or error instead of silently continuing; gate means a deterministic pre-execution check required before code or publishes advance."
+  guideUrl: "https://www.danmercede.com/guides/the-fail-closed-harness"
+  guideLabel: "Guide: The Fail-Closed Agent Harness on danmercede.com"
 ---
 

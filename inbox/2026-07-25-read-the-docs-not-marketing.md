@@ -10,6 +10,11 @@ resultDetails: "The first pass scored an incumbent as shipping three of four cla
 nextStep: "Before any 'already shipped' claim is allowed to kill a build, require three things: a product docs or changelog URL that was actually fetched, an explicit GA/beta/waitlist status, and for any 'automatic' claim, the specific doc sentence showing no human step."
 tags: ["signal", "failure-modes", "execution"]
 context: "signal"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Read the Docs, Not the Marketing Page\" captures a portable lesson for engineering teams: A first-pass competitive scan's verdict of 'an incumbent already ships this' is reliable enough to kill a build.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "gate means a deterministic pre-execution check required before code or publishes advance; lane means an isolated publishing or execution pipeline consuming frozen source artifacts; prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it."
+  guideUrl: "https://www.danmercede.com/guides/regression-test-ai-agent-prompt-model-change"
+  guideLabel: "Guide: Regression-Testing Agent Prompt Changes on danmercede.com"
 ---
 
 Vendor marketing and vendor docs disagree in a predictable direction. Marketing

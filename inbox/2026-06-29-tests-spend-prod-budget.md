@@ -7,4 +7,9 @@ claim: "A test that reserves against a real shared-state file (a daily-budget le
 implication: "Production-shared mutable state reached through a non-injectable path is a test-isolation bug waiting to happen. Make the path injectable, isolate it once, and the same tests stop both corrupting prod and flaking."
 tags: ["failure-modes", "execution", "systems"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Tests Spend Prod Budget\" captures a portable lesson for engineering teams: A test that reserves against a real shared-state file (a daily-budget ledger, a counter, a lock directory) silen.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "CI runner means the automated build machine running tests and checks before changes merge."
+  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
+  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
 ---

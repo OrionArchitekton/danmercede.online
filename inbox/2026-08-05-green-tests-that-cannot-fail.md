@@ -10,6 +10,11 @@ resultDetails: "Both mutants stayed green. The inside probes were .1 and a v6 ad
 nextStep: "For any mask, rounding, clamping or boundary test, stop probing with round numbers. Pick a value just inside the edge, and run the mutant in both directions."
 tags: ["failure-modes", "execution", "systems"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Green Tests That Cannot Fail\" captures a portable lesson for engineering teams: New tests covering the partial-byte mask branch of a CIDR prefix matcher will catch a regression in that mask. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "boundary means the tool or interface layer where deterministic checks override prompt intent."
+  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
+  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
 ---
 
 A review flagged that an IP allowlist's prefix matcher had no coverage for

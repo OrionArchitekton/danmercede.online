@@ -9,6 +9,11 @@ tags: ["systems"]
 context: "systems"
 context_detail: "docs"
 archiveNotice: "Archived log entry. Cosmocrat is now Cosmocrat OS; see https://www.cosmocrat.ai/about"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Governed Memory as Infrastructure in the Control Plan\" captures a portable lesson for engineering teams: Governed Memory functions as a foundational infrastructure within the Cosmocrat system's Control Plan, providing.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
+  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
 ---
 
 In the Cosmocrat system, the concept of Governed Memory is central to how operational integrity is maintained. Governed Memory is defined as a system-wide, immutable, and auditable record of all operational decisions and state changes. It serves as the single source of truth for the Cosmocrat system, ensuring consistency and traceability.

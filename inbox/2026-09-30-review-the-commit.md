@@ -7,4 +7,9 @@ claim: "An AI review pipeline that resolves its target by branch name instead of
 implication: "Pin review worktrees to the PR head SHA, never to a branch name, and record the reviewed SHA beside every finding. Two engines agreeing proves they read the same bytes. It does not prove they read the right ones."
 tags: ["failure-modes", "execution", "governance"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Review the Commit, Not the Branch\" captures a portable lesson for engineering teams: An AI review pipeline that resolves its target by branch name instead of the PR head commit reviews whatever tha.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "gate means a deterministic pre-execution check required before code or publishes advance; worktree means an isolated branch checkout keeping parallel edits separate from clean main; CI runner means the automated build machine running tests and checks before changes merge."
+  guideUrl: "https://www.danmercede.com/guides/git-worktree-overlap-report"
+  guideLabel: "Guide: Isolating Concurrent Agent Worktrees on danmercede.com"
 ---

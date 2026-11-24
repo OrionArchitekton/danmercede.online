@@ -7,6 +7,11 @@ context: "docs"
 tags: []
 claim: "In the OCF, the management and persistence of state and data are foundational infrastructural concerns, not merely operational details."
 implication: "This architectural approach ensures system resilience and consistency by treating data as a core, governed asset."
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Memory as Infrastructure in OCF\" captures a portable lesson for engineering teams: In the OCF, the management and persistence of state and data are foundational infrastructural concerns, not mere.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "lane means an isolated publishing or execution pipeline consuming frozen source artifacts."
+  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
+  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
 ---
 
 For me, the concept of 'memory as infrastructure' in the OCF isn't just about storage; it's about how state and data are treated as fundamental, managed components of the system itself. It's clear that data isn't an afterthought but a core architectural concern.

@@ -10,4 +10,9 @@ resultDetails: "Three fail-opens shipped in a row, each caught by a different en
 nextStep: "For every rule of the form 'every X must have a Y' over untrusted output, write the padding fixture and the huge-range fixture in the RED pass, before the happy path is green. A checker that compares cardinalities, or filters to what it recognises, is not a checker. It is a suggestion with an exit code."
 tags: ["failure-modes", "governance", "execution"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Enumerate the Set, Never Compare Counts\" captures a portable lesson for engineering teams: A grounding check on generated narration can enforce one claim-map line per paragraph by comparing the number of.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "gate means a deterministic pre-execution check required before code or publishes advance."
+  guideUrl: "https://www.danmercede.com/guides/regression-test-ai-agent-prompt-model-change"
+  guideLabel: "Guide: Regression-Testing Agent Prompt Changes on danmercede.com"
 ---

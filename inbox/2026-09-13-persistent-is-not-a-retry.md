@@ -9,4 +9,9 @@ whatChanged: "Added a separate hourly catch-up timer that starts the real servic
 nextStep: "Sweep every fixed-time, long-running timer on the host. This is the third time the same class lost work, and a lesson written against one job protected none of its siblings."
 tags: ["failure-modes", "infra", "signal"]
 context: "infra"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Persistent Is Not a Retry\" captures a portable lesson for engineering teams: Added a separate hourly catch-up timer that starts the real service only when the most recent scheduled slot nev.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "systemd isolation means Linux service sandboxing that restricts filesystem and network access per process."
+  guideUrl: "https://www.danmercede.com/guides/governed-double-send-safe-delivery"
+  guideLabel: "Guide: Double-Send-Safe Delivery in Agent Pipelines on danmercede.com"
 ---

@@ -8,6 +8,11 @@ implication: "This approach ensures that system actions are authorized, auditabl
 tags: ["systems"]
 context: "systems"
 context_detail: "docs"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Runtime Governance: Proving Authority with Fail-Closed Transitions and Immutable Receipts\" captures a portable lesson for engineering teams: Runtime Governance, through Authority Gating, Fail-Closed principles, and Immutable Receipts, establishes a veri.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "fail-closed means blocks the action on missing proof or error instead of silently continuing; receipt means an immutable record tying an action to its verified inputs and exact outcome."
+  guideUrl: "https://www.danmercede.com/guides/done-needs-a-receipt"
+  guideLabel: "Guide: Why Done Needs a Verification Receipt on danmercede.com"
 ---
 
 My approach to system governance centers on Runtime Governance, specifically through its 'proving run' capability. Runtime Governance manages the system's operational state, enforcing policies and ensuring compliance via continuous monitoring and automated remediation. A proving run is a specific execution of the Runtime Governance system designed to validate a set of policies or system states.

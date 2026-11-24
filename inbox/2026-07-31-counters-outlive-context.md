@@ -7,4 +7,9 @@ claim: "A stop hook told my agent session 'edits=0, pushes=1, capture the lesson
 implication: "Harness automation that asserts state ('you changed N files') can outrun the context the model actually holds after compaction. Either the nudge names the work it counted, or the model must be licensed to answer 'nothing visible to capture'. An agent rewarded for always producing a deliverable will manufacture one."
 tags: ["failure-modes", "workflow-ownership"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Counters Outlive Your Context\" captures a portable lesson for engineering teams: A stop hook told my agent session 'edits=0, pushes=1, capture the lesson before ending' on a turn that made zero.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "hook means an automated script triggered before a tool call, commit, or push completes; prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it."
+  guideUrl: "https://www.danmercede.com/guides/the-fail-closed-harness"
+  guideLabel: "Guide: The Fail-Closed Agent Harness on danmercede.com"
 ---

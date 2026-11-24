@@ -10,4 +10,9 @@ resultDetails: "Three independent review engines converged on three high-confide
 nextStep: "Make the zero-diff outcome first-class in auto-fix loops: a decline path with recorded rationale, not a failure state. An agent biased toward emitting diffs is an agent that will break a merge-order gate."
 tags: ["execution", "governance", "workflow-ownership"]
 context: "execution"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Zero Diffs, Valid Outcome\" captures a portable lesson for engineering teams: Every finding an automated review pass emits maps to a code diff the autonomous fix agent can apply. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
+  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
 ---

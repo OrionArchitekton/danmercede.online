@@ -7,4 +7,9 @@ claim: "A green dashboard on a long-running service tells you nothing about your
 implication: "Two design choices turned a blocked cutover into a shrug. Fail-closed variable interpolation meant nothing could half-apply. A materialize-then-recreate split meant the parked state was stable enough to walk away from. And one more find from the same window: a runbook step referenced a firewall tool the host does not have. Runbooks drift. Execute-verify them before the window, not during it."
 tags: ["failure-modes", "security", "infra"]
 context: "infra"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Preflight the Secrets Plane\" captures a portable lesson for engineering teams: A green dashboard on a long-running service tells you nothing about your credential plane. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "fail-closed means blocks the action on missing proof or error instead of silently continuing; preflight means a read-only environment readiness check run before any stateful deploy or mutation; prompt-boundary limit means model instructions can advise behavior, whereas only code checks at the tool boundary enforce it."
+  guideUrl: "https://www.danmercede.com/guides/the-fail-closed-harness"
+  guideLabel: "Guide: The Fail-Closed Agent Harness on danmercede.com"
 ---

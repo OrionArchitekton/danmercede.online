@@ -1,3 +1,5 @@
+import type { ExternalContext } from './externalContext';
+
 export enum EntryType {
   ShortEssay = "Short Essay",
   ExperimentLog = "Experiment Log",
@@ -30,6 +32,7 @@ export interface BaseEntry {
   context?: ContextLabel;
   image?: { src: string; alt: string; caption?: string }; // optional inline figure (e.g. a guide infographic)
   archiveNotice?: string; // optional banner shown first; marks a historical entry as archived (specs/archived-entry-notice-spec.md)
+  externalContext?: ExternalContext;
 }
 
 export interface ShortEssay extends BaseEntry {

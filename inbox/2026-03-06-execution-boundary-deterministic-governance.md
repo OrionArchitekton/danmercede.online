@@ -8,6 +8,11 @@ implication: "By rigorously defining and enforcing these architectural concepts,
 tags: ["systems"]
 context: "systems"
 context_detail: "docs"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Defining Predictability: Execution Boundaries and Deterministic Governance\" captures a portable lesson for engineering teams: Establishing clear execution boundaries, deterministic governance, runtime enforcement, and mutation boundaries.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "boundary means the tool or interface layer where deterministic checks override prompt intent."
+  guideUrl: "https://www.danmercede.com/guides/the-fail-closed-harness"
+  guideLabel: "Guide: The Fail-Closed Agent Harness on danmercede.com"
 ---
 
 In my approach to system design, predictability and control are paramount. This focus drives my reliance on several core architectural concepts: execution boundaries, deterministic governance, runtime enforcement, and mutation boundaries. These aren't just abstract ideas; they are foundational elements that dictate how systems behave and evolve.

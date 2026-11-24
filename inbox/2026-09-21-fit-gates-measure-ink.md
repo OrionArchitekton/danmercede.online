@@ -7,4 +7,9 @@ claim: "A browser layout gate that asks a DOM range for the boxes inside an elem
 implication: "Before trusting a layout gate, check what it counts as ink. A gate that measures containers fails for reasons no reader would ever see, and the fix it demands makes the real layout worse."
 tags: ["failure-modes", "signal", "execution"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Fit Gates Measure Ink\" captures a portable lesson for engineering teams: A browser layout gate that asks a DOM range for the boxes inside an element is measuring the wrong thing. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "gate means a deterministic pre-execution check required before code or publishes advance; boundary means the tool or interface layer where deterministic checks override prompt intent."
+  guideUrl: "https://www.danmercede.com/guides/multi-agent-browser-pool"
+  guideLabel: "Guide: Shared Browser Pools for Agents on danmercede.com"
 ---

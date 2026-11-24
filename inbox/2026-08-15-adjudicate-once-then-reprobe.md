@@ -10,4 +10,9 @@ resultDetails: "Six consecutive sweep apply passes hit the same finding class (t
 nextStep: "The record self-invalidates by construction: the day the blocking PR lands, the premise re-probe fails, and the note itself says the right move becomes regenerating through the landed path."
 tags: ["execution", "governance", "failure-modes"]
 context: "execution"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Adjudicate Once, Then Re-Probe\" captures a portable lesson for engineering teams: When an autonomous review sweep re-raises the same declined finding class every cycle, writing the adjudication.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
+  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
 ---

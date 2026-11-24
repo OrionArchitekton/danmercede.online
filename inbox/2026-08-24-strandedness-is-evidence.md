@@ -7,6 +7,11 @@ claim: "Abandoned branches are abandoned for a reason. Find the reason before yo
 implication: "Recover stranded work by applying its diff, never by copying its files, and check whether it ever passed CI before you trust it."
 tags: ["failure-modes", "execution", "signal"]
 context: "execution"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Strandedness Is Evidence\" captures a portable lesson for engineering teams: Abandoned branches are abandoned for a reason. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "worktree means an isolated branch checkout keeping parallel edits separate from clean main; CI runner means the automated build machine running tests and checks before changes merge."
+  guideUrl: "https://www.danmercede.com/guides/git-worktree-overlap-report"
+  guideLabel: "Guide: Isolating Concurrent Agent Worktrees on danmercede.com"
 ---
 
 I found two worktrees holding a finished security fix. Staged, never committed, 23 days

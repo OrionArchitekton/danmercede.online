@@ -10,6 +10,11 @@ resultDetails: "The weekly bundle holds 7 daily bars. The momentum simulator nee
 nextStep: "Regenerate with a warm-up window longer than the lookback, score only the observed week, and add an end-to-end test that feeds the harness data which MUST produce a trade. Treat any streak of identical zero results from an automated evidence pipeline as the trigger for that positive control."
 tags: ["failure-modes", "signal", "governance"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Seven Zeros Were the Harness\" captures a portable lesson for engineering teams: Seven consecutive weekly evidence packets reporting zero trades for a strategy rebuild were observing the strategy. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "gate means a deterministic pre-execution check required before code or publishes advance; CI runner means the automated build machine running tests and checks before changes merge."
+  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
+  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
 ---
 
 Seven weeks in a row, the weekly evidence job reported zero trades. Seven weeks in a

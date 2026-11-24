@@ -10,4 +10,9 @@ resultDetails: "The stub served metric points regardless of the query's from/to 
 nextStep: "Stub contract upgraded: fakes must apply the API's filtering and aggregation semantics, not just its response shape, with worst-case shifts simulated deterministically (a full bucket, never a wall-clock modulo)."
 tags: ["failure-modes", "execution", "systems"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Stubs Must Filter Like the API\" captures a portable lesson for engineering teams: Green end-to-end tests over a PATH-shimmed fake curl prove a Datadog NoData preflight's query logic is safe to s.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "preflight means a read-only environment readiness check run before any stateful deploy or mutation; boundary means the tool or interface layer where deterministic checks override prompt intent."
+  guideUrl: "https://www.danmercede.com/guides/the-fail-closed-harness"
+  guideLabel: "Guide: The Fail-Closed Agent Harness on danmercede.com"
 ---

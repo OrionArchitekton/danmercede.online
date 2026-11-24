@@ -7,6 +7,11 @@ context: "docs"
 tags: []
 claim: "Troubleshooting in a distributed microservice architecture, particularly one centered on workflow orchestration, requires understanding inter-service communication, workflow states, and leveraging dedicated observability tools."
 implication: "Effective troubleshooting relies on a holistic view of the system's distributed components and the specific mechanisms for monitoring and error handling within its orchestrated workflows."
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Troubleshooting Distributed Workflows\" captures a portable lesson for engineering teams: Troubleshooting in a distributed microservice architecture, particularly one centered on workflow orchestration,.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
+  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
 ---
 
 When I approach troubleshooting in our system, I recognize its foundation as a distributed microservice architecture. This means issues are rarely isolated to a single component; they often span across loosely coupled services like `conductor`, `orchestrator`, `data-store`, `api-gateway`, and `frontend`. Pinpointing the root cause in such an environment requires understanding the interactions between these distinct services.

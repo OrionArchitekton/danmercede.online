@@ -7,4 +7,9 @@ claim: "Today a runbook snippet that had worked every time an operator typed it 
 implication: "'Works when I type it' and 'works when the machine runs it' are different claims. Every runbook snippet written for a human terminal is an untested branch of your automation until it has been exercised there."
 tags: ["failure-modes", "execution", "infra"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Your Shell Is Not Cron's Shell\" captures a portable lesson for engineering teams: Today a runbook snippet that had worked every time an operator typed it died in automation with python: command.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "systemd isolation means Linux service sandboxing that restricts filesystem and network access per process; CI runner means the automated build machine running tests and checks before changes merge."
+  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
+  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
 ---

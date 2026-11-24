@@ -7,6 +7,11 @@ claim: "When you migrate or clone a machine that runs scheduled automation again
 implication: "A safe migration is single-armed end to end, not a parallel burn-in."
 tags: ["infra", "failure-modes", "execution"]
 context: "infra"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Clone the Box, Not the Cron\" captures a portable lesson for engineering teams: When you migrate or clone a machine that runs scheduled automation against shared remotes, never run the old and.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "systemd isolation means Linux service sandboxing that restricts filesystem and network access per process."
+  guideUrl: "https://www.danmercede.com/guides/capture-agent-results-with-byte-bounded-snapshots"
+  guideLabel: "Guide: Byte-Bounded Snapshots for Agent Output on danmercede.com"
 ---
 
 The instinct when you migrate a workstation is to run the old and new side by side for a few days — a burn-in, so you can fall back if the new one misbehaves. That instinct is exactly wrong if the machine runs background automation.

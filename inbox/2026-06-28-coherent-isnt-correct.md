@@ -10,4 +10,9 @@ resultDetails: "The agent (Grok) shipped something genuinely coherent — an ins
 nextStep: "Treat an autonomous build the way you'd treat a junior pull request for a system that touches money: audit it adversarially and make every claim earn a test. The agent is great at producing something that looks shipped; the unglamorous correctness work is still yours. The build is cheap — the harden loop is the product."
 tags: ["failure-modes", "execution", "systems"]
 context: "execution"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Coherent Isn't Correct\" captures a portable lesson for engineering teams: Hand an autonomous AI coding agent a whole local-first finance tool to build end-to-end, no human writing code,.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "receipt means an immutable record tying an action to its verified inputs and exact outcome; CI runner means the automated build machine running tests and checks before changes merge."
+  guideUrl: "https://www.danmercede.com/guides/done-needs-a-receipt"
+  guideLabel: "Guide: Why Done Needs a Verification Receipt on danmercede.com"
 ---

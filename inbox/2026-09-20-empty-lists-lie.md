@@ -7,4 +7,9 @@ claim: "A detector can be scrupulously honest per item and still lie in aggregat
 implication: "The same trap caught the review pipeline that was supposed to check this change. It exited 0 with 0 findings while every engine inside it had errored or timed out, because the diff it fed them was 8 MB against a base branch 121 commits stale. Zero findings meant no reviewer ran. A green run and an empty result set carry no information until you know the collector was capable of filling it."
 tags: ["failure-modes", "signal", "systems"]
 context: "signal"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Empty Lists Lie\" captures a portable lesson for engineering teams: A detector can be scrupulously honest per item and still lie in aggregate. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
+  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
 ---

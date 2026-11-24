@@ -7,6 +7,11 @@ claim: "A monitor that alerts once, on the state change, into a channel nobody r
 implication: "Put steady-state failure in the surface you read every day, not only the transition in a channel you have stopped opening. And when you write down a lesson that debunks a false alarm, write down what the real alarm looks like too."
 tags: ["failure-modes", "signal", "infra"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"An Alert Nobody Reads\" captures a portable lesson for engineering teams: A monitor that alerts once, on the state change, into a channel nobody reads is indistinguishable from no monitor. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/self-hosting-websites-and-apps"
+  guideLabel: "Guide: Self-Hosting Apps Safely on danmercede.com"
 ---
 
 The monitor did its job. Detection was never the gap. Delivery was.

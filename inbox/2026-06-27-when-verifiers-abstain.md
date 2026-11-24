@@ -10,6 +10,11 @@ resultDetails: "Under transient API rate-limiting, every verifier vote returned 
 nextStep: "Make abstention a first-class status, never folded into 'killed.' On recovery, reuse the saved search and extraction artifacts and re-verify gently rather than re-running the whole pipeline. And existence-check every citation: a future-dated reference ID is not automatically a hallucination."
 tags: ["failure-modes", "signal", "governance"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"When Verifiers Abstain\" captures a portable lesson for engineering teams: A fail-closed, multi-vote adversarial verification gate will correctly separate true from false research claims.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "fail-closed means blocks the action on missing proof or error instead of silently continuing; gate means a deterministic pre-execution check required before code or publishes advance."
+  guideUrl: "https://www.danmercede.com/guides/verifier-abstention-not-refutation"
+  guideLabel: "Guide: Verifier Abstention vs. Refutation on danmercede.com"
 ---
 
 A fail-closed gate that cannot tell "refuted by evidence" from "never ran" will lie to you — and it lies in the safe-looking direction, reporting an empty result as a confident verdict. The fix is cheap: give abstention its own status so a crashed adjudicator can never masquerade as a unanimous refutation, and surface the vote shape (0-0 versus 2-1) so the failure is legible at a glance. The recovery is cheaper than the panic it triggers: the upstream search and extraction had already succeeded, so re-running only the verification — gently, one source at a time — recovered everything the "inconclusive" verdict had buried.

@@ -10,4 +10,9 @@ resultDetails: "All four digests matched byte for byte. The verifier exited 0 on
 nextStep: "Treat any hash, count, or line number inside a review finding as a claim to reproduce. Re-derive it with the enforcing code before editing anything, and decline with the command output quoted."
 tags: ["failure-modes", "governance", "execution"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"A Quoted Hash Is Not Proof\" captures a portable lesson for engineering teams: An AI reviewer's HIGH finding is right: four new sha256 pins in a lockfile do not match the files at the pinned.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "gate means a deterministic pre-execution check required before code or publishes advance."
+  guideUrl: "https://www.danmercede.com/guides/done-needs-a-receipt"
+  guideLabel: "Guide: Why Done Needs a Verification Receipt on danmercede.com"
 ---

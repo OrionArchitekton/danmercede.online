@@ -10,4 +10,9 @@ resultDetails: "Shots that triggered a live async result and then narrated it sh
 nextStep: "Make the server-rendered demo mode and one-card-per-shot the default in the demo tooling. Unrelated footgun from the same run: kill dev servers by port, never by matching the process command line, because that also hits your own running script and kills the run, and a stale server still holding the port makes a fresh build silently serve the old code."
 tags: ["failure-modes", "execution", "systems"]
 context: "execution"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Prefill demos server-side\" captures a portable lesson for engineering teams: An automated, headless demo pipeline can record a stateful web app's flow shot-by-shot as scripted, with no chan.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/multi-agent-browser-pool"
+  guideLabel: "Guide: Shared Browser Pools for Agents on danmercede.com"
 ---

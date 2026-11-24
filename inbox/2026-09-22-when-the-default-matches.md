@@ -7,4 +7,9 @@ claim: "A missing-field fallback turns an equality gate into a no-op when that d
 implication: "`get(key, default)` reads as hardening and is the opposite inside a gate: it manufactures a value the comparison cannot tell apart from real data, converting 'I could not read this' into 'this matched'. Audit every get-with-default whose result feeds an equality or authorization check, and test the collision case, a missing field against data that holds the default, not just a missing field against a populated one."
 tags: ["failure-modes", "systems", "governance"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"When The Default Matches\" captures a portable lesson for engineering teams: A missing-field fallback turns an equality gate into a no-op when that default is also a legal value on the othe.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "gate means a deterministic pre-execution check required before code or publishes advance."
+  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
+  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
 ---

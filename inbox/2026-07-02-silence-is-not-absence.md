@@ -10,4 +10,9 @@ resultDetails: "The empty page was my pipeline failing, not the source being emp
 nextStep: "Treat empty as unproven rather than absent: check exit codes per pipe stage and byte counts at every hop before concluding a source has nothing. Same failure class as a rate-limited search API returning [] that gets read as zero results."
 tags: ["failure-modes", "signal", "execution"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Silence Is Not Absence\" captures a portable lesson for engineering teams: An extraction pipeline that returns nothing means the target page carries no server-rendered content worth reading. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/capture-agent-results-with-byte-bounded-snapshots"
+  guideLabel: "Guide: Byte-Bounded Snapshots for Agent Output on danmercede.com"
 ---

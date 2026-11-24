@@ -6,6 +6,11 @@ type: "thought-snippet"
 content: "Went to drop a PDF into an agent's knowledge vault today and hit the right instinct by accident: the vault's ingest crawler explicitly excludes its own directory from the crawl. Obvious in hindsight. A recall layer, the RAG corpus or the wiki an agent searches, is advisory. It is lossy, re-summarized, allowed to drift. Your registers and config are authoritative. Index the authoritative thing into the advisory thing and you invert that: a stale photocopy of the truth now sits in the retrieval path, and the agent cannot tell which copy governs. Keep the lanes apart. External third-party knowledge goes in the recall corpus. Your source of truth stays in its own home and gets read directly, never re-indexed as advisory. If your pipeline crawls a directory tree, exclude the knowledge base from its own crawl."
 tags: ["systems", "governance", "signal"]
 context: "systems"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Don't Index Your System of Record\" captures a portable lesson for engineering teams: Went to drop a PDF into an agent's knowledge vault today and hit the right instinct by accident: the vault's ing.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "drift means silent divergence between source declarations and generated or deployed state."
+  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
+  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
 ---
 
 Went to drop a PDF into an agent's knowledge vault today and hit the right instinct by accident: the vault's ingest crawler explicitly excludes its own directory from the crawl. Obvious in hindsight.

@@ -9,6 +9,11 @@ whatBroke: "Nothing visible, for two days. Reads of other branches and explicit 
 nextStep: "Post-crash checks now dereference every branch tip and run a bounded 'git fsck --connectivity-only' on the repos that matter. 'The repo works' is a per-ref claim, never a global one."
 tags: ["failure-modes", "infra", "systems"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Git Corruption That Waited Two Days\" captures a portable lesson for engineering teams: A 2am crash killed a workstation mid-write during the nightly auto-commit. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/capture-agent-results-with-byte-bounded-snapshots"
+  guideLabel: "Guide: Byte-Bounded Snapshots for Agent Output on danmercede.com"
 ---
 
 The repair was boring on purpose. Anchor on sources that cannot share the failure:

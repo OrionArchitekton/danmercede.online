@@ -10,4 +10,9 @@ resultDetails: "Two distinct failures. First: --index-url replaces PyPI entirely
 nextStep: "Pin exact +cpu locals at the consumer's constraint (torch==2.8.0+cpu, torchaudio==2.8.0+cpu, torchvision==0.23.0+cpu) and add --extra-index-url https://pypi.org/simple so deps resolve from PyPI while the +cpu locals can only come from the PyTorch index. Cheap preflight: pip install --dry-run in the bare base image before spending a multi-GB build."
 tags: ["failure-modes", "infra", "execution"]
 context: "infra"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Torch CPU Index Broke\" captures a portable lesson for engineering teams: An upstream Dockerfile using the canonical CPU-only install, pip install torch torchaudio --index-url https://do.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "GPU/CUDA fallback means explicit hardware pin checks verifying compute runs on CPU or GPU as intended rather than silently falling back."
+  guideUrl: "https://www.danmercede.com/guides/agent-built-infrastructure-you-can-trust"
+  guideLabel: "Guide: Agent-Built Infrastructure You Can Trust on danmercede.com"
 ---

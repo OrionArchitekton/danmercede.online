@@ -10,4 +10,9 @@ resultDetails: "A PR's gates job sat queued for 15 minutes, then ended cancelled
 nextStep: "When a check is cancelled or failed, read the job before the run: runner_name, steps, and how long it sat between created_at and completed_at. Zero steps says the job never started. Duration and blast radius say which cause is likely, and one re-run says which it was. And read GitHub's own mergeStateStatus before relaying any internal ready verdict."
 tags: ["failure-modes", "infra", "signal"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"A Zero-Step CI Job Is Not Always a Billing Wall\" captures a portable lesson for engineering teams: A CI job that ends with zero steps and an empty runner name, on a repo where neighboring runs pass, is a one-off.... Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "CI runner means the automated build machine running tests and checks before changes merge."
+  guideUrl: "https://www.danmercede.com/guides/why-agent-code-needs-layered-review"
+  guideLabel: "Guide: Layered Code Review for Agent Output on danmercede.com"
 ---

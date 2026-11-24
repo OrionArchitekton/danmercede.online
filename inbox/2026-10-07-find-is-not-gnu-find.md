@@ -7,4 +7,9 @@ claim: "In a Claude Code shell, `find` is a shell function that runs an embedded
 implication: "An empty result from a probe with stderr suppressed is not evidence of absence. When a probe's answer is 'nothing here' and that answer licenses an action, include one item you know must appear. If it is missing, the probe is broken, and the world is not empty."
 tags: ["failure-modes", "execution", "signal"]
 context: "failure-modes"
+externalContext:
+  whyItMatters: "Outside our local build environment, \"Your Agent's find Is Not GNU find\" captures a portable lesson for engineering teams: In a Claude Code shell, find is a shell function that runs an embedded bfs, not GNU findutils. Any engineering team running automated workflows encounters this pattern once scripts move from demos into continuous production."
+  plainTermsNote: "Engineering log note translating an internal workflow observation into portable production rules for any agent or software team."
+  guideUrl: "https://www.danmercede.com/guides/capture-agent-results-with-byte-bounded-snapshots"
+  guideLabel: "Guide: Byte-Bounded Snapshots for Agent Output on danmercede.com"
 ---
