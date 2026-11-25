@@ -1,0 +1,29 @@
+{
+  "$schema": "https://tr.designtokens.org/format/",
+  "color": {
+    "surface": {
+      "bg": { "$type": "color", "$value": "#fafafa" },
+      "card": { "$type": "color", "$value": "#ffffff" },
+      "well": { "$type": "color", "$value": "#f9fafb" },
+      "chip": { "$type": "color", "$value": "#f3f4f6" }
+    },
+    "text": {
+      "primary": { "$type": "color", "$value": "#111827" },
+      "secondary": { "$type": "color", "$value": "#4b5563" },
+      "border": { "$type": "color", "$value": "#e5e7eb" }
+    },
+    "semantic": {
+      "workingNote": { "$type": "color", "$value": "#1d4ed8" },
+      "statusUpdate": { "$type": "color", "$value": "#047857" },
+      "thoughtSnippet": { "$type": "color", "$value": "#7e22ce" },
+      "experimentLog": { "$type": "color", "$value": "#92400e" },
+      "diagram": { "$type": "color", "$value": "#334155" },
+      "danger": { "$type": "color", "$value": "#b91c1c" }
+    }
+  },
+  "fontFamily": {
+    "serif": { "$type": "fontFamily", "$value": ["Newsreader Variable", "Georgia", "serif"] },
+    "sans": { "$type": "fontFamily", "$value": ["IBM Plex Sans Variable", "system-ui", "sans-serif"] },
+    "mono": { "$type": "fontFamily", "$value": ["JetBrains Mono Variable", "ui-monospace", "monospace"] }
+  }
+}
