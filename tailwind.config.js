@@ -1,9 +1,7 @@
 /** @type {import('tailwindcss').Config} */
-// Bundled Tailwind config — replaces the production Tailwind CDN JIT compiler (a
+// Bundled Tailwind config: replaces the production Tailwind CDN JIT compiler (a
 // ~123KB-gzip render-blocking script that recompiled CSS on every page load).
-// Mirrors the inline `tailwind.config` that previously lived in index.html so the
-// utility set and custom tokens (signal palette, Inter/JetBrains) are unchanged;
-// Vite now emits a compiled stylesheet at build time. The body-bake
+// Vite emits a compiled stylesheet at build time. The body-bake
 // (scripts/prerenderBody.ts) emits plain class-less HTML, so it needs no content entry.
 export default {
   content: [
@@ -17,13 +15,14 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        serif: ['"Newsreader Variable"', 'Georgia', 'serif'],
+        sans: ['"IBM Plex Sans Variable"', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono Variable"', 'ui-monospace', 'monospace'],
       },
       colors: {
         signal: {
           black: '#111111',
-          gray: '#666666',
+          gray: '#525252',
           light: '#E5E5E5',
           bg: '#FAFAFA',
         },

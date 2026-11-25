@@ -55,7 +55,7 @@ const App: React.FC = () => {
     }, []);
 
     return (
-        <div className="min-h-screen flex flex-col max-w-3xl mx-auto px-6 py-12 selection:bg-black selection:text-white">
+        <div className="min-h-screen flex flex-col max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-12 overflow-x-hidden selection:bg-black selection:text-white">
             <Analytics />
 
             {/* Skip link: visually hidden until keyboard-focused, then jumps to main content (a11y parity with the other brand sites). */}
@@ -68,44 +68,44 @@ const App: React.FC = () => {
             </a>
 
             {/* 1. Header Hardening (Fixed lines) */}
-            <header className="mb-20 pb-8 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start gap-8">
-                <div className="flex-1">
+            <header className="mb-14 sm:mb-20 pb-8 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start gap-6 sm:gap-8 min-w-0">
+                <div className="flex-1 min-w-0 w-full">
                     {/* Line 1: Identity + Micro-links (responsive) */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
-                        <h1 className="text-base font-bold tracking-tight text-gray-900">
-                            danmercede.online <span className="text-gray-500 font-normal ml-2">· Living Signal Surface</span>
+                    <div className="flex flex-col gap-2 mb-2">
+                        <h1 className="font-serif text-[28px] sm:text-[32px] font-semibold tracking-tight leading-tight text-gray-900 break-words">
+                            danmercede.online <span className="text-gray-600 font-sans text-sm sm:text-base font-normal sm:ml-2 block sm:inline">Living Signal Surface</span>
                         </h1>
-                        {/* Micro-links - below on mobile, inline on desktop */}
-                        <div className="flex items-center gap-4 text-xs font-mono text-gray-500">
-                            <a href="/rss" className="hover:text-black transition-colors flex items-center gap-1">
-                                RSS <Rss size={10} />
+                        {/* Micro-links - touch-friendly >=44px controls */}
+                        <div className="flex flex-wrap items-center gap-1 text-xs font-mono text-gray-600">
+                            <a href="/rss" className="min-h-[44px] min-w-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded hover:bg-gray-100 hover:text-black transition-colors">
+                                RSS <Rss size={12} aria-hidden="true" />
                             </a>
-                            <button onClick={() => setViewMode('archive')} className="hover:text-black transition-colors flex items-center gap-1">
-                                Archive <ArchiveIcon size={10} />
+                            <button type="button" onClick={() => setViewMode('archive')} className="min-h-[44px] min-w-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded hover:bg-gray-100 hover:text-black transition-colors">
+                                Archive <ArchiveIcon size={12} aria-hidden="true" />
                             </button>
-                            <a href="/policies" className="hover:text-black transition-colors flex items-center gap-1">
-                                Policies <BookOpen size={10} />
+                            <a href="/policies" className="min-h-[44px] min-w-[44px] px-2.5 inline-flex items-center justify-center gap-1.5 rounded hover:bg-gray-100 hover:text-black transition-colors">
+                                Policies <BookOpen size={12} aria-hidden="true" />
                             </a>
                         </div>
                     </div>
 
                     {/* Line 2: Disclaimer */}
-                    <div className="text-xs text-gray-500 font-mono mb-1">
+                    <div className="text-xs text-gray-600 font-mono mb-1 break-words">
                         Public working log. Not polished. Not canonical.
                     </div>
 
                     {/* Line 3: Scope */}
-                    <div className="text-xs text-gray-500 font-mono mb-4">
+                    <div className="text-xs text-gray-600 font-mono mb-4 break-words">
                         Scope: Operator workflows, owned AI systems, and fail-closed proof depth.
                     </div>
 
                     {/* Line 4: Focus */}
-                    <div className="text-xs font-mono flex items-center gap-2">
-                        <span className="text-gray-500 uppercase tracking-wider">Current Focus:</span>
-                        <div className="flex gap-2">
-                            <span className="text-black bg-gray-100 px-1.5 py-0.5 rounded-sm">Workflow Ownership</span>
-                            <span className="text-black bg-gray-100 px-1.5 py-0.5 rounded-sm">AI Agents</span>
-                            <span className="text-black bg-gray-100 px-1.5 py-0.5 rounded-sm">Proof Depth</span>
+                    <div className="text-xs font-mono flex flex-wrap items-center gap-2">
+                        <span className="text-gray-600 font-medium">Current Focus:</span>
+                        <div className="flex flex-wrap gap-2">
+                            <span className="text-gray-900 bg-gray-100 px-2 py-1 rounded-sm">Workflow Ownership</span>
+                            <span className="text-gray-900 bg-gray-100 px-2 py-1 rounded-sm">AI Agents</span>
+                            <span className="text-gray-900 bg-gray-100 px-2 py-1 rounded-sm">Proof Depth</span>
                         </div>
                     </div>
                 </div>
@@ -118,43 +118,46 @@ const App: React.FC = () => {
                         height={80}
                         loading="lazy"
                         decoding="async"
-                        className="w-20 h-20 rounded-full border border-gray-100 object-cover grayscale hover:grayscale-0 transition-all duration-500"
+                        className="w-20 h-20 rounded-full border border-gray-200 object-cover grayscale hover:grayscale-0 transition-all duration-500"
                     />
                 </div>
             </header>
 
             {/* 4. Navigation Hardening */}
-            <nav aria-label="Views" className="flex items-center gap-6 mb-16 text-sm font-medium text-gray-500 border-b border-gray-50 pb-4">
+            <nav aria-label="Views" className="flex flex-wrap items-center gap-2 mb-12 text-sm font-medium text-gray-600 border-b border-gray-200 pb-3">
                 <button
+                    type="button"
                     onClick={() => { setViewMode('feed'); setActiveTag(null); }}
                     aria-pressed={viewMode === 'feed' && !activeTag}
-                    className={`${viewMode === 'feed' && !activeTag ? 'text-black' : 'hover:text-gray-800'} transition-colors`}
+                    className={`min-h-[44px] min-w-[44px] px-3 inline-flex items-center justify-center rounded transition-colors ${viewMode === 'feed' && !activeTag ? 'text-black font-semibold bg-gray-100' : 'hover:text-black hover:bg-gray-50'}`}
                 >
                     Feed
                 </button>
                 <button
+                    type="button"
                     onClick={() => setViewMode('tags')}
                     aria-pressed={viewMode === 'tags' || activeTag !== null}
-                    className={`${viewMode === 'tags' || activeTag ? 'text-black' : 'hover:text-gray-800'} transition-colors`}
+                    className={`min-h-[44px] min-w-[44px] px-3 inline-flex items-center justify-center rounded transition-colors ${viewMode === 'tags' || activeTag ? 'text-black font-semibold bg-gray-100' : 'hover:text-black hover:bg-gray-50'}`}
                 >
                     Tags
                 </button>
                 <button
+                    type="button"
                     onClick={() => setViewMode('archive')}
                     aria-pressed={viewMode === 'archive'}
-                    className={`${viewMode === 'archive' ? 'text-black' : 'hover:text-gray-800'} transition-colors`}
+                    className={`min-h-[44px] min-w-[44px] px-3 inline-flex items-center justify-center rounded transition-colors ${viewMode === 'archive' ? 'text-black font-semibold bg-gray-100' : 'hover:text-black hover:bg-gray-50'}`}
                 >
                     Archive
                 </button>
             </nav>
 
             {/* Content Area */}
-            <main id="main-content" ref={mainRef} tabIndex={-1} className="flex-grow outline-none">
+            <main id="main-content" ref={mainRef} tabIndex={-1} className="min-w-0 flex-grow outline-none break-words">
                 {activeTag && (
-                    <div className="mb-12 flex items-center gap-2 bg-black text-white px-3 py-2 text-xs font-mono uppercase w-fit rounded-sm">
+                    <div className="mb-12 flex items-center gap-2 bg-black text-white px-3 py-1.5 text-xs font-mono w-fit rounded-sm">
                         <span>Filtering by: #{activeTag}</span>
-                        <button onClick={() => setActiveTag(null)} className="ml-2 hover:text-gray-300">
-                            <X size={12} />
+                        <button type="button" onClick={() => setActiveTag(null)} aria-label="Clear tag filter" className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center hover:text-gray-300">
+                            <X size={14} aria-hidden="true" />
                         </button>
                     </div>
                 )}
@@ -250,17 +253,17 @@ const App: React.FC = () => {
             </main>
 
             {/* Minimal Footer (Locked Structure) */}
-            <footer className="mt-32 pt-12 border-t border-gray-100 flex flex-col gap-6 text-sm text-gray-500 font-mono">
-                <div className="flex flex-col items-center gap-1">
+            <footer className="mt-24 pt-12 border-t border-gray-200 flex flex-col gap-6 text-sm text-gray-600 font-mono">
+                <div className="flex flex-col items-center gap-1 text-center">
                     <a
                         href="https://www.orionintelligenceagency.com/book?utm_source=danmercede.online&utm_medium=signal_cta&utm_campaign=readiness_scan"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-gray-900 font-medium text-xs uppercase tracking-wider hover:underline transition-colors"
+                        className="min-h-[44px] inline-flex items-center px-3 text-gray-900 font-medium text-xs uppercase tracking-wider hover:underline transition-colors"
                     >
                         Work with OIA on one workflow &rarr;
                     </a>
-                    <span className="text-gray-500 text-[10px] tracking-wide font-normal normal-case">
+                    <span className="text-gray-600 text-xs tracking-wide font-normal normal-case">
                         Strategy &bull; Leadership &bull; Engineering &bull; Agents
                     </span>
                 </div>
@@ -276,10 +279,10 @@ const App: React.FC = () => {
                             href="https://www.danmercede.com"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1 hover:text-black transition-colors"
+                            className="min-h-[44px] flex items-center gap-1 hover:text-black transition-colors"
                         >
                             Context: danmercede.com
-                            <ExternalLink size={12} />
+                            <ExternalLink size={12} aria-hidden="true" />
                         </a>
                     </div>
                 </div>
