@@ -1,8 +1,9 @@
-# CI gate (Spec 4b D4). No secrets. Runs the test suite, the inbox-drift gate
+# CI gate (Spec 4b D4). No secrets beyond read-only GITHUB_TOKEN for PR cap check.
+# Runs the test suite, the daily PT signal cap guard, the inbox-drift gate
 # (Spec 4b D5), and the exact production build path: with VERCEL=1 the prebuild
 # compile skips via the D1 guard and vite builds the committed bundle.
 #
-# Action versions stay at v4 — bumps are deferred to a separate housekeeping PR
+# Action versions stay at v4 -- bumps are deferred to a separate housekeeping PR
 # (Spec 4b D6).
 name: CI
 
@@ -10,12 +11,15 @@ on: pull_request
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -26,7 +30,14 @@ jobs:
         run: npm ci
 
       - name: Test
-        run: npm test
+        run: npm test && node --test tests/dailySignalCap.test.mjs
+
+      - name: Daily Pacific signal cap guard (REC-005)
+        run: node tools/checkDailySignalCap.mjs
+        env:
+          TZ: America/Los_Angeles
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
 
       - name: Inbox-drift gate (Spec 4b D5)
         run: npm run drift-check
@@ -38,10 +49,10 @@ jobs:
         env:
           VERCEL: "1"
 
-      # Round-2 R9 — assert the BUILT/served DOM body, not just the emitter string.
+      # Round-2 R9 -- assert the BUILT/served DOM body, not just the emitter string.
       # The bodyBake test (tests/bodyBake.test.ts) asserts the emitter/template; it
       # would still pass if a build-config change stopped the bake from landing in
-      # the served index.html (the passing-test-masks-prod-bug class — the exact
+      # the served index.html (the passing-test-masks-prod-bug class -- the exact
       # failure that let an empty served <body> ship green). vite's build.outDir is
       # the default `dist/` (no override in vite.config.ts), so the baked feed lands
       # in dist/index.html. Fail closed if the built body lost its <h1> or <p>.
@@ -57,7 +68,7 @@ jobs:
           p=$(grep -o '<p[ >]' "$BUILT" | wc -l | tr -d ' ')
           echo "R9 built-DOM body counts for $BUILT: h1=$h1 p=$p"
           if [ "$h1" -lt 1 ] || [ "$p" -lt 1 ]; then
-            echo "R9 FAIL: served body is blank — expected h1>=1 and p>=1, got h1=$h1 p=$p" >&2
+            echo "R9 FAIL: served body is blank -- expected h1>=1 and p>=1, got h1=$h1 p=$p" >&2
             exit 1
           fi
           echo "R9 OK: served body carries real crawlable content (h1=$h1 p=$p)"
