@@ -635,7 +635,8 @@ const RAW_META_RX = /^:(\d{6}) (\d{6}) ([0-9a-f]{40,64}) ([0-9a-f]{40,64}) ([A-Z
 // - Modified inbox entry: dropped ONLY when both sides are regular files and
 //   isFrontmatterPreservingEdit holds (a body-only edit). Any frontmatter
 //   change at all (slug, date, title, key order, a single byte), a base
-//   without the strict shape, an unreadable blob or a symlink is a signal.
+//   without the strict shape or an unreadable blob is a signal. (A symlink
+//   under inbox never gets this far: requireInboxDirectory refuses it.)
 // - Everything else (added, type change, unknown status): kept.
 //   --no-renames reports a rename as a delete plus an add, so a file renamed
 //   or copied into inbox/ counts as added.
@@ -647,7 +648,8 @@ const RAW_META_RX = /^:(\d{6}) (\d{6}) ([0-9a-f]{40,64}) ([0-9a-f]{40,64}) ([A-Z
 // If `inbox` were a symlink (or anything but a real directory), entries could
 // be published from paths this guard never classifies as inbox paths. So
 // `inbox` must be a tree (mode 040000) in the given commit; anything else,
-// including a missing inbox, cannot be counted and is refused.
+// including a missing inbox, cannot be counted and is refused. The same goes
+// for what is inside it (requireRegularInboxEntries).
 function requireInboxDirectory(commit, label, cwd) {
   const out = git(['ls-tree', '-z', commit, '--', INBOX_DIR], cwd);
   const records = out.split('\0').filter((record) => record.length > 0);
@@ -659,6 +661,38 @@ function requireInboxDirectory(commit, label, cwd) {
     throw new Error(
       `inbox is not a plain directory at ${label} (a symlink, file or submodule): the cap cannot be counted`,
     );
+  }
+  requireRegularInboxEntries(commit, label, cwd);
+}
+
+// The compiler reads each inbox entry through the filesystem, which follows
+// symlinks, so a link under inbox serves content that lives at a path this
+// guard never classifies as an inbox path: an edit to the link's target would
+// republish with no inbox path in the diff. A submodule (gitlink) under inbox
+// holds content this repository's history does not carry at all. So every
+// entry at any depth under inbox must be a regular file blob (mode 100644 or
+// 100755); a symlink (120000), a gitlink (160000), or any record that cannot
+// be read as exactly that is refused. An allowlist, so an unknown mode refuses.
+const INBOX_ENTRY_RX = /^(\d{6}) (\w+) [0-9a-f]{40,64}\t(.+)$/s;
+
+function requireRegularInboxEntries(commit, label, cwd) {
+  const out = git(['ls-tree', '-r', '-z', commit, '--', INBOX_DIR], cwd);
+  const records = out.split('\0');
+  if (records[records.length - 1] === '') {
+    records.pop();
+  }
+  for (const record of records) {
+    const match = INBOX_ENTRY_RX.exec(record);
+    if (
+      !match ||
+      !match[3].startsWith(`${INBOX_DIR}/`) ||
+      match[2] !== 'blob' ||
+      !REGULAR_FILE_MODES.has(match[1])
+    ) {
+      throw new Error(
+        `inbox holds an entry that is not a regular file at ${label} (a symlink or submodule): the cap cannot be counted`,
+      );
+    }
   }
 }
 

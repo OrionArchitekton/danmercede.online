@@ -841,7 +841,7 @@ test('prefix rule: unreadable blobs and non-buffers are never a frontmatter-pres
   assert.equal(isFrontmatterPreservingEdit(rawBase, rawHead), false);
 });
 
-test('a modified inbox symlink is a signal whatever its target text says', (t) => {
+test('a modified inbox symlink is refused whatever its target text says', (t) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'signal-cap-link-'));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   const git = (...args) =>
@@ -859,7 +859,11 @@ test('a modified inbox symlink is a signal whatever its target text says', (t) =
   fs.symlinkSync('---\nslug: kept\n---\nb', path.join(dir, 'inbox', 'link.md'));
   git('add', '-A');
   git('commit', '-q', '-m', 'change');
-  assert.deepEqual(resolveAddedPaths({ cwd: dir, env: { BASE_SHA: baseSha } }), ['inbox/link.md']);
+  // A symlink under inbox is refused outright (stronger than counting it).
+  assert.throws(() => resolveAddedPaths({ cwd: dir, env: { BASE_SHA: baseSha } }), /inbox/);
+  const { code, verdict } = runCliIn(dir, { BASE_SHA: baseSha });
+  assert.equal(code, 2);
+  assert.equal(verdict.status, 'blocked');
 });
 
 test('an other-day merged PR with null or malformed files does not block a later signal PR', () => {
@@ -1526,7 +1530,7 @@ test('HEAD_SHA: PR-supplied attributes, diff drivers and option-shaped paths are
 
 // ---- The inbox path itself: it must be a real directory on both sides ----
 
-function inboxShapeRepo(t, mutateHead, { baseInbox = 'dir' } = {}) {
+function inboxShapeRepo(t, mutateHead, { baseInbox = 'dir', mutateBase = null } = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'signal-cap-inbox-'));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   const git = (...args) =>
@@ -1543,6 +1547,9 @@ function inboxShapeRepo(t, mutateHead, { baseInbox = 'dir' } = {}) {
     fs.mkdirSync(path.join(dir, 'stash'));
     fs.writeFileSync(path.join(dir, 'stash', 'existing.md'), entry('existing'));
     fs.symlinkSync('stash', path.join(dir, 'inbox'));
+  }
+  if (mutateBase) {
+    mutateBase(dir);
   }
   git('add', '-A');
   git('commit', '-q', '-m', 'base');
@@ -1617,4 +1624,89 @@ test('a normal PR is unaffected by the inbox shape check', (t) => {
   const { code, verdict } = runCliIn(plain.dir, { BASE_SHA: plain.baseSha });
   assert.equal(code, 0);
   assert.equal(verdict.status, 'skipped_non_signal');
+});
+
+// ---- Entries inside inbox: regular files only, on both sides ----
+// The compiler lists inbox and reads each *.md through the filesystem, which
+// follows symlinks. A link (or submodule) under inbox would serve content that
+// lives at a path this guard never classifies as an inbox path.
+
+const linkTo = (target, ...at) => (d) => {
+  fs.mkdirSync(path.join(d, 'stash'), { recursive: true });
+  fs.writeFileSync(path.join(d, 'stash', 'target.md'), entry('target'));
+  fs.mkdirSync(path.dirname(path.join(d, ...at)), { recursive: true });
+  fs.symlinkSync(target, path.join(d, ...at));
+};
+
+const nestedRepoAt = (...at) => (d) => {
+  const sub = path.join(d, ...at);
+  fs.mkdirSync(sub, { recursive: true });
+  const subGit = (...args) =>
+    execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.invalid',
+      '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', ...args],
+    { cwd: sub, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  subGit('init', '-q', '-b', 'main');
+  fs.writeFileSync(path.join(sub, 'post.md'), entry('vendored'));
+  subGit('add', '-A');
+  subGit('commit', '-q', '-m', 'sub');
+};
+
+test('an edit that reaches signal content behind an unchanged inbox symlink is refused', (t) => {
+  // Base already holds inbox/link.md -> ../stash/target.md. The PR changes only
+  // the frontmatter of stash/target.md: no inbox path appears in its diff.
+  const repo = inboxShapeRepo(t, (d) => {
+    fs.writeFileSync(path.join(d, 'stash', 'target.md'), entry('retitled-and-republished'));
+  }, { mutateBase: linkTo('../stash/target.md', 'inbox', 'link.md') });
+  expectInboxRefusal(t, repo, 'unchanged symlink, target edited');
+});
+
+test('a symlink or submodule entry inside inbox at the base is refused, even for an unrelated change', (t) => {
+  const bases = {
+    'file symlink': linkTo('../stash/target.md', 'inbox', 'link.md'),
+    'symlink without the .md suffix': linkTo('../stash/target.md', 'inbox', 'link'),
+    'directory symlink': linkTo('../stash', 'inbox', 'more'),
+    'nested symlink': linkTo('../../stash/target.md', 'inbox', 'sub', 'link.md'),
+    'dangling symlink': linkTo('../nowhere.md', 'inbox', 'gone.md'),
+    'submodule': nestedRepoAt('inbox', 'vendored'),
+  };
+  for (const [label, mutateBase] of Object.entries(bases)) {
+    const repo = inboxShapeRepo(t, (d) => {
+      fs.writeFileSync(path.join(d, 'README.md'), 'changed\n');
+    }, { mutateBase });
+    expectInboxRefusal(t, repo, label);
+  }
+});
+
+test('a symlink or submodule entry inside inbox at the head is refused', (t) => {
+  const heads = {
+    'added file symlink': linkTo('../stash/target.md', 'inbox', 'link.md'),
+    'added directory symlink': linkTo('../stash', 'inbox', 'more'),
+    'added nested symlink': linkTo('../../stash/target.md', 'inbox', 'sub', 'link.md'),
+    'existing entry replaced by a symlink': (d) => {
+      fs.renameSync(path.join(d, 'inbox', 'existing.md'), path.join(d, 'moved.md'));
+      fs.symlinkSync('../moved.md', path.join(d, 'inbox', 'existing.md'));
+    },
+    'added submodule': nestedRepoAt('inbox', 'vendored'),
+  };
+  for (const [label, mutateHead] of Object.entries(heads)) {
+    expectInboxRefusal(t, inboxShapeRepo(t, mutateHead), label);
+  }
+});
+
+test('a PR that removes an inbox symlink is still refused: the base cannot be counted', (t) => {
+  const repo = inboxShapeRepo(t, (d) => {
+    fs.unlinkSync(path.join(d, 'inbox', 'link.md'));
+  }, { mutateBase: linkTo('../stash/target.md', 'inbox', 'link.md') });
+  expectInboxRefusal(t, repo, 'symlink removed at head');
+});
+
+test('regular inbox files of either file mode, and symlinks outside inbox, are unaffected', (t) => {
+  const repo = inboxShapeRepo(t, (d) => {
+    fs.writeFileSync(path.join(d, 'inbox', 'new.md'), entry('new'), { mode: 0o755 });
+    fs.mkdirSync(path.join(d, 'inbox', 'sub'));
+    fs.writeFileSync(path.join(d, 'inbox', 'sub', 'note.txt'), 'x\n');
+    fs.symlinkSync('README.md', path.join(d, 'readme-link'));
+  });
+  const added = resolveAddedPaths({ cwd: repo.dir, env: { BASE_SHA: repo.baseSha, HEAD_SHA: repo.headSha } });
+  assert.deepEqual([...added].sort(), ['inbox/new.md', 'inbox/sub/note.txt', 'readme-link']);
 });
