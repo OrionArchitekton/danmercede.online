@@ -1283,3 +1283,200 @@ test('fixture repos keep CRLF bytes whatever the git line-ending config says', (
   const blob = execFileSync('git', ['cat-file', 'blob', 'HEAD:inbox/crlf.md'], { cwd: viaMakeRepo.dir });
   assert.ok(blob.equals(Buffer.from(crlf)));
 });
+
+// ---- Base-owned gate (HEAD_SHA): the guard that runs is never the PR's copy ----
+
+const REPO_ROOT = path.resolve(import.meta.dirname, '..');
+
+// Loopback history: `count` one-signal PRs merged just now (so, today Pacific).
+async function startHistoryServer(t, count) {
+  const server = http.createServer((req, res) => {
+    req.resume();
+    const mergedAt = new Date().toISOString();
+    const nodes = Array.from({ length: count }, (_, i) =>
+      makeNode(900 + i, mergedAt, [`inbox/merged-today-${i}.md`]));
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ data: { repository: { pullRequests: {
+      totalCount: count, pageInfo: { hasNextPage: false, endCursor: null }, nodes,
+    } } } }));
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => server.close());
+  return `http://127.0.0.1:${server.address().port}/graphql`;
+}
+
+// Fixture: the base commit carries the real guard and workflow; the PR head
+// commit is built by `mutateHead`. The working tree is left at the BASE commit,
+// as it is in the base-owned workflow, so only HEAD_SHA points at the PR.
+function gateRepo(t, mutateHead, { leaveAt = 'base', configure = null } = {}) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'signal-cap-gate-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const git = (...args) =>
+    execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.invalid',
+      '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', ...args],
+    { cwd: dir, encoding: 'utf8' }).trim();
+  git('init', '-q', '-b', 'main');
+  disableLineEndingConversion(dir);
+  fs.mkdirSync(path.join(dir, 'inbox'));
+  fs.mkdirSync(path.join(dir, 'tools'));
+  fs.mkdirSync(path.join(dir, '.github', 'workflows'), { recursive: true });
+  fs.writeFileSync(path.join(dir, 'inbox', 'existing.md'), entry('existing'));
+  fs.copyFileSync(path.join(REPO_ROOT, 'tools', 'checkDailySignalCap.mjs'), path.join(dir, 'tools', 'checkDailySignalCap.mjs'));
+  fs.copyFileSync(path.join(REPO_ROOT, '.github', 'workflows', 'ci.yml'), path.join(dir, '.github', 'workflows', 'ci.yml'));
+  git('add', '-A');
+  git('commit', '-q', '-m', 'base');
+  const baseSha = git('rev-parse', 'HEAD');
+  git('checkout', '-q', '-b', 'pr');
+  mutateHead(dir);
+  git('add', '-A');
+  git('commit', '-q', '-m', 'pr head');
+  const headSha = git('rev-parse', 'HEAD');
+  if (configure) {
+    configure(dir, git);
+  }
+  if (leaveAt === 'base') {
+    git('checkout', '-q', '--detach', baseSha);
+  }
+  return { dir, baseSha, headSha, git };
+}
+
+const addSignal = (d) => fs.writeFileSync(path.join(d, 'inbox', 'new.md'), entry('new'));
+
+const GATE_ATTACKS = {
+  'rewrites the guard to exit 0': (d) => {
+    addSignal(d);
+    fs.writeFileSync(path.join(d, 'tools', 'checkDailySignalCap.mjs'), 'process.exit(0);\n');
+  },
+  'deletes the guard': (d) => {
+    addSignal(d);
+    fs.rmSync(path.join(d, 'tools', 'checkDailySignalCap.mjs'));
+  },
+  'drops the guard step from ci.yml': (d) => {
+    addSignal(d);
+    const ci = path.join(d, '.github', 'workflows', 'ci.yml');
+    const text = fs.readFileSync(ci, 'utf8');
+    const start = text.indexOf('      - name: Daily Pacific signal cap guard');
+    const end = text.indexOf('      - name: Inbox-drift gate');
+    assert.ok(start !== -1 && end > start);
+    fs.writeFileSync(ci, text.slice(0, start) + text.slice(end));
+  },
+};
+
+for (const [label, attack] of Object.entries(GATE_ATTACKS)) {
+  test(`control: at the cap, a PR that adds a signal and ${label} is still refused by the base guard`, async (t) => {
+    const endpoint = await startHistoryServer(t, 3);
+    const { dir, baseSha, headSha, git } = gateRepo(t, attack);
+    // The REAL guard from this tree (standing in for the base checkout).
+    const { code, stdout } = await runCliAsync(dir, {
+      BASE_SHA: baseSha,
+      HEAD_SHA: headSha,
+      GITHUB_TOKEN: 'test-token',
+      SIGNAL_CAP_TEST_ENDPOINT: endpoint,
+    });
+    assert.equal(code, 4);
+    const verdict = JSON.parse(stdout);
+    assert.equal(verdict.reason, 'CAP_EXCEEDED_REMOTE_RECONCILED');
+    assert.equal(verdict.remoteMergedPtToday, 3);
+    assert.deepEqual(verdict.signalPaths, ['inbox/new.md']);
+
+    // Contrast: what the PR's own copy of the gate would have said.
+    const prGuardPresent = (() => {
+      try {
+        git('cat-file', '-e', `${headSha}:tools/checkDailySignalCap.mjs`);
+        return true;
+      } catch {
+        return false;
+      }
+    })();
+    if (label === 'rewrites the guard to exit 0') {
+      const prCopy = path.join(dir, 'pr-copy-of-guard.mjs');
+      fs.writeFileSync(prCopy, git('cat-file', 'blob', `${headSha}:tools/checkDailySignalCap.mjs`));
+      const result = await new Promise((resolve) => {
+        execFile(process.execPath, [prCopy], { cwd: dir, env: { PATH: process.env.PATH, HOME: dir } },
+          (err) => resolve(err ? err.code : 0));
+      });
+      assert.equal(result, 0);
+    } else if (label === 'deletes the guard') {
+      assert.equal(prGuardPresent, false);
+    } else {
+      const prCi = git('cat-file', 'blob', `${headSha}:.github/workflows/ci.yml`);
+      assert.equal(prCi.includes('checkDailySignalCap.mjs'), false);
+    }
+  });
+}
+
+test('control: below the cap the same base guard admits the PR, so the refusals above come from the cap', async (t) => {
+  const endpoint = await startHistoryServer(t, 2);
+  const { dir, baseSha, headSha } = gateRepo(t, GATE_ATTACKS['rewrites the guard to exit 0']);
+  const { code, stdout } = await runCliAsync(dir, {
+    BASE_SHA: baseSha,
+    HEAD_SHA: headSha,
+    GITHUB_TOKEN: 'test-token',
+    SIGNAL_CAP_TEST_ENDPOINT: endpoint,
+  });
+  assert.equal(code, 0);
+  assert.equal(JSON.parse(stdout).projectedTotalPtToday, 3);
+});
+
+test('HEAD_SHA: the diff is taken to the named commit, not to the workspace HEAD', (t) => {
+  const { dir, baseSha, headSha } = gateRepo(t, addSignal);
+  // Workspace HEAD is the base commit; only HEAD_SHA names the PR.
+  assert.deepEqual(resolveAddedPaths({ cwd: dir, env: { BASE_SHA: baseSha, HEAD_SHA: headSha } }), ['inbox/new.md']);
+  assert.deepEqual(resolveAddedPaths({ cwd: dir, env: { BASE_SHA: baseSha } }), []);
+});
+
+test('HEAD_SHA: malformed, missing or not a commit fails closed with exit 2', (t) => {
+  const { dir, baseSha, headSha, git } = gateRepo(t, addSignal);
+  const treeId = git('rev-parse', `${headSha}^{tree}`);
+  const blobId = git('rev-parse', `${headSha}:inbox/new.md`);
+  const bad = {
+    'not hex': 'refs/remotes/pr/head',
+    'option-shaped': '--output=/dev/null',
+    'short': headSha.slice(0, 12),
+    'upper-case junk': 'Z'.repeat(40),
+    'missing object': 'b'.repeat(40),
+    'a tree, not a commit': treeId,
+    'a blob, not a commit': blobId,
+    'empty string set explicitly': '',
+  };
+  for (const [label, value] of Object.entries(bad)) {
+    if (label === 'empty string set explicitly') {
+      assert.throws(() => resolveAddedPaths({ cwd: dir, env: { BASE_SHA: baseSha, HEAD_SHA: value } }), /HEAD_SHA/, label);
+    }
+    const { code, verdict } = runCliIn(dir, { BASE_SHA: baseSha, HEAD_SHA: value });
+    assert.equal(code, 2, label);
+    assert.equal(verdict.status, 'blocked', label);
+  }
+});
+
+test('HEAD_SHA: PR-supplied attributes, diff drivers and option-shaped paths are data, never executed', (t) => {
+  const marker = path.join(os.tmpdir(), `signal-cap-marker-${process.pid}-${Date.now()}`);
+  t.after(() => fs.rmSync(marker, { force: true }));
+  const build = (leaveAt) => gateRepo(t, (d) => {
+    fs.writeFileSync(path.join(d, '.gitattributes'), '* diff=evil\n*.md diff=evil text eol=crlf filter=evil\n');
+    fs.writeFileSync(path.join(d, 'inbox', 'existing.md'), entry('existing', 'body edit only'));
+    fs.writeFileSync(path.join(d, 'inbox', '--output=x.md'), entry('opt'));
+    fs.writeFileSync(path.join(d, 'inbox', '-rf.md'), entry('rf'));
+    fs.writeFileSync(path.join(d, '--no-index'), 'x\n');
+    fs.writeFileSync(path.join(d, 'README.md'), 'changed\n');
+  }, {
+    leaveAt,
+    // Worst case: the drivers the PR's attributes name really are configured.
+    configure: (d, git) => {
+      const evil = path.join(d, 'evil.sh');
+      fs.writeFileSync(evil, `#!/bin/sh\ntouch "${marker}"\ncat "$1" 2>/dev/null\n`, { mode: 0o755 });
+      git('config', 'diff.evil.textconv', evil);
+      git('config', 'diff.evil.command', evil);
+      git('config', 'filter.evil.smudge', evil);
+      git('config', 'filter.evil.clean', evil);
+    },
+  });
+  for (const leaveAt of ['base', 'head']) {
+    const { dir, baseSha, headSha } = build(leaveAt);
+    fs.rmSync(marker, { force: true });
+    const added = resolveAddedPaths({ cwd: dir, env: { BASE_SHA: baseSha, HEAD_SHA: headSha } });
+    assert.deepEqual([...added].sort(), ['--no-index', '.gitattributes', 'README.md', 'inbox/--output=x.md', 'inbox/-rf.md']);
+    assert.deepEqual(added.filter((p) => isInboxSignalPath(p)).sort(), ['inbox/--output=x.md', 'inbox/-rf.md']);
+    assert.equal(fs.existsSync(marker), false, `a PR-named driver ran (worktree at ${leaveAt})`);
+  }
+});

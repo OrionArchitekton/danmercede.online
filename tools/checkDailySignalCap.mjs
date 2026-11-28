@@ -553,27 +553,62 @@ export function isFrontmatterPreservingEdit(baseBlob, headBlob) {
   return baseBlob.subarray(0, length).equals(headBlob.subarray(0, length));
 }
 
+// Every git call is read-only and treats the PR as data. Nothing is checked
+// out, so the working tree (and with it any .gitattributes, hooks or config a
+// PR adds) stays whatever the caller checked out. Hooks and the fsmonitor hook
+// are switched off outright.
+const GIT_HARDENING = [
+  '-c',
+  'core.quotePath=false',
+  '-c',
+  'core.fsmonitor=false',
+  '-c',
+  'core.hooksPath=/dev/null',
+];
+
 function git(args, cwd) {
-  return execFileSync('git', ['-c', 'core.quotePath=false', ...args], {
+  return execFileSync('git', [...GIT_HARDENING, ...args], {
     encoding: 'utf8',
     cwd,
     maxBuffer: 64 * 1024 * 1024,
   });
 }
 
-// Raw bytes of a blob by object id, or null when it cannot be read.
+// Raw bytes of a blob by object id, or null when it cannot be read. By id, so
+// no path, attribute, filter or textconv is involved.
 function readBlob(objectId, cwd) {
   if (!/^[0-9a-f]{40,64}$/.test(objectId) || /^0+$/.test(objectId)) {
     return null;
   }
   try {
-    return execFileSync('git', ['cat-file', 'blob', objectId], {
+    return execFileSync('git', [...GIT_HARDENING, 'cat-file', 'blob', objectId], {
       cwd,
       maxBuffer: 64 * 1024 * 1024,
     });
   } catch {
     return null;
   }
+}
+
+// HEAD_SHA names the PR head commit explicitly, for a base-owned run where the
+// workspace is the base checkout and the PR head was only fetched. It must be
+// a full lowercase object id that resolves to a commit in this repository.
+const FULL_OBJECT_ID_RX = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/;
+
+function requireCommit(objectId, label, cwd) {
+  if (typeof objectId !== 'string' || !FULL_OBJECT_ID_RX.test(objectId)) {
+    throw new Error(`${label} is not a full hexadecimal commit id`);
+  }
+  let type;
+  try {
+    type = git(['cat-file', '-t', objectId], cwd).trim();
+  } catch {
+    throw new Error(`${label} does not name an object in this repository`);
+  }
+  if (type !== 'commit') {
+    throw new Error(`${label} names a ${type}, not a commit`);
+  }
+  return objectId;
 }
 
 const REGULAR_FILE_MODES = new Set(['100644', '100755']);
@@ -589,17 +624,31 @@ const RAW_META_RX = /^:(\d{6}) (\d{6}) ([0-9a-f]{40,64}) ([0-9a-f]{40,64}) ([A-Z
 // - Everything else (added, type change, unknown status): kept.
 //   --no-renames reports a rename as a delete plus an add, so a file renamed
 //   or copied into inbox/ counts as added.
-// --raw gives modes and blob ids, so blobs are read by id, not by path.
+// The raw diff gives modes and blob ids, so blobs are read by id, not by path.
 // -z: NUL-delimited, never quoted. Without it git quotes a path holding a
 // double quote, backslash or control character even with core.quotePath=false,
 // and the quoted form would not be recognised as an inbox path.
-function gitDiffAddedPaths(baseRef, cwd) {
-  const mergeBase = git(['merge-base', baseRef, 'HEAD'], cwd).trim();
+function gitDiffAddedPaths(baseRef, cwd, headRef = 'HEAD') {
+  const mergeBase = git(['merge-base', baseRef, headRef], cwd).trim();
   if (!HEX_SHA_RX.test(mergeBase)) {
     throw new Error('could not resolve the merge base');
   }
+  // Tree-to-tree plumbing diff of two commits: never touches the index or the
+  // working tree, and never runs an external diff or textconv driver.
   const out = git(
-    ['diff', '--raw', '--no-abbrev', '--no-renames', '-z', mergeBase, 'HEAD', '--'],
+    [
+      'diff-tree',
+      '-r',
+      '--raw',
+      '--no-abbrev',
+      '--no-renames',
+      '--no-ext-diff',
+      '--no-textconv',
+      '-z',
+      mergeBase,
+      headRef,
+      '--',
+    ],
     cwd,
   );
   const fields = out.split('\0');
@@ -639,6 +688,15 @@ function gitDiffAddedPaths(baseRef, cwd) {
 
 export function resolveAddedPaths({ cwd = process.cwd(), env = process.env } = {}) {
   const baseSha = (env.BASE_SHA || env.GITHUB_BASE_SHA || '').trim();
+  // Base-owned run: HEAD_SHA is set (even to an empty string) and must then be
+  // a real commit, with an explicit BASE_SHA. No fallback of any kind.
+  if (env.HEAD_SHA !== undefined) {
+    const headSha = requireCommit(env.HEAD_SHA, 'HEAD_SHA', cwd);
+    if (!baseSha) {
+      throw new Error('HEAD_SHA is set but BASE_SHA is missing');
+    }
+    return gitDiffAddedPaths(requireCommit(baseSha, 'BASE_SHA', cwd), cwd, headSha);
+  }
   if (baseSha) {
     if (!HEX_SHA_RX.test(baseSha)) {
       throw new Error('BASE_SHA is not a valid hexadecimal commit digest');
