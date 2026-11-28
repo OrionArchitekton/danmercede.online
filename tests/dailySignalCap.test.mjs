@@ -474,3 +474,78 @@ test('merged times are bucketed by the Pacific day, across midnight and daylight
   assert.equal(formatPacificDay('2026-11-28T00:30:00-08:00'), '2026-11-28');
   assert.equal(formatPacificDay('2026-11-28T08:00:00.123Z'), '2026-11-28');
 });
+
+test('the cap is 3 per Pacific day by default: the third signal is admitted, the fourth is not', () => {
+  const today = (n) =>
+    Array.from({ length: n }, (_, i) =>
+      makeNode(200 + i, '2026-11-28T18:00:00Z', [`inbox/2026-11-28-${i}.md`]),
+    );
+  const third = evaluateDailySignalCap({
+    changedPaths: SIGNAL_CANDIDATE,
+    todayPt: '2026-11-28',
+    graphqlPayload: payloadOf(today(2)),
+  });
+  assert.equal(third.dailyCap, 3);
+  assert.equal(third.exitCode, 0);
+  assert.equal(third.projectedTotalPtToday, 3);
+  const fourth = evaluateDailySignalCap({
+    changedPaths: SIGNAL_CANDIDATE,
+    todayPt: '2026-11-28',
+    graphqlPayload: payloadOf(today(3)),
+  });
+  assert.equal(fourth.dailyCap, 3);
+  assert.equal(fourth.exitCode, 4);
+  const twoAtOnce = evaluateDailySignalCap({
+    changedPaths: ['inbox/2026-11-28-x.md', 'inbox/2026-11-28-y.md'],
+    todayPt: '2026-11-28',
+    graphqlPayload: payloadOf(today(2)),
+  });
+  assert.equal(twoAtOnce.exitCode, 4);
+});
+
+// Runs the real CLI in a throwaway repo with no token in the environment, so
+// it can never reach the network.
+function runCliIn(dir, env) {
+  const toolPath = path.resolve(import.meta.dirname, '..', 'tools', 'checkDailySignalCap.mjs');
+  const childEnv = { PATH: process.env.PATH, HOME: dir, ...env };
+  try {
+    const stdout = execFileSync(process.execPath, [toolPath], {
+      cwd: dir,
+      env: childEnv,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    return { code: 0, verdict: JSON.parse(stdout) };
+  } catch (err) {
+    return { code: err.status, verdict: JSON.parse(err.stdout) };
+  }
+}
+
+test('CLI: a non-signal PR passes with no token and no remote read', (t) => {
+  const { dir, baseSha } = makeRepo(t, (d) => {
+    fs.writeFileSync(path.join(d, 'README.md'), 'readme, edited\n');
+    fs.writeFileSync(path.join(d, 'inbox', 'existing.md'), 'one, edited\n');
+  });
+  const { code, verdict } = runCliIn(dir, { BASE_SHA: baseSha });
+  assert.equal(code, 0);
+  assert.equal(verdict.status, 'skipped_non_signal');
+});
+
+test('CLI: a signal PR with no token fails closed', (t) => {
+  const { dir, baseSha } = makeRepo(t, (d) => {
+    fs.writeFileSync(path.join(d, 'inbox', 'new.md'), 'brand new\n');
+  });
+  const { code, verdict } = runCliIn(dir, { BASE_SHA: baseSha });
+  assert.equal(code, 2);
+  assert.equal(verdict.reason, 'MISSING_GITHUB_TOKEN');
+});
+
+test('CLI: an unusable base commit fails closed instead of passing', (t) => {
+  const { dir } = makeRepo(t, (d) => {
+    fs.writeFileSync(path.join(d, 'inbox', 'new.md'), 'brand new\n');
+  });
+  const malformed = runCliIn(dir, { BASE_SHA: 'main; echo x' });
+  assert.equal(malformed.code, 2);
+  const unknown = runCliIn(dir, { BASE_SHA: 'a'.repeat(40) });
+  assert.equal(unknown.code, 2);
+});
