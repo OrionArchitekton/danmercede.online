@@ -134,3 +134,46 @@ test('counts non-dated inbox/*.md files and multi-signal PRs against daily cap (
   assert.equal(verdict.remoteMergedPtToday, 2);
   assert.equal(verdict.projectedTotalPtToday, 4);
 });
+
+function payloadOf(nodes, totalCount = nodes.length) {
+  return {
+    data: {
+      repository: {
+        pullRequests: {
+          totalCount,
+          pageInfo: { hasNextPage: false, endCursor: null },
+          nodes,
+        },
+      },
+    },
+  };
+}
+
+test('a prior-day merged PR with a truncated file list does not block a later signal PR', () => {
+  // Shape of the real history: one old PR changed 159 files, the query returns 100.
+  const bigOldPaths = Array.from({ length: 100 }, (_, i) => `inbox/old-${i}.md`);
+  const verdict = evaluateDailySignalCap({
+    changedPaths: ['inbox/2026-11-28-new.md'],
+    todayPt: '2026-11-28',
+    graphqlPayload: payloadOf([
+      makeNode(190, '2026-11-24T06:21:46Z', bigOldPaths, 159),
+      makeNode(191, '2026-11-25T05:17:06Z', ['App.tsx']),
+    ]),
+  });
+  assert.equal(verdict.exitCode, 0);
+  assert.equal(verdict.status, 'admitted');
+  assert.equal(verdict.remoteMergedPtToday, 0);
+});
+
+test('a target-day merged PR with a truncated file list still fails closed', () => {
+  const verdict = evaluateDailySignalCap({
+    changedPaths: ['inbox/2026-11-28-new.md'],
+    todayPt: '2026-11-28',
+    graphqlPayload: payloadOf([
+      makeNode(193, '2026-11-28T18:00:00Z', ['App.tsx'], 159),
+    ]),
+  });
+  assert.equal(verdict.exitCode, 2);
+  assert.equal(verdict.reason, 'INCOMPLETE_PAGINATION_COUNT');
+  assert.equal(verdict.prNumber, 193);
+});
