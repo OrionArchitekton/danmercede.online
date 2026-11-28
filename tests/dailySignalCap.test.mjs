@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
 import fs from 'node:fs';
+import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -10,6 +11,7 @@ import {
   fetchAllMergedPullRequests,
   formatPacificDay,
   isInboxSignalPath,
+  postGraphql,
   resolveAddedPaths,
 } from '../tools/checkDailySignalCap.mjs';
 
@@ -548,4 +550,152 @@ test('CLI: an unusable base commit fails closed instead of passing', (t) => {
   assert.equal(malformed.code, 2);
   const unknown = runCliIn(dir, { BASE_SHA: 'a'.repeat(40) });
   assert.equal(unknown.code, 2);
+});
+
+// Loopback HTTP server that misbehaves in one chosen way. No external network.
+async function startServer(t, mode) {
+  const sockets = new Set();
+  const server = http.createServer((req, res) => {
+    req.resume();
+    if (mode === 'truncate-content-length') {
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Content-Length': 1000 });
+      res.write('{"data":{"repository":{"pullRequests":{"totalCount":0,');
+      setTimeout(() => res.socket.destroy(), 20);
+    } else if (mode === 'truncate-chunked') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.write('{"data":{"repository":{"pullRequests":{"totalCount":0,');
+      setTimeout(() => res.socket.destroy(), 20);
+    } else if (mode === 'hang') {
+      // never answers
+    } else if (mode === 'complete-empty-history') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ data: { repository: { pullRequests: {
+        totalCount: 0, pageInfo: { hasNextPage: false, endCursor: null }, nodes: [],
+      } } } }));
+    }
+  });
+  server.on('connection', (socket) => {
+    sockets.add(socket);
+    socket.on('close', () => sockets.delete(socket));
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const { port } = server.address();
+  t.after(() => {
+    for (const socket of sockets) socket.destroy();
+    server.close();
+  });
+  return `http://127.0.0.1:${port}/graphql`;
+}
+
+// A loopback port with nothing listening on it.
+async function closedEndpoint() {
+  const server = http.createServer();
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const { port } = server.address();
+  await new Promise((resolve) => server.close(resolve));
+  return `http://127.0.0.1:${port}/graphql`;
+}
+
+// Settles to 'rejected', 'resolved' or 'never-settled' within the window.
+function outcomeOf(promise, windowMs = 3000) {
+  let timer;
+  const never = new Promise((resolve) => {
+    timer = setTimeout(() => resolve('never-settled'), windowMs);
+  });
+  return Promise.race([
+    promise.then(() => 'resolved', () => 'rejected'),
+    never,
+  ]).finally(() => clearTimeout(timer));
+}
+
+for (const mode of ['truncate-content-length', 'truncate-chunked']) {
+  test(`transport: a response cut mid-body rejects (${mode})`, async (t) => {
+    const endpoint = await startServer(t, mode);
+    const outcome = await outcomeOf(postGraphql('t', {}, { endpoint, timeoutMs: 2000 }));
+    assert.equal(outcome, 'rejected');
+  });
+}
+
+test('transport: connection refused rejects', async () => {
+  const endpoint = await closedEndpoint();
+  assert.equal(await outcomeOf(postGraphql('t', {}, { endpoint, timeoutMs: 2000 })), 'rejected');
+});
+
+test('transport: a server that never answers rejects at the timeout', async (t) => {
+  const endpoint = await startServer(t, 'hang');
+  assert.equal(await outcomeOf(postGraphql('t', {}, { endpoint, timeoutMs: 200 })), 'rejected');
+});
+
+test('transport: a complete response resolves with the parsed body', async (t) => {
+  const endpoint = await startServer(t, 'complete-empty-history');
+  const body = await postGraphql('t', {}, { endpoint, timeoutMs: 2000 });
+  assert.equal(body.data.repository.pullRequests.totalCount, 0);
+});
+
+// Async CLI run (the loopback server lives in this process, so no execFileSync).
+function runCliAsync(dir, env) {
+  const toolPath = path.resolve(import.meta.dirname, '..', 'tools', 'checkDailySignalCap.mjs');
+  return new Promise((resolve) => {
+    execFile(
+      process.execPath,
+      [toolPath],
+      { cwd: dir, env: { PATH: process.env.PATH, HOME: dir, ...env }, encoding: 'utf8', timeout: 20000 },
+      (err, stdout) => resolve({ code: err ? err.code : 0, stdout }),
+    );
+  });
+}
+
+function signalRepo(t) {
+  return makeRepo(t, (d) => {
+    fs.writeFileSync(path.join(d, 'inbox', 'new.md'), '---\nslug: new\n---\nbody\n');
+  });
+}
+
+for (const mode of ['truncate-content-length', 'truncate-chunked', 'hang']) {
+  test(`CLI: a signal PR never passes when the remote read is cut or hangs (${mode})`, async (t) => {
+    const endpoint = await startServer(t, mode);
+    const { dir, baseSha } = signalRepo(t);
+    const { code, stdout } = await runCliAsync(dir, {
+      BASE_SHA: baseSha,
+      GITHUB_TOKEN: 'test-token',
+      SIGNAL_CAP_TEST_ENDPOINT: endpoint,
+      SIGNAL_CAP_TEST_TIMEOUT_MS: '300',
+    });
+    assert.equal(code, 2);
+    assert.equal(JSON.parse(stdout).status, 'blocked');
+  });
+}
+
+test('CLI: a signal PR never passes when the connection is refused', async (t) => {
+  const endpoint = await closedEndpoint();
+  const { dir, baseSha } = signalRepo(t);
+  const { code } = await runCliAsync(dir, {
+    BASE_SHA: baseSha,
+    GITHUB_TOKEN: 'test-token',
+    SIGNAL_CAP_TEST_ENDPOINT: endpoint,
+  });
+  assert.equal(code, 2);
+});
+
+test('CLI: a signal PR is admitted on a complete read of an empty history', async (t) => {
+  const endpoint = await startServer(t, 'complete-empty-history');
+  const { dir, baseSha } = signalRepo(t);
+  const { code, stdout } = await runCliAsync(dir, {
+    BASE_SHA: baseSha,
+    GITHUB_TOKEN: 'test-token',
+    SIGNAL_CAP_TEST_ENDPOINT: endpoint,
+  });
+  assert.equal(code, 0);
+  assert.equal(JSON.parse(stdout).status, 'admitted');
+});
+
+test('CLI: the test endpoint override is refused unless it is loopback http', async (t) => {
+  const { dir, baseSha } = signalRepo(t);
+  const { code, stdout } = await runCliAsync(dir, {
+    BASE_SHA: baseSha,
+    GITHUB_TOKEN: 'test-token',
+    SIGNAL_CAP_TEST_ENDPOINT: 'http://example.invalid/graphql',
+  });
+  assert.equal(code, 2);
+  assert.match(stdout, /SIGNAL_CAP_TEST_ENDPOINT/);
 });

@@ -10,6 +10,7 @@
 
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
+import http from 'node:http';
 import https from 'node:https';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -21,6 +22,9 @@ const DEFAULT_DAILY_CAP = 3;
 const PACIFIC_TZ = 'America/Los_Angeles';
 // 100 merged PRs per page. Past MAX_PAGES the read is reported incomplete.
 const MAX_PAGES = 20;
+const GITHUB_GRAPHQL_ENDPOINT = 'https://api.github.com/graphql';
+const DEFAULT_TIMEOUT_MS = 30000;
+const LOOPBACK_ENDPOINT_RX = /^http:\/\/127\.0\.0\.1:\d{1,5}\/graphql$/;
 
 const GRAPHQL_QUERY = `
 query($owner: String!, $name: String!, $after: String) {
@@ -276,11 +280,31 @@ export function evaluateDailySignalCap({
   };
 }
 
-function postGraphql(token, variables) {
+export function postGraphql(
+  token,
+  variables,
+  { endpoint = GITHUB_GRAPHQL_ENDPOINT, timeoutMs = DEFAULT_TIMEOUT_MS } = {},
+) {
   const body = JSON.stringify({ query: GRAPHQL_QUERY, variables });
+  const client = endpoint.startsWith('http://') ? http : https;
   return new Promise((resolve, reject) => {
-    const req = https.request(
-      'https://api.github.com/graphql',
+    // Settles exactly once, and always: every way a response can end without
+    // a complete body (reset, abort, early close, timeout) is a rejection.
+    // A promise left pending would let the event loop drain and the process
+    // exit with whatever exit code was set.
+    let settled = false;
+    let deadline = null;
+    const settle = (fn, value) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      clearTimeout(deadline);
+      fn(value);
+    };
+    const fail = (err) => settle(reject, err instanceof Error ? err : new Error(String(err)));
+    const req = client.request(
+      endpoint,
       {
         method: 'POST',
         headers: {
@@ -289,27 +313,44 @@ function postGraphql(token, variables) {
           'Content-Length': Buffer.byteLength(body),
           'User-Agent': 'danmercede-online-cap-guard/1.0',
         },
-        timeout: 30000,
+        timeout: timeoutMs,
       },
       (res) => {
         const chunks = [];
         res.on('data', (chunk) => chunks.push(chunk));
+        res.on('error', fail);
+        res.on('aborted', () => fail(new Error('GitHub GraphQL response aborted')));
+        res.on('close', () => {
+          if (!res.complete) {
+            fail(new Error('GitHub GraphQL response closed before it was complete'));
+          }
+        });
         res.on('end', () => {
-          const text = Buffer.concat(chunks).toString('utf8');
+          if (!res.complete) {
+            fail(new Error('GitHub GraphQL response ended incomplete'));
+            return;
+          }
           if (res.statusCode !== 200) {
-            reject(new Error(`GitHub GraphQL HTTP ${res.statusCode}`));
+            fail(new Error(`GitHub GraphQL HTTP ${res.statusCode}`));
             return;
           }
           try {
-            resolve(JSON.parse(text));
+            settle(resolve, JSON.parse(Buffer.concat(chunks).toString('utf8')));
           } catch (err) {
-            reject(err);
+            fail(err);
           }
         });
       },
     );
+    // Idle timeout on the socket, plus a hard deadline for the whole request
+    // so a slow trickle cannot hold the read open.
     req.on('timeout', () => req.destroy(new Error('GitHub GraphQL timeout')));
-    req.on('error', reject);
+    req.on('error', fail);
+    req.on('close', () => fail(new Error('GitHub GraphQL request closed without a response')));
+    deadline = setTimeout(() => {
+      req.destroy(new Error('GitHub GraphQL deadline exceeded'));
+      fail(new Error('GitHub GraphQL deadline exceeded'));
+    }, timeoutMs * 2);
     req.write(body);
     req.end();
   });
@@ -439,6 +480,9 @@ export function resolveAddedPaths({ cwd = process.cwd(), env = process.env } = {
 }
 
 async function runCli() {
+  // Default to failure. Only an explicit verdict below can set a pass, so a
+  // promise that never settles or an early event-loop drain exits non-zero.
+  process.exitCode = 2;
   try {
     const changedPaths = resolveAddedPaths();
     const hasSignal = changedPaths.some((p) => isInboxSignalPath(p));
@@ -467,7 +511,25 @@ async function runCli() {
     }
     const repoFull = process.env.GITHUB_REPOSITORY || 'OrionArchitekton/danmercede.online';
     const [owner, name] = repoFull.split('/');
-    const graphqlPayload = await fetchAllMergedPullRequests(token, owner, name);
+    // Test-only: a loopback http endpoint (and a short timeout with it) so the
+    // CLI can be run against a local misbehaving server. Anything that is not
+    // http://127.0.0.1:<port>/graphql is refused, so the token cannot be sent
+    // elsewhere.
+    const transport = {};
+    const testEndpoint = process.env.SIGNAL_CAP_TEST_ENDPOINT;
+    if (testEndpoint) {
+      if (!LOOPBACK_ENDPOINT_RX.test(testEndpoint)) {
+        throw new Error('SIGNAL_CAP_TEST_ENDPOINT must be http://127.0.0.1:<port>/graphql');
+      }
+      transport.endpoint = testEndpoint;
+      const testTimeout = Number(process.env.SIGNAL_CAP_TEST_TIMEOUT_MS);
+      if (Number.isInteger(testTimeout) && testTimeout > 0 && testTimeout <= DEFAULT_TIMEOUT_MS) {
+        transport.timeoutMs = testTimeout;
+      }
+    }
+    const graphqlPayload = await fetchAllMergedPullRequests(token, owner, name, (tok, vars) =>
+      postGraphql(tok, vars, transport),
+    );
     const verdict = evaluateDailySignalCap({
       changedPaths,
       todayPt,
