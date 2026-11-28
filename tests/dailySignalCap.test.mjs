@@ -25,8 +25,8 @@ function makeRepo(t, mutate) {
     { cwd: dir, encoding: 'utf8' }).trim();
   git('init', '-q', '-b', 'main');
   fs.mkdirSync(path.join(dir, 'inbox'));
-  fs.writeFileSync(path.join(dir, 'inbox', 'existing.md'), 'one\n');
-  fs.writeFileSync(path.join(dir, 'inbox', 'doomed.md'), 'two\n');
+  fs.writeFileSync(path.join(dir, 'inbox', 'existing.md'), '---\nslug: existing\n---\none\n');
+  fs.writeFileSync(path.join(dir, 'inbox', 'doomed.md'), '---\nslug: doomed\n---\ntwo\n');
   fs.writeFileSync(path.join(dir, 'README.md'), 'readme\n');
   git('add', '-A');
   git('commit', '-q', '-m', 'base');
@@ -228,7 +228,7 @@ test('an added inbox path that git would quote is still seen as a signal', (t) =
 
 test('a PR that only modifies or deletes inbox entries is not a signal PR', (t) => {
   const { dir, baseSha } = makeRepo(t, (d) => {
-    fs.writeFileSync(path.join(d, 'inbox', 'existing.md'), 'one, edited\n');
+    fs.writeFileSync(path.join(d, 'inbox', 'existing.md'), '---\nslug: existing\n---\none, edited\n');
     fs.rmSync(path.join(d, 'inbox', 'doomed.md'));
     fs.writeFileSync(path.join(d, 'README.md'), 'readme, edited\n');
   });
@@ -247,7 +247,7 @@ test('added and renamed-in inbox entries are signals; an edit beside them is not
   const { dir, baseSha } = makeRepo(t, (d) => {
     fs.writeFileSync(path.join(d, 'inbox', 'new.md'), 'brand new\n');
     fs.renameSync(path.join(d, 'inbox', 'doomed.md'), path.join(d, 'inbox', 'moved.md'));
-    fs.writeFileSync(path.join(d, 'inbox', 'existing.md'), 'one, edited\n');
+    fs.writeFileSync(path.join(d, 'inbox', 'existing.md'), '---\nslug: existing\n---\none, edited\n');
   });
   const added = resolveAddedPaths({ cwd: dir, env: { BASE_SHA: baseSha } });
   assert.deepEqual([...added].sort(), ['inbox/moved.md', 'inbox/new.md']);
@@ -526,7 +526,7 @@ function runCliIn(dir, env) {
 test('CLI: a non-signal PR passes with no token and no remote read', (t) => {
   const { dir, baseSha } = makeRepo(t, (d) => {
     fs.writeFileSync(path.join(d, 'README.md'), 'readme, edited\n');
-    fs.writeFileSync(path.join(d, 'inbox', 'existing.md'), 'one, edited\n');
+    fs.writeFileSync(path.join(d, 'inbox', 'existing.md'), '---\nslug: existing\n---\none, edited\n');
   });
   const { code, verdict } = runCliIn(dir, { BASE_SHA: baseSha });
   assert.equal(code, 0);
@@ -698,4 +698,75 @@ test('CLI: the test endpoint override is refused unless it is loopback http', as
   });
   assert.equal(code, 2);
   assert.match(stdout, /SIGNAL_CAP_TEST_ENDPOINT/);
+});
+
+const entry = (slug, body = 'body') => `---\ntitle: T\nslug: ${slug}\ndate: '2026-11-28T10:00:00-0800'\n---\n${body}\n`;
+
+// Repo whose base commit holds inbox/kept.md with the given content.
+function slugRepo(t, baseContent, headContent) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'signal-cap-slug-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const git = (...args) =>
+    execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.invalid',
+      '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', ...args],
+    { cwd: dir, encoding: 'utf8' }).trim();
+  git('init', '-q', '-b', 'main');
+  fs.mkdirSync(path.join(dir, 'inbox'));
+  fs.writeFileSync(path.join(dir, 'inbox', 'kept.md'), baseContent);
+  fs.writeFileSync(path.join(dir, 'inbox', 'gone.md'), entry('gone'));
+  git('add', '-A');
+  git('commit', '-q', '-m', 'base');
+  const baseSha = git('rev-parse', 'HEAD');
+  if (headContent === null) {
+    fs.rmSync(path.join(dir, 'inbox', 'kept.md'));
+  } else {
+    fs.writeFileSync(path.join(dir, 'inbox', 'kept.md'), headContent);
+  }
+  git('add', '-A');
+  git('commit', '-q', '-m', 'change');
+  return { dir, baseSha };
+}
+
+test('a modified inbox entry that keeps its slug is not a signal and passes without the remote', (t) => {
+  const { dir, baseSha } = slugRepo(t, entry('kept'), entry('kept', 'typo fixed'));
+  assert.deepEqual(resolveAddedPaths({ cwd: dir, env: { BASE_SHA: baseSha } }), []);
+  const { code, verdict } = runCliIn(dir, { BASE_SHA: baseSha });
+  assert.equal(code, 0);
+  assert.equal(verdict.status, 'skipped_non_signal');
+});
+
+test('a modified inbox entry whose slug changed is a signal', (t) => {
+  const { dir, baseSha } = slugRepo(t, entry('kept'), entry('a-whole-new-entry', 'new body'));
+  assert.deepEqual(resolveAddedPaths({ cwd: dir, env: { BASE_SHA: baseSha } }), ['inbox/kept.md']);
+  const { code, verdict } = runCliIn(dir, { BASE_SHA: baseSha });
+  assert.equal(code, 2);
+  assert.equal(verdict.reason, 'MISSING_GITHUB_TOKEN');
+});
+
+test('a modified inbox entry whose slug cannot be read on either side is a signal', (t) => {
+  const unreadable = {
+    'no frontmatter at head': [entry('kept'), 'just text\n'],
+    'no slug at head': [entry('kept'), '---\ntitle: T\n---\nbody\n'],
+    'two slug lines at head': [entry('kept'), '---\nslug: kept\nslug: other\n---\nbody\n'],
+    'unsafe slug at head': [entry('kept'), '---\nslug: Kept Thing\n---\nbody\n'],
+    'frontmatter engine tag at head': [entry('kept'), '---js\nslug: kept\n---\nbody\n'],
+    'unclosed frontmatter at head': [entry('kept'), '---\nslug: kept\nbody\n'],
+    'quoted slug key at head': [entry('kept'), '---\nslug: kept\n"slug": other\n---\nbody\n'],
+    'no slug at base': ['---\ntitle: T\n---\nbody\n', entry('kept')],
+  };
+  for (const [label, [base, head]] of Object.entries(unreadable)) {
+    const { dir, baseSha } = slugRepo(t, base, head);
+    assert.deepEqual(
+      resolveAddedPaths({ cwd: dir, env: { BASE_SHA: baseSha } }),
+      ['inbox/kept.md'],
+      label,
+    );
+  }
+});
+
+test('a quoted slug equal to the bare slug is the same slug; a deleted entry is not a signal', (t) => {
+  const quoted = slugRepo(t, entry('kept'), `---\nslug: "kept"\n---\nbody\n`);
+  assert.deepEqual(resolveAddedPaths({ cwd: quoted.dir, env: { BASE_SHA: quoted.baseSha } }), []);
+  const deleted = slugRepo(t, entry('kept'), null);
+  assert.deepEqual(resolveAddedPaths({ cwd: deleted.dir, env: { BASE_SHA: deleted.baseSha } }), []);
 });

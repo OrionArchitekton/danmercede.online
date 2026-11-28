@@ -4,8 +4,9 @@
  *
  * Enforces the 3/day America/Los_Angeles ceiling on signal PRs, meaning PRs that
  * ADD an inbox/*.md entry, by querying GitHub GraphQL merged PRs with complete
- * totalCount verification. A PR that only edits or deletes existing entries
- * publishes no new signal: it is not capped and does not use up the day's cap.
+ * totalCount verification. A PR that only edits (same frontmatter slug) or
+ * deletes existing entries publishes no new signal: it is not capped. An edit
+ * that changes an entry's slug is a new entry and is capped.
  */
 
 import { execFileSync } from 'node:child_process';
@@ -417,28 +418,77 @@ export async function fetchAllMergedPullRequests(token, owner, name, post = post
   return incomplete(expectedTotal ?? allNodes.length + 1, allNodes, after);
 }
 
-// Paths the range ADDS. A signal is a new inbox entry: editing or deleting an
-// existing entry publishes nothing new. --no-renames reports a rename as a
-// delete plus an add, so a file renamed or copied into inbox/ counts as added.
-// Only a plain modify (M) or delete (D) is dropped; any other status is kept.
+const SAFE_SLUG_RX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+// The frontmatter slug of an inbox entry, or null when it cannot be read with
+// certainty. The site compiler keys entries by this slug, not by filename.
+// Deliberately narrow: plain `---` fences only (no engine tag), exactly one
+// line that looks like a slug key anywhere in the block, written `slug: value`
+// at column 0, value a safe slug (optionally in matching quotes). Anything
+// else is null, and the caller treats null as a signal.
+export function readFrontmatterSlug(text) {
+  if (typeof text !== 'string') {
+    return null;
+  }
+  const lines = text.split(/\r?\n/);
+  if (lines[0] !== '---') {
+    return null;
+  }
+  const end = lines.indexOf('---', 1);
+  if (end === -1) {
+    return null;
+  }
+  const slugLines = lines.slice(1, end).filter((line) => /^\s*["']?slug["']?\s*:/i.test(line));
+  if (slugLines.length !== 1) {
+    return null;
+  }
+  const match = /^slug:[ \t]*(.*?)[ \t]*$/.exec(slugLines[0]);
+  if (!match) {
+    return null;
+  }
+  let value = match[1];
+  const quoted = /^(["'])(.*)\1$/.exec(value);
+  if (quoted) {
+    value = quoted[2];
+  }
+  return SAFE_SLUG_RX.test(value) ? value : null;
+}
+
+function git(args, cwd) {
+  return execFileSync('git', ['-c', 'core.quotePath=false', ...args], {
+    encoding: 'utf8',
+    cwd,
+    maxBuffer: 64 * 1024 * 1024,
+  });
+}
+
+function readBlobSlug(rev, filePath, cwd) {
+  try {
+    return readFrontmatterSlug(git(['cat-file', 'blob', `${rev}:${filePath}`], cwd));
+  } catch {
+    return null;
+  }
+}
+
+// Paths by which the PR publishes something NEW, relative to its merge base.
+// - Added (and anything that is not a plain modify or delete): kept.
+//   --no-renames reports a rename as a delete plus an add, so a file renamed
+//   or copied into inbox/ counts as added.
+// - Deleted: dropped. A deletion publishes nothing.
+// - Modified inbox entry: kept when its frontmatter slug differs between the
+//   merge base and HEAD, or when either slug cannot be read. The compiler keys
+//   entries by slug, so rewriting an existing file under a new slug publishes
+//   a new entry. Same slug on both sides is an edit and is dropped.
+// - Modified non-inbox path: dropped.
 // -z: NUL-delimited, never quoted. Without it git quotes a path holding a
 // double quote, backslash or control character even with core.quotePath=false,
 // and the quoted form would not be recognised as an inbox path.
-function gitDiffAddedPaths(rangeSpec, cwd) {
-  const out = execFileSync(
-    'git',
-    [
-      '-c',
-      'core.quotePath=false',
-      'diff',
-      '--name-status',
-      '--no-renames',
-      '-z',
-      rangeSpec,
-      '--',
-    ],
-    { encoding: 'utf8', cwd },
-  );
+function gitDiffAddedPaths(baseRef, cwd) {
+  const mergeBase = git(['merge-base', baseRef, 'HEAD'], cwd).trim();
+  if (!HEX_SHA_RX.test(mergeBase)) {
+    throw new Error('could not resolve the merge base');
+  }
+  const out = git(['diff', '--name-status', '--no-renames', '-z', mergeBase, 'HEAD', '--'], cwd);
   const fields = out.split('\0');
   if (fields[fields.length - 1] === '') {
     fields.pop();
@@ -453,9 +503,20 @@ function gitDiffAddedPaths(rangeSpec, cwd) {
     if (!status || !filePath) {
       throw new Error('unexpected git diff --name-status -z output');
     }
-    if (status !== 'M' && status !== 'D') {
-      added.push(filePath);
+    if (status === 'D') {
+      continue;
     }
+    if (status === 'M') {
+      if (!isInboxSignalPath(filePath)) {
+        continue;
+      }
+      const baseSlug = readBlobSlug(mergeBase, filePath, cwd);
+      const headSlug = readBlobSlug('HEAD', filePath, cwd);
+      if (baseSlug !== null && headSlug !== null && baseSlug === headSlug) {
+        continue;
+      }
+    }
+    added.push(filePath);
   }
   return added;
 }
@@ -466,17 +527,17 @@ export function resolveAddedPaths({ cwd = process.cwd(), env = process.env } = {
     if (!HEX_SHA_RX.test(baseSha)) {
       throw new Error('BASE_SHA is not a valid hexadecimal commit digest');
     }
-    return gitDiffAddedPaths(`${baseSha}...HEAD`, cwd);
+    return gitDiffAddedPaths(baseSha, cwd);
   }
   const eventPath = env.GITHUB_EVENT_PATH;
   if (eventPath && fs.existsSync(eventPath)) {
     const evt = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
     const prBase = evt?.pull_request?.base?.sha;
     if (typeof prBase === 'string' && HEX_SHA_RX.test(prBase)) {
-      return gitDiffAddedPaths(`${prBase}...HEAD`, cwd);
+      return gitDiffAddedPaths(prBase, cwd);
     }
   }
-  return gitDiffAddedPaths('HEAD~1...HEAD', cwd);
+  return gitDiffAddedPaths('HEAD~1', cwd);
 }
 
 async function runCli() {
