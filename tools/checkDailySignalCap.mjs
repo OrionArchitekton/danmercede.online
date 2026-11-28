@@ -611,6 +611,7 @@ function requireCommit(objectId, label, cwd) {
   return objectId;
 }
 
+const INBOX_DIR = 'inbox';
 const REGULAR_FILE_MODES = new Set(['100644', '100755']);
 const RAW_META_RX = /^:(\d{6}) (\d{6}) ([0-9a-f]{40,64}) ([0-9a-f]{40,64}) ([A-Z])$/;
 
@@ -628,11 +629,32 @@ const RAW_META_RX = /^:(\d{6}) (\d{6}) ([0-9a-f]{40,64}) ([0-9a-f]{40,64}) ([A-Z
 // -z: NUL-delimited, never quoted. Without it git quotes a path holding a
 // double quote, backslash or control character even with core.quotePath=false,
 // and the quoted form would not be recognised as an inbox path.
+// The compiler reads `inbox` through stat and readdir, which follow symlinks.
+// If `inbox` were a symlink (or anything but a real directory), entries could
+// be published from paths this guard never classifies as inbox paths. So
+// `inbox` must be a tree (mode 040000) in the given commit; anything else,
+// including a missing inbox, cannot be counted and is refused.
+function requireInboxDirectory(commit, label, cwd) {
+  const out = git(['ls-tree', '-z', commit, '--', INBOX_DIR], cwd);
+  const records = out.split('\0').filter((record) => record.length > 0);
+  if (records.length !== 1) {
+    throw new Error(`inbox is missing or ambiguous at ${label}: the cap cannot be counted`);
+  }
+  const match = /^(\d{6}) (\w+) [0-9a-f]{40,64}\t(.*)$/s.exec(records[0]);
+  if (!match || match[3] !== INBOX_DIR || match[1] !== '040000' || match[2] !== 'tree') {
+    throw new Error(
+      `inbox is not a plain directory at ${label} (a symlink, file or submodule): the cap cannot be counted`,
+    );
+  }
+}
+
 function gitDiffAddedPaths(baseRef, cwd, headRef = 'HEAD') {
   const mergeBase = git(['merge-base', baseRef, headRef], cwd).trim();
   if (!HEX_SHA_RX.test(mergeBase)) {
     throw new Error('could not resolve the merge base');
   }
+  requireInboxDirectory(mergeBase, 'the merge base', cwd);
+  requireInboxDirectory(headRef, 'the PR head', cwd);
   // Tree-to-tree plumbing diff of two commits: never touches the index or the
   // working tree, and never runs an external diff or textconv driver.
   const out = git(
@@ -666,6 +688,12 @@ function gitDiffAddedPaths(baseRef, cwd, headRef = 'HEAD') {
       throw new Error('unexpected git diff --raw -z output');
     }
     const [, baseMode, headMode, baseId, headId, status] = meta;
+    // A diff record for `inbox` itself means it is, was or became something
+    // other than a directory (a directory never appears as its own record in
+    // a recursive diff). Refused whatever the status.
+    if (filePath === INBOX_DIR) {
+      throw new Error('the inbox path itself changed type: the cap cannot be counted');
+    }
     if (status === 'D') {
       continue;
     }

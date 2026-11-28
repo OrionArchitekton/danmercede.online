@@ -1480,3 +1480,98 @@ test('HEAD_SHA: PR-supplied attributes, diff drivers and option-shaped paths are
     assert.equal(fs.existsSync(marker), false, `a PR-named driver ran (worktree at ${leaveAt})`);
   }
 });
+
+// ---- The inbox path itself: it must be a real directory on both sides ----
+
+function inboxShapeRepo(t, mutateHead, { baseInbox = 'dir' } = {}) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'signal-cap-inbox-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const git = (...args) =>
+    execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.invalid',
+      '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', '-c', 'core.symlinks=true', ...args],
+    { cwd: dir, encoding: 'utf8' }).trim();
+  git('init', '-q', '-b', 'main');
+  disableLineEndingConversion(dir);
+  fs.writeFileSync(path.join(dir, 'README.md'), 'readme\n');
+  if (baseInbox === 'dir') {
+    fs.mkdirSync(path.join(dir, 'inbox'));
+    fs.writeFileSync(path.join(dir, 'inbox', 'existing.md'), entry('existing'));
+  } else if (baseInbox === 'symlink') {
+    fs.mkdirSync(path.join(dir, 'stash'));
+    fs.writeFileSync(path.join(dir, 'stash', 'existing.md'), entry('existing'));
+    fs.symlinkSync('stash', path.join(dir, 'inbox'));
+  }
+  git('add', '-A');
+  git('commit', '-q', '-m', 'base');
+  const baseSha = git('rev-parse', 'HEAD');
+  mutateHead(dir);
+  git('add', '-A');
+  git('commit', '-q', '-m', 'head');
+  const headSha = git('rev-parse', 'HEAD');
+  return { dir, baseSha, headSha };
+}
+
+const expectInboxRefusal = (t, repo, label) => {
+  const { dir, baseSha, headSha } = repo;
+  for (const env of [{ BASE_SHA: baseSha }, { BASE_SHA: baseSha, HEAD_SHA: headSha }]) {
+    assert.throws(() => resolveAddedPaths({ cwd: dir, env }), /inbox/, label);
+    const { code, verdict } = runCliIn(dir, env);
+    assert.equal(code, 2, label);
+    assert.equal(verdict.status, 'blocked', label);
+    assert.match(verdict.detail, /inbox/, label);
+  }
+};
+
+test('replacing the inbox directory with a symlink and adding entries behind it is refused', (t) => {
+  // git mv inbox stash; ln -s stash inbox; add stash/new.md. The compiler
+  // follows the link, so stash/new.md would publish.
+  const repo = inboxShapeRepo(t, (d) => {
+    fs.renameSync(path.join(d, 'inbox'), path.join(d, 'stash'));
+    fs.symlinkSync('stash', path.join(d, 'inbox'));
+    fs.writeFileSync(path.join(d, 'stash', 'new.md'), entry('new'));
+  });
+  expectInboxRefusal(t, repo, 'symlink swap');
+});
+
+test('a head where inbox is a file, a symlink to elsewhere, or gone is refused', (t) => {
+  const shapes = {
+    'inbox becomes a regular file': (d) => {
+      fs.rmSync(path.join(d, 'inbox'), { recursive: true });
+      fs.writeFileSync(path.join(d, 'inbox'), 'not a directory\n');
+    },
+    'inbox becomes a symlink outside the repo': (d) => {
+      fs.rmSync(path.join(d, 'inbox'), { recursive: true });
+      fs.symlinkSync('/tmp', path.join(d, 'inbox'));
+    },
+    'inbox removed entirely': (d) => {
+      fs.rmSync(path.join(d, 'inbox'), { recursive: true });
+      fs.writeFileSync(path.join(d, 'README.md'), 'changed\n');
+    },
+  };
+  for (const [label, mutate] of Object.entries(shapes)) {
+    expectInboxRefusal(t, inboxShapeRepo(t, mutate), label);
+  }
+});
+
+test('a base where inbox is already a symlink is refused, even for an unrelated change', (t) => {
+  const repo = inboxShapeRepo(t, (d) => {
+    fs.writeFileSync(path.join(d, 'README.md'), 'changed\n');
+  }, { baseInbox: 'symlink' });
+  expectInboxRefusal(t, repo, 'base inbox is a symlink');
+});
+
+test('a normal PR is unaffected by the inbox shape check', (t) => {
+  const signal = inboxShapeRepo(t, (d) => {
+    fs.writeFileSync(path.join(d, 'inbox', 'new.md'), entry('new'));
+  });
+  assert.deepEqual(resolveAddedPaths({ cwd: signal.dir, env: { BASE_SHA: signal.baseSha, HEAD_SHA: signal.headSha } }), ['inbox/new.md']);
+  const plain = inboxShapeRepo(t, (d) => {
+    fs.writeFileSync(path.join(d, 'README.md'), 'changed\n');
+    fs.mkdirSync(path.join(d, 'inboxes'));
+    fs.writeFileSync(path.join(d, 'inboxes', 'x.md'), 'x\n');
+    fs.writeFileSync(path.join(d, 'inbox.md'), 'x\n');
+  });
+  const { code, verdict } = runCliIn(plain.dir, { BASE_SHA: plain.baseSha });
+  assert.equal(code, 0);
+  assert.equal(verdict.status, 'skipped_non_signal');
+});
