@@ -1,7 +1,37 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
 
-import { evaluateDailySignalCap } from '../tools/checkDailySignalCap.mjs';
+import {
+  evaluateDailySignalCap,
+  isInboxSignalPath,
+  resolveChangedPaths,
+} from '../tools/checkDailySignalCap.mjs';
+
+// Local throwaway git repo: a base commit, then one commit built by `mutate`.
+function makeRepo(t, mutate) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'signal-cap-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const git = (...args) =>
+    execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.invalid',
+      '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', ...args],
+    { cwd: dir, encoding: 'utf8' }).trim();
+  git('init', '-q', '-b', 'main');
+  fs.mkdirSync(path.join(dir, 'inbox'));
+  fs.writeFileSync(path.join(dir, 'inbox', 'existing.md'), 'one\n');
+  fs.writeFileSync(path.join(dir, 'inbox', 'doomed.md'), 'two\n');
+  fs.writeFileSync(path.join(dir, 'README.md'), 'readme\n');
+  git('add', '-A');
+  git('commit', '-q', '-m', 'base');
+  const baseSha = git('rev-parse', 'HEAD');
+  mutate(dir);
+  git('add', '-A');
+  git('commit', '-q', '-m', 'change');
+  return { dir, baseSha };
+}
 
 function makeNode(number, mergedAt, paths, filesTotal = paths.length) {
   return {
@@ -176,4 +206,13 @@ test('a target-day merged PR with a truncated file list still fails closed', () 
   assert.equal(verdict.exitCode, 2);
   assert.equal(verdict.reason, 'INCOMPLETE_PAGINATION_COUNT');
   assert.equal(verdict.prNumber, 193);
+});
+
+test('an added inbox path that git would quote is still seen as a signal', (t) => {
+  const { dir, baseSha } = makeRepo(t, (d) => {
+    fs.writeFileSync(path.join(d, 'inbox', 'a"b.md'), 'quoted\n');
+  });
+  const paths = resolveChangedPaths({ cwd: dir, env: { BASE_SHA: baseSha } });
+  assert.deepEqual(paths, ['inbox/a"b.md']);
+  assert.equal(paths.some((p) => isInboxSignalPath(p)), true);
 });

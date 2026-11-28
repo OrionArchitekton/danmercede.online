@@ -320,35 +320,35 @@ async function fetchAllMergedPullRequests(token, owner, name) {
   };
 }
 
-function gitDiffNames(rangeSpec) {
+function gitDiffNames(rangeSpec, cwd) {
+  // -z: NUL-delimited, never quoted. Without it git quotes a path holding a
+  // double quote, backslash or control character even with core.quotePath=false,
+  // and the quoted form would not be recognised as an inbox path.
   const out = execFileSync(
     'git',
-    ['-c', 'core.quotePath=false', 'diff', '--name-only', rangeSpec, '--'],
-    { encoding: 'utf8' },
+    ['-c', 'core.quotePath=false', 'diff', '--name-only', '-z', rangeSpec, '--'],
+    { encoding: 'utf8', cwd },
   );
-  return out
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean);
+  return out.split('\0').filter((entry) => entry.length > 0);
 }
 
-export function resolveChangedPaths() {
-  const baseSha = (process.env.BASE_SHA || process.env.GITHUB_BASE_SHA || '').trim();
+export function resolveChangedPaths({ cwd = process.cwd(), env = process.env } = {}) {
+  const baseSha = (env.BASE_SHA || env.GITHUB_BASE_SHA || '').trim();
   if (baseSha) {
     if (!HEX_SHA_RX.test(baseSha)) {
       throw new Error('BASE_SHA is not a valid hexadecimal commit digest');
     }
-    return gitDiffNames(`${baseSha}...HEAD`);
+    return gitDiffNames(`${baseSha}...HEAD`, cwd);
   }
-  const eventPath = process.env.GITHUB_EVENT_PATH;
+  const eventPath = env.GITHUB_EVENT_PATH;
   if (eventPath && fs.existsSync(eventPath)) {
     const evt = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
     const prBase = evt?.pull_request?.base?.sha;
     if (typeof prBase === 'string' && HEX_SHA_RX.test(prBase)) {
-      return gitDiffNames(`${prBase}...HEAD`);
+      return gitDiffNames(`${prBase}...HEAD`, cwd);
     }
   }
-  return gitDiffNames('HEAD~1...HEAD');
+  return gitDiffNames('HEAD~1...HEAD', cwd);
 }
 
 async function runCli() {
