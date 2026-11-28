@@ -1105,3 +1105,39 @@ test('leap days, explicit offsets and fractional seconds stay valid merged times
   assert.equal(formatPacificDay('2026-11-28T23:59:59.999-08:00'), '2026-11-28');
   assert.equal(formatPacificDay('2026-12-31T23:59:59+14:00'), '2026-12-31');
 });
+
+test('a target-day PR whose file count is negative or does not match its list is refused', () => {
+  const shapes = {
+    'negative count, empty list': { totalCount: -1, nodes: [] },
+    'negative count, one file': { totalCount: -5, nodes: [{ path: 'README.md', changeType: 'MODIFIED' }] },
+    'more nodes than the count': { totalCount: 0, nodes: [{ path: 'inbox/x.md', changeType: 'ADDED' }] },
+    'fractional count': { totalCount: 0.5, nodes: [] },
+  };
+  for (const [label, files] of Object.entries(shapes)) {
+    const today = makeNode(200, '2026-11-28T18:00:00Z', []);
+    today.files = files;
+    const verdict = evaluateDailySignalCap({
+      changedPaths: SIGNAL_CANDIDATE,
+      todayPt: '2026-11-28',
+      graphqlPayload: payloadOf([today]),
+    });
+    assert.equal(verdict.exitCode, 2, label);
+  }
+});
+
+test('a target-day PR with a complete empty file list is valid; a truncated one still refuses', () => {
+  const empty = evaluateDailySignalCap({
+    changedPaths: SIGNAL_CANDIDATE,
+    todayPt: '2026-11-28',
+    graphqlPayload: payloadOf([makeNode(200, '2026-11-28T18:00:00Z', [])]),
+  });
+  assert.equal(empty.exitCode, 0);
+  assert.equal(empty.remoteMergedPtToday, 0);
+  const truncated = evaluateDailySignalCap({
+    changedPaths: SIGNAL_CANDIDATE,
+    todayPt: '2026-11-28',
+    graphqlPayload: payloadOf([makeNode(200, '2026-11-28T18:00:00Z', ['README.md'], 2)]),
+  });
+  assert.equal(truncated.exitCode, 2);
+  assert.equal(truncated.reason, 'INCOMPLETE_PAGINATION_COUNT');
+});

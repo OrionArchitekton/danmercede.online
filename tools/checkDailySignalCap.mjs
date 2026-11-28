@@ -253,7 +253,8 @@ export function evaluateDailySignalCap({
     if (
       !files ||
       typeof files.totalCount !== 'number' ||
-      !Number.isInteger(files.totalCount) ||
+      !Number.isSafeInteger(files.totalCount) ||
+      files.totalCount < 0 ||
       !Array.isArray(files.nodes)
     ) {
       return { exitCode: 2, status: 'blocked', reason: 'REMOTE_RECONCILE_FAILED' };
@@ -266,6 +267,17 @@ export function evaluateDailySignalCap({
         prNumber: pr.number,
         filesTotalCount: files.totalCount,
         filesFetchedNodes: files.nodes.length,
+      };
+    }
+    // The list must be exactly as long as the count says: fewer is a truncated
+    // read (above), more is a response that contradicts itself.
+    if (files.nodes.length !== files.totalCount) {
+      return {
+        exitCode: 2,
+        status: 'blocked',
+        reason: 'REMOTE_RECONCILE_FAILED',
+        detail: 'file list length does not match its totalCount',
+        prNumber: pr.number,
       };
     }
     const matchedInPr = new Set();
