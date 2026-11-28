@@ -280,21 +280,34 @@ export function evaluateDailySignalCap({
         prNumber: pr.number,
       };
     }
-    const matchedInPr = new Set();
+    // Every file node must be a distinct exact path. A repeated path would let
+    // the list reach its count while another changed file went unreported.
+    const seenPaths = new Set();
+    let addedInPr = 0;
     for (const f of files.nodes) {
       if (!f || typeof f.path !== 'string') {
         return { exitCode: 2, status: 'blocked', reason: 'REMOTE_RECONCILE_FAILED' };
       }
+      if (seenPaths.has(f.path)) {
+        return {
+          exitCode: 2,
+          status: 'blocked',
+          reason: 'REMOTE_RECONCILE_FAILED',
+          detail: 'duplicate path in a merged PR file list',
+          prNumber: pr.number,
+        };
+      }
+      seenPaths.add(f.path);
       // Count what the PR added. Only an explicit MODIFIED or DELETED is
       // skipped; a missing or unknown change type is counted (fail closed).
       if (f.changeType === 'MODIFIED' || f.changeType === 'DELETED') {
         continue;
       }
       if (isInboxSignalPath(f.path)) {
-        matchedInPr.add(f.path);
+        addedInPr += 1;
       }
     }
-    remoteMergedPtToday += matchedInPr.size;
+    remoteMergedPtToday += addedInPr;
   }
 
   if (

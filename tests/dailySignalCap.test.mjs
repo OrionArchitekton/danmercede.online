@@ -1141,3 +1141,39 @@ test('a target-day PR with a complete empty file list is valid; a truncated one 
   assert.equal(truncated.exitCode, 2);
   assert.equal(truncated.reason, 'INCOMPLETE_PAGINATION_COUNT');
 });
+
+test('a duplicate exact path inside one target-day file list is refused, not collapsed', () => {
+  // Three added entries reported as a, b, b: the count matches, one is hidden.
+  const verdict = evaluateDailySignalCap({
+    changedPaths: SIGNAL_CANDIDATE,
+    todayPt: '2026-11-28',
+    graphqlPayload: payloadOf([
+      makeNode(200, '2026-11-28T18:00:00Z', ['inbox/a.md', 'inbox/b.md', 'inbox/b.md']),
+    ]),
+  });
+  assert.equal(verdict.exitCode, 2);
+  assert.equal(verdict.status, 'blocked');
+  // A duplicate is refused even when one copy is a skipped change type or a non-inbox path.
+  for (const list of [
+    [['inbox/b.md', 'MODIFIED'], 'inbox/b.md'],
+    ['README.md', 'README.md'],
+  ]) {
+    const mixed = evaluateDailySignalCap({
+      changedPaths: SIGNAL_CANDIDATE,
+      todayPt: '2026-11-28',
+      graphqlPayload: payloadOf([makeNode(200, '2026-11-28T18:00:00Z', list)]),
+    });
+    assert.equal(mixed.exitCode, 2, JSON.stringify(list));
+  }
+  // The same path in two different PRs is not a duplicate.
+  const twoPrs = evaluateDailySignalCap({
+    changedPaths: SIGNAL_CANDIDATE,
+    todayPt: '2026-11-28',
+    graphqlPayload: payloadOf([
+      makeNode(200, '2026-11-28T18:00:00Z', ['inbox/a.md']),
+      makeNode(201, '2026-11-28T19:00:00Z', [['inbox/a.md', 'MODIFIED'], 'README.md']),
+    ]),
+  });
+  assert.equal(twoPrs.exitCode, 0);
+  assert.equal(twoPrs.remoteMergedPtToday, 1);
+});
