@@ -644,8 +644,10 @@ test('transport: a complete response resolves with the parsed body', async (t) =
 });
 
 // Async CLI run (the loopback server lives in this process, so no execFileSync).
-function runCliAsync(dir, env, { nodeArgs = [] } = {}) {
-  const toolPath = path.resolve(import.meta.dirname, '..', 'tools', 'checkDailySignalCap.mjs');
+// `toolPath` names the guard file to run; by default this test tree's copy.
+const OUTER_GUARD = path.resolve(import.meta.dirname, '..', 'tools', 'checkDailySignalCap.mjs');
+
+function runCliAsync(dir, env, { nodeArgs = [], toolPath = OUTER_GUARD } = {}) {
   return new Promise((resolve) => {
     execFile(
       process.execPath,
@@ -1392,7 +1394,7 @@ function fixedClockArgs(t) {
 // Fixture: the base commit carries the real guard and workflow; the PR head
 // commit is built by `mutateHead`. The working tree is left at the BASE commit,
 // as it is in the base-owned workflow, so only HEAD_SHA points at the PR.
-function gateRepo(t, mutateHead, { leaveAt = 'base', configure = null } = {}) {
+function gateRepo(t, mutateHead, { leaveAt = 'base', configure = null, baseGuard = null } = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'signal-cap-gate-'));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   const git = (...args) =>
@@ -1406,6 +1408,10 @@ function gateRepo(t, mutateHead, { leaveAt = 'base', configure = null } = {}) {
   fs.mkdirSync(path.join(dir, '.github', 'workflows'), { recursive: true });
   fs.writeFileSync(path.join(dir, 'inbox', 'existing.md'), entry('existing'));
   fs.copyFileSync(path.join(REPO_ROOT, 'tools', 'checkDailySignalCap.mjs'), path.join(dir, 'tools', 'checkDailySignalCap.mjs'));
+  if (baseGuard !== null) {
+    // A stand-in for the base copy, to prove which file a test really runs.
+    fs.writeFileSync(path.join(dir, 'tools', 'checkDailySignalCap.mjs'), baseGuard);
+  }
   fs.copyFileSync(path.join(REPO_ROOT, '.github', 'workflows', 'ci.yml'), path.join(dir, '.github', 'workflows', 'ci.yml'));
   git('add', '-A');
   git('commit', '-q', '-m', 'base');
@@ -1423,6 +1429,10 @@ function gateRepo(t, mutateHead, { leaveAt = 'base', configure = null } = {}) {
   }
   return { dir, baseSha, headSha, git };
 }
+
+// The guard as the base-owned workflow runs it: the file in the fixture's
+// working tree, which is left at the BASE commit. Never this test tree's copy.
+const fixtureGuard = (dir) => path.join(dir, 'tools', 'checkDailySignalCap.mjs');
 
 const addSignal = (d) => fs.writeFileSync(path.join(d, 'inbox', 'new.md'), entry('new'));
 
@@ -1450,13 +1460,15 @@ for (const [label, attack] of Object.entries(GATE_ATTACKS)) {
   test(`control: at the cap, a PR that adds a signal and ${label} is still refused by the base guard`, async (t) => {
     const endpoint = await startHistoryServer(t, 3);
     const { dir, baseSha, headSha, git } = gateRepo(t, attack);
-    // The REAL guard from this tree (standing in for the base checkout).
+    // The fixture's own base copy of the guard, a byte copy of the real one.
+    assert.ok(fs.readFileSync(fixtureGuard(dir)).equals(
+      fs.readFileSync(path.join(REPO_ROOT, 'tools', 'checkDailySignalCap.mjs'))));
     const { code, stdout } = await runCliAsync(dir, {
       BASE_SHA: baseSha,
       HEAD_SHA: headSha,
       GITHUB_TOKEN: 'test-token',
       SIGNAL_CAP_TEST_ENDPOINT: endpoint,
-    }, { nodeArgs: fixedClockArgs(t) });
+    }, { nodeArgs: fixedClockArgs(t), toolPath: fixtureGuard(dir) });
     assert.equal(code, 4);
     const verdict = JSON.parse(stdout);
     assert.equal(verdict.todayPt, FIXED_TODAY_PT);
@@ -1498,12 +1510,34 @@ test('control: below the cap the same base guard admits the PR, so the refusals 
     HEAD_SHA: headSha,
     GITHUB_TOKEN: 'test-token',
     SIGNAL_CAP_TEST_ENDPOINT: endpoint,
-  }, { nodeArgs: fixedClockArgs(t) });
+  }, { nodeArgs: fixedClockArgs(t), toolPath: fixtureGuard(dir) });
   assert.equal(code, 0);
   const verdict = JSON.parse(stdout);
   assert.equal(verdict.todayPt, FIXED_TODAY_PT);
   assert.equal(verdict.remoteMergedPtToday, 2);
   assert.equal(verdict.projectedTotalPtToday, 3);
+});
+
+test('control: the gate tests run the fixture base copy, so a broken base copy changes the outcome', async (t) => {
+  // Same at-the-cap setup as above, but the fixture's base guard is a stub
+  // that exits 7. If the run used this test tree's guard it would exit 4.
+  const endpoint = await startHistoryServer(t, 3);
+  const { dir, baseSha, headSha } = gateRepo(t, addSignal, { baseGuard: 'process.exit(7);\n' });
+  const env = {
+    BASE_SHA: baseSha,
+    HEAD_SHA: headSha,
+    GITHUB_TOKEN: 'test-token',
+    SIGNAL_CAP_TEST_ENDPOINT: endpoint,
+  };
+  const broken = await runCliAsync(dir, env, { nodeArgs: fixedClockArgs(t), toolPath: fixtureGuard(dir) });
+  assert.equal(broken.code, 7);
+  assert.equal(broken.stdout, '');
+  // A missing base copy is a failed run, never a verdict.
+  fs.unlinkSync(fixtureGuard(dir));
+  const missing = await runCliAsync(dir, env, { nodeArgs: fixedClockArgs(t), toolPath: fixtureGuard(dir) });
+  assert.notEqual(missing.code, 0);
+  assert.notEqual(missing.code, 4);
+  assert.equal(missing.stdout, '');
 });
 
 test('HEAD_SHA: the diff is taken to the named commit, not to the workspace HEAD', (t) => {
