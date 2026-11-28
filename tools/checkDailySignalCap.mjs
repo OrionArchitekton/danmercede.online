@@ -438,6 +438,9 @@ export async function fetchAllMergedPullRequests(token, owner, name, post = post
       },
     },
   });
+  // A page that cannot be trusted, in a shape the evaluator always refuses
+  // whatever the page itself claims.
+  const invalidPage = () => ({ errors: [{ message: 'invalid merged PR page' }] });
   const allNodes = [];
   const seenCursors = new Set();
   let expectedTotal = null;
@@ -451,10 +454,13 @@ export async function fetchAllMergedPullRequests(token, owner, name, post = post
     if (
       !prs ||
       !Array.isArray(prs.nodes) ||
-      typeof prs.totalCount !== 'number' ||
+      !Number.isSafeInteger(prs.totalCount) ||
+      prs.totalCount < 0 ||
       typeof prs.pageInfo?.hasNextPage !== 'boolean'
     ) {
-      return resp;
+      // Handed back untouched, never merged with other pages: an invalid
+      // count on any page must not be papered over by another page's count.
+      return invalidPage(resp);
     }
     expectedTotal =
       expectedTotal === null ? prs.totalCount : Math.max(expectedTotal, prs.totalCount);

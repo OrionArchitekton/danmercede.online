@@ -1177,3 +1177,46 @@ test('a duplicate exact path inside one target-day file list is refused, not col
   assert.equal(twoPrs.exitCode, 0);
   assert.equal(twoPrs.remoteMergedPtToday, 1);
 });
+
+test('a page reporting an invalid PR totalCount fails the read instead of being replaced by a later page', async () => {
+  for (const badTotal of [-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+    const { post } = stubPost([
+      {
+        totalCount: badTotal,
+        pageInfo: { hasNextPage: true, endCursor: 'c1' },
+        nodes: [makeNode(1, '2026-11-20T18:00:00Z', [])],
+      },
+      {
+        totalCount: 2,
+        pageInfo: { hasNextPage: false, endCursor: 'c2' },
+        nodes: [makeNode(2, '2026-11-21T18:00:00Z', [])],
+      },
+    ]);
+    const payload = await fetchAllMergedPullRequests('t', 'o', 'n', post);
+    const verdict = evaluateDailySignalCap({
+      changedPaths: SIGNAL_CANDIDATE,
+      todayPt: '2026-11-28',
+      graphqlPayload: payload,
+    });
+    assert.equal(verdict.exitCode, 2, `first page totalCount=${badTotal}`);
+  }
+  // Invalid on the last page as well.
+  const { post } = stubPost([
+    {
+      totalCount: 2,
+      pageInfo: { hasNextPage: true, endCursor: 'c1' },
+      nodes: [makeNode(1, '2026-11-20T18:00:00Z', [])],
+    },
+    {
+      totalCount: -1,
+      pageInfo: { hasNextPage: false, endCursor: 'c2' },
+      nodes: [makeNode(2, '2026-11-21T18:00:00Z', [])],
+    },
+  ]);
+  const verdict = evaluateDailySignalCap({
+    changedPaths: SIGNAL_CANDIDATE,
+    todayPt: '2026-11-28',
+    graphqlPayload: await fetchAllMergedPullRequests('t', 'o', 'n', post),
+  });
+  assert.equal(verdict.exitCode, 2);
+});
