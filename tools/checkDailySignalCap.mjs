@@ -285,10 +285,16 @@ export function evaluateDailySignalCap({
 export function postGraphql(
   token,
   variables,
-  { endpoint = GITHUB_GRAPHQL_ENDPOINT, timeoutMs = DEFAULT_TIMEOUT_MS } = {},
+  { endpoint = GITHUB_GRAPHQL_ENDPOINT, timeoutMs = DEFAULT_TIMEOUT_MS, request = null } = {},
 ) {
   const body = JSON.stringify({ query: GRAPHQL_QUERY, variables });
-  const client = endpoint.startsWith('http://') ? http : https;
+  // `request` is a code-level seam for tests (a fake request function). It is
+  // not reachable from the environment or the CLI.
+  const client = request
+    ? { request }
+    : endpoint.startsWith('http://')
+      ? http
+      : https;
   return new Promise((resolve, reject) => {
     // Settles exactly once, and always: every way a response can end without
     // a complete body (reset, abort, early close, timeout) is a rejection.
@@ -353,6 +359,7 @@ export function postGraphql(
       req.destroy(new Error('GitHub GraphQL deadline exceeded'));
       fail(new Error('GitHub GraphQL deadline exceeded'));
     }, timeoutMs * 2);
+    deadline.unref?.();
     req.write(body);
     req.end();
   });

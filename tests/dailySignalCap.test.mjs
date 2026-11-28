@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { EventEmitter } from 'node:events';
 import { execFile, execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import http from 'node:http';
@@ -949,4 +950,88 @@ test('CLI: outside CI the counting server is reached, so the zero-hit assertions
   });
   assert.equal(code, 0);
   assert.equal(seen.requests, 1);
+});
+
+// Fake request/response pair: plays one scripted ending, with no socket, so
+// each incomplete-response handler in the transport is pinned on its own.
+function fakeRequest(script) {
+  return (_endpoint, _options, onResponse) => {
+    const req = new EventEmitter();
+    req.write = () => {};
+    req.destroy = (err) => { if (err) req.emit('error', err); };
+    req.end = () => setImmediate(() => script(req, onResponse));
+    return req;
+  };
+}
+
+function fakeResponse({ complete, statusCode = 200 }) {
+  const res = new EventEmitter();
+  res.statusCode = statusCode;
+  res.complete = complete;
+  return res;
+}
+
+const GOOD_BODY = JSON.stringify({ data: { ok: true } });
+const INCOMPLETE_ENDINGS = {
+  'end fires while the response is incomplete': (_req, onResponse) => {
+    const res = fakeResponse({ complete: false });
+    onResponse(res);
+    res.emit('data', Buffer.from(GOOD_BODY));
+    res.emit('end');
+  },
+  'close fires without end': (_req, onResponse) => {
+    const res = fakeResponse({ complete: false });
+    onResponse(res);
+    res.emit('data', Buffer.from(GOOD_BODY.slice(0, 5)));
+    res.emit('close');
+  },
+  'aborted fires alone': (_req, onResponse) => {
+    const res = fakeResponse({ complete: false });
+    onResponse(res);
+    res.emit('aborted');
+  },
+  'the response emits error alone': (_req, onResponse) => {
+    const res = fakeResponse({ complete: false });
+    onResponse(res);
+    res.emit('error', new Error('reset'));
+  },
+  'the request closes with no response': (req) => {
+    req.emit('close');
+  },
+};
+
+for (const [label, script] of Object.entries(INCOMPLETE_ENDINGS)) {
+  test(`transport handler pinned: rejects when ${label}`, async () => {
+    // Long timeout on purpose: only the handler under test can settle this.
+    const pending = postGraphql('t', {}, { request: fakeRequest(script), timeoutMs: 600000 });
+    assert.equal(await outcomeOf(pending, 300), 'rejected');
+  });
+}
+
+test('transport handler pinned: a complete response through the same fake resolves', async () => {
+  const body = await postGraphql('t', {}, {
+    timeoutMs: 600000,
+    request: fakeRequest((req, onResponse) => {
+      const res = fakeResponse({ complete: true });
+      onResponse(res);
+      res.emit('data', Buffer.from(GOOD_BODY));
+      res.emit('end');
+      res.emit('close');
+      req.emit('close');
+    }),
+  });
+  assert.deepEqual(body, { data: { ok: true } });
+});
+
+test('transport handler pinned: a complete non-200 response rejects', async () => {
+  const pending = postGraphql('t', {}, {
+    timeoutMs: 600000,
+    request: fakeRequest((_req, onResponse) => {
+      const res = fakeResponse({ complete: true, statusCode: 502 });
+      onResponse(res);
+      res.emit('data', Buffer.from(GOOD_BODY));
+      res.emit('end');
+    }),
+  });
+  assert.equal(await outcomeOf(pending, 300), 'rejected');
 });
