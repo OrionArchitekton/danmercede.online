@@ -17,6 +17,8 @@ import { fileURLToPath } from 'node:url';
 const HEX_SHA_RX = /^[0-9a-f]{40,64}$/i;
 const DEFAULT_DAILY_CAP = 3;
 const PACIFIC_TZ = 'America/Los_Angeles';
+// 100 merged PRs per page. Past MAX_PAGES the read is reported incomplete.
+const MAX_PAGES = 20;
 
 const GRAPHQL_QUERY = `
 query($owner: String!, $name: String!, $after: String) {
@@ -141,7 +143,18 @@ export function evaluateDailySignalCap({
     };
   }
 
-  if (totalCount > nodes.length || pageInfo?.hasNextPage === true) {
+  // The last page must say so explicitly: a missing or malformed pageInfo is
+  // an incomplete read, not a complete one.
+  if (!pageInfo || typeof pageInfo !== 'object' || typeof pageInfo.hasNextPage !== 'boolean') {
+    return {
+      exitCode: 2,
+      status: 'blocked',
+      reason: 'REMOTE_RECONCILE_FAILED',
+      detail: 'pageInfo.hasNextPage missing',
+    };
+  }
+
+  if (totalCount > nodes.length || pageInfo.hasNextPage === true) {
     return {
       exitCode: 2,
       status: 'blocked',
@@ -152,10 +165,32 @@ export function evaluateDailySignalCap({
   }
 
   let remoteMergedPtToday = 0;
+  const seenPrNumbers = new Set();
   for (const pr of nodes) {
     if (!pr || typeof pr !== 'object') {
       return { exitCode: 2, status: 'blocked', reason: 'REMOTE_RECONCILE_FAILED' };
     }
+    // Every node must be a distinct PR. A PR seen twice (the list shifted
+    // between pages) lets the node count reach totalCount while another PR,
+    // possibly one merged today, was never read.
+    if (!Number.isSafeInteger(pr.number) || pr.number <= 0) {
+      return {
+        exitCode: 2,
+        status: 'blocked',
+        reason: 'REMOTE_RECONCILE_FAILED',
+        detail: 'PR number is not a positive integer',
+      };
+    }
+    if (seenPrNumbers.has(pr.number)) {
+      return {
+        exitCode: 2,
+        status: 'blocked',
+        reason: 'REMOTE_RECONCILE_FAILED',
+        detail: 'duplicate PR in merged list',
+        prNumber: pr.number,
+      };
+    }
+    seenPrNumbers.add(pr.number);
     let mergedDayPt;
     try {
       mergedDayPt = formatPacificDay(pr.mergedAt);
@@ -272,23 +307,44 @@ function postGraphql(token, variables) {
   });
 }
 
-async function fetchAllMergedPullRequests(token, owner, name) {
+// Reads every merged PR, page by page. Any response it cannot fully trust is
+// handed back as-is or marked incomplete (hasNextPage: true), and
+// evaluateDailySignalCap turns either into a block. It never returns a
+// complete-looking list from an incomplete read.
+export async function fetchAllMergedPullRequests(token, owner, name, post = postGraphql) {
+  const incomplete = (totalCount, nodes, endCursor) => ({
+    data: {
+      repository: {
+        pullRequests: {
+          totalCount,
+          pageInfo: { hasNextPage: true, endCursor },
+          nodes,
+        },
+      },
+    },
+  });
   const allNodes = [];
+  const seenCursors = new Set();
   let expectedTotal = null;
   let after = null;
-  for (let page = 0; page < 20; page += 1) {
-    const resp = await postGraphql(token, { owner, name, after });
+  for (let page = 0; page < MAX_PAGES; page += 1) {
+    const resp = await post(token, { owner, name, after });
     if (!resp || resp.errors) {
       return resp;
     }
     const prs = resp?.data?.repository?.pullRequests;
-    if (!prs || !Array.isArray(prs.nodes) || typeof prs.totalCount !== 'number') {
+    if (
+      !prs ||
+      !Array.isArray(prs.nodes) ||
+      typeof prs.totalCount !== 'number' ||
+      typeof prs.pageInfo?.hasNextPage !== 'boolean'
+    ) {
       return resp;
     }
     expectedTotal =
       expectedTotal === null ? prs.totalCount : Math.max(expectedTotal, prs.totalCount);
     allNodes.push(...prs.nodes);
-    if (!prs.pageInfo?.hasNextPage) {
+    if (!prs.pageInfo.hasNextPage) {
       return {
         data: {
           repository: {
@@ -301,32 +357,15 @@ async function fetchAllMergedPullRequests(token, owner, name) {
         },
       };
     }
-    if (!prs.pageInfo?.endCursor) {
-      return {
-        data: {
-          repository: {
-            pullRequests: {
-              totalCount: expectedTotal,
-              pageInfo: { hasNextPage: true, endCursor: null },
-              nodes: allNodes,
-            },
-          },
-        },
-      };
+    const next = prs.pageInfo.endCursor;
+    // A missing cursor, or one already used, cannot make progress.
+    if (typeof next !== 'string' || !next || next === after || seenCursors.has(next)) {
+      return incomplete(expectedTotal, allNodes, next ?? null);
     }
-    after = prs.pageInfo.endCursor;
+    seenCursors.add(next);
+    after = next;
   }
-  return {
-    data: {
-      repository: {
-        pullRequests: {
-          totalCount: expectedTotal ?? allNodes.length + 1,
-          pageInfo: { hasNextPage: true, endCursor: after },
-          nodes: allNodes,
-        },
-      },
-    },
-  };
+  return incomplete(expectedTotal ?? allNodes.length + 1, allNodes, after);
 }
 
 // Paths the range ADDS. A signal is a new inbox entry: editing or deleting an

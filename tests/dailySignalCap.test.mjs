@@ -7,6 +7,7 @@ import test from 'node:test';
 
 import {
   evaluateDailySignalCap,
+  fetchAllMergedPullRequests,
   isInboxSignalPath,
   resolveAddedPaths,
 } from '../tools/checkDailySignalCap.mjs';
@@ -282,4 +283,159 @@ test('a merged inbox file with a missing or unknown change type is counted, neve
   });
   assert.equal(verdict.exitCode, 4);
   assert.equal(verdict.remoteMergedPtToday, 3);
+});
+
+// Stubbed GraphQL transport: serves the given pages in order, records calls.
+function stubPost(pages) {
+  const calls = [];
+  const post = async (_token, variables) => {
+    calls.push(variables);
+    const page = pages[Math.min(calls.length - 1, pages.length - 1)];
+    return { data: { repository: { pullRequests: page } } };
+  };
+  return { post, calls };
+}
+
+const SIGNAL_CANDIDATE = ['inbox/2026-11-28-new.md'];
+
+test('the same PR on two pages is refused, so a displaced current-day PR cannot be missed', async () => {
+  // Four merged PRs exist. PR 4 (a signal merged today) slid off between pages
+  // and PR 2 came back twice: node count equals totalCount, yet PR 4 is unseen.
+  const { post } = stubPost([
+    {
+      totalCount: 4,
+      pageInfo: { hasNextPage: true, endCursor: 'c1' },
+      nodes: [makeNode(1, '2026-11-20T18:00:00Z', []), makeNode(2, '2026-11-21T18:00:00Z', [])],
+    },
+    {
+      totalCount: 4,
+      pageInfo: { hasNextPage: false, endCursor: 'c2' },
+      nodes: [makeNode(2, '2026-11-21T18:00:00Z', []), makeNode(3, '2026-11-22T18:00:00Z', [])],
+    },
+  ]);
+  const payload = await fetchAllMergedPullRequests('t', 'o', 'n', post);
+  const verdict = evaluateDailySignalCap({
+    changedPaths: SIGNAL_CANDIDATE,
+    todayPt: '2026-11-28',
+    graphqlPayload: payload,
+  });
+  assert.equal(verdict.exitCode, 2);
+  assert.equal(verdict.status, 'blocked');
+});
+
+test('a cursor that does not advance stops the read at once and fails closed', async () => {
+  const stuck = {
+    totalCount: 2,
+    pageInfo: { hasNextPage: true, endCursor: 'same' },
+    nodes: [makeNode(1, '2026-11-20T18:00:00Z', [])],
+  };
+  const { post, calls } = stubPost([stuck, stuck, { ...stuck, pageInfo: { hasNextPage: false, endCursor: 'same' } }]);
+  const payload = await fetchAllMergedPullRequests('t', 'o', 'n', post);
+  assert.equal(calls.length, 2);
+  const verdict = evaluateDailySignalCap({
+    changedPaths: SIGNAL_CANDIDATE,
+    todayPt: '2026-11-28',
+    graphqlPayload: payload,
+  });
+  assert.equal(verdict.exitCode, 2);
+});
+
+test('a complete two-page read is assembled and admitted', async () => {
+  const { post, calls } = stubPost([
+    {
+      totalCount: 3,
+      pageInfo: { hasNextPage: true, endCursor: 'c1' },
+      nodes: [makeNode(3, '2026-11-28T18:00:00Z', ['inbox/2026-11-28-one.md']), makeNode(2, '2026-11-21T18:00:00Z', [])],
+    },
+    {
+      totalCount: 3,
+      pageInfo: { hasNextPage: false, endCursor: 'c2' },
+      nodes: [makeNode(1, '2026-11-20T18:00:00Z', [])],
+    },
+  ]);
+  const payload = await fetchAllMergedPullRequests('t', 'o', 'n', post);
+  assert.deepEqual(calls.map((c) => c.after), [null, 'c1']);
+  const verdict = evaluateDailySignalCap({
+    changedPaths: SIGNAL_CANDIDATE,
+    todayPt: '2026-11-28',
+    graphqlPayload: payload,
+  });
+  assert.equal(verdict.exitCode, 0);
+  assert.equal(verdict.remoteMergedPtToday, 1);
+});
+
+test('a failed page in the middle of the read fails closed', async () => {
+  const calls = [];
+  const post = async (_t, variables) => {
+    calls.push(variables);
+    if (calls.length === 1) {
+      return { data: { repository: { pullRequests: {
+        totalCount: 3,
+        pageInfo: { hasNextPage: true, endCursor: 'c1' },
+        nodes: [makeNode(3, '2026-11-27T18:00:00Z', [])],
+      } } } };
+    }
+    return { errors: [{ message: 'timeout' }], data: null };
+  };
+  const payload = await fetchAllMergedPullRequests('t', 'o', 'n', post);
+  const verdict = evaluateDailySignalCap({
+    changedPaths: SIGNAL_CANDIDATE,
+    todayPt: '2026-11-28',
+    graphqlPayload: payload,
+  });
+  assert.equal(verdict.exitCode, 2);
+});
+
+test('duplicate PR numbers in the merged list are refused', () => {
+  const verdict = evaluateDailySignalCap({
+    changedPaths: SIGNAL_CANDIDATE,
+    todayPt: '2026-11-28',
+    graphqlPayload: payloadOf([
+      makeNode(7, '2026-11-20T18:00:00Z', []),
+      makeNode(7, '2026-11-20T18:00:00Z', []),
+    ]),
+  });
+  assert.equal(verdict.exitCode, 2);
+});
+
+test('a PR number that is not a positive integer is refused', () => {
+  for (const bad of [null, undefined, '193', 1.5, 0, -1, Number.NaN]) {
+    const verdict = evaluateDailySignalCap({
+      changedPaths: SIGNAL_CANDIDATE,
+      todayPt: '2026-11-28',
+      graphqlPayload: payloadOf([makeNode(bad, '2026-11-20T18:00:00Z', [])]),
+    });
+    assert.equal(verdict.exitCode, 2, `number=${String(bad)}`);
+  }
+});
+
+test('a merged list without an explicit last-page marker is refused', () => {
+  for (const pageInfo of [undefined, null, {}, { hasNextPage: 'false' }]) {
+    const payload = payloadOf([makeNode(7, '2026-11-20T18:00:00Z', [])]);
+    payload.data.repository.pullRequests.pageInfo = pageInfo;
+    const verdict = evaluateDailySignalCap({
+      changedPaths: SIGNAL_CANDIDATE,
+      todayPt: '2026-11-28',
+      graphqlPayload: payload,
+    });
+    assert.equal(verdict.exitCode, 2, JSON.stringify(pageInfo));
+  }
+});
+
+test('null PR nodes and null file nodes are refused', () => {
+  const nullPr = evaluateDailySignalCap({
+    changedPaths: SIGNAL_CANDIDATE,
+    todayPt: '2026-11-28',
+    graphqlPayload: payloadOf([null]),
+  });
+  assert.equal(nullPr.exitCode, 2);
+  const node = makeNode(7, '2026-11-28T18:00:00Z', []);
+  node.files.nodes = [null];
+  node.files.totalCount = 1;
+  const nullFile = evaluateDailySignalCap({
+    changedPaths: SIGNAL_CANDIDATE,
+    todayPt: '2026-11-28',
+    graphqlPayload: payloadOf([node]),
+  });
+  assert.equal(nullFile.exitCode, 2);
 });
