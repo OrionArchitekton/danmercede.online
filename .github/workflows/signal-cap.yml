@@ -9,12 +9,14 @@
 # Keep this file plain (block style, two-space indent, no anchors): its shape
 # is enforced line by line in tests/signalCapWorkflow.test.mjs.
 #
+# `edited` is listed because a PR retargeted to main fires only that event.
+#
 # The check only binds once `signal-cap` is a required status check on main.
 name: signal-cap
 
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
     branches: [main]
 
 permissions:
@@ -40,15 +42,19 @@ jobs:
       - name: Fetch the PR head as data only
         run: |
           set -euo pipefail
-          if ! printf '%s' "$PR_NUMBER" | grep -Eq '^[0-9]+$'; then
-          echo "PR number is not a plain number" >&2
-          exit 2
+          if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "PR number is not a plain number" >&2
+            exit 2
           fi
-          git fetch --no-tags origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/pr/head"
+          if ! [[ "$EXPECTED_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "event head is not a 40-hex commit id" >&2
+            exit 2
+          fi
+          git fetch --no-tags --no-recurse-submodules origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/pr/head"
           fetched="$(git rev-parse --verify 'refs/remotes/pr/head^{commit}')"
           if [ "$fetched" != "$EXPECTED_HEAD_SHA" ]; then
-          echo "fetched PR head does not match the event head" >&2
-          exit 2
+            echo "fetched PR head does not match the event head" >&2
+            exit 2
           fi
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}

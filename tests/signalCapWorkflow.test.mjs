@@ -27,7 +27,7 @@ const FORBIDDEN_COMMAND_RXS = [
   /\bgh\b/, /\bcurl\b/, /\bwget\b/, /\beval\b/, /\bsource\b/, /\bbash\b/, /\bsh\s+-c\b/, /\bpython3?\b/, /\btsx\b/, /\bmake\b/,
   /refs\/remotes\/pr\/head:/, /\bgit\s+show\b.*\|/, /\$GITHUB_ENV/, /\$GITHUB_PATH/, /\$GITHUB_OUTPUT/,
 ];
-const EXPECTED_FETCH = 'git fetch --no-tags origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/pr/head"';
+const EXPECTED_FETCH = 'git fetch --no-tags --no-recurse-submodules origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/pr/head"';
 const EXPECTED_GUARD = 'node tools/checkDailySignalCap.mjs';
 
 // EXACT CONTRACT. The workflow, with comments and blank lines removed, must
@@ -37,7 +37,7 @@ const EXPECTED_GUARD = 'node tools/checkDailySignalCap.mjs';
 // give a readable reason.
 const CHECKOUT_USES = 'actions/checkout@11d5960a326750d5838078e36cf38b85af677262';
 const SETUP_NODE_USES = 'actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020';
-const EXPECTED_TYPES = '[opened, synchronize, reopened, ready_for_review]';
+const EXPECTED_TYPES = '[opened, synchronize, reopened, ready_for_review, edited]';
 const EXPECTED_STEP_NAMES = [
   'Check out the base branch (never the PR)',
   'Set up Node (no cache)',
@@ -46,15 +46,19 @@ const EXPECTED_STEP_NAMES = [
 ];
 const EXPECTED_FETCH_SCRIPT = [
   'set -euo pipefail',
-  'if ! printf \'%s\' "$PR_NUMBER" | grep -Eq \'^[0-9]+$\'; then',
-  'echo "PR number is not a plain number" >&2',
-  'exit 2',
+  'if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then',
+  '  echo "PR number is not a plain number" >&2',
+  '  exit 2',
+  'fi',
+  'if ! [[ "$EXPECTED_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]; then',
+  '  echo "event head is not a 40-hex commit id" >&2',
+  '  exit 2',
   'fi',
   EXPECTED_FETCH,
   'fetched="$(git rev-parse --verify \'refs/remotes/pr/head^{commit}\')"',
   'if [ "$fetched" != "$EXPECTED_HEAD_SHA" ]; then',
-  'echo "fetched PR head does not match the event head" >&2',
-  'exit 2',
+  '  echo "fetched PR head does not match the event head" >&2',
+  '  exit 2',
   'fi',
 ];
 const EXPECTED_WORKFLOW_LINES = [
@@ -173,11 +177,11 @@ export function checkSignalCapWorkflow(text) {
   const on = topLevelBlock(lines, 'on');
   const expectedOn = [
     '  pull_request_target:',
-    '    types: [opened, synchronize, reopened, ready_for_review]',
+    `    types: ${EXPECTED_TYPES}`,
     '    branches: [main]',
   ];
   if (!on || JSON.stringify(on) !== JSON.stringify(expectedOn)) {
-    fail('`on` must be exactly pull_request_target with the four types and branches [main]');
+    fail('`on` must be exactly pull_request_target with the five types and branches [main]');
   }
 
   // Permissions: workflow level only, exactly the two read scopes.
@@ -318,7 +322,7 @@ export function checkSignalCapWorkflow(text) {
     if (/\bnode\b/.test(command) && command !== EXPECTED_GUARD) {
       fail(`node may only run the base guard: ${command}`);
     }
-    if (/\bgit\b/.test(command) && !/^(git fetch --no-tags origin |fetched="\$\(git rev-parse --verify )/.test(command)) {
+    if (/\bgit\b/.test(command) && !/^(git fetch --no-tags --no-recurse-submodules origin |fetched="\$\(git rev-parse --verify )/.test(command)) {
       fail(`unexpected git command: ${command}`);
     }
   }
@@ -462,13 +466,15 @@ test('signal-cap workflow: each weakening of the file is rejected', () => {
     'head ref in env': replaceOnce('          PR_NUMBER: ${{ github.event.pull_request.number }}\n', '          PR_NUMBER: ${{ github.event.pull_request.number }}\n          BRANCH: ${{ github.event.pull_request.head.ref }}\n'),
     'pull_request trigger instead': replaceOnce('  pull_request_target:', '  pull_request:'),
     'second trigger added': replaceOnce('    branches: [main]\n', '    branches: [main]\n  workflow_dispatch:\n'),
-    'types narrowed': replaceOnce('[opened, synchronize, reopened, ready_for_review]', '[opened]'),
+    'types narrowed': replaceOnce(EXPECTED_TYPES, '[opened]'),
+    'edited type dropped (a retarget to main would not run)': replaceOnce(EXPECTED_TYPES, '[opened, synchronize, reopened, ready_for_review]'),
     'token on the fetch step': replaceOnce('          PR_NUMBER: ${{ github.event.pull_request.number }}\n', '          PR_NUMBER: ${{ github.event.pull_request.number }}\n          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}\n'),
     'another secret': replaceOnce('          HEAD_SHA: ${{ github.event.pull_request.head.sha }}\n', '          HEAD_SHA: ${{ github.event.pull_request.head.sha }}\n          OTHER: ${{ secrets.DEPLOY_KEY }}\n'),
     'token removed from the guard': replaceOnce('          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}\n', ''),
     'HEAD_SHA removed from the guard': replaceOnce('          HEAD_SHA: ${{ github.event.pull_request.head.sha }}\n', ''),
     'head equality check removed': replaceOnce('          if [ "$fetched" != "$EXPECTED_HEAD_SHA" ]; then\n', '          if false; then\n'),
-    'fetch writes a local branch and tags': replaceOnce('git fetch --no-tags origin', 'git fetch origin'),
+    'fetch also takes tags': replaceOnce('git fetch --no-tags --no-recurse-submodules origin', 'git fetch --no-recurse-submodules origin'),
+    'fetch may recurse into submodules': replaceOnce('git fetch --no-tags --no-recurse-submodules origin', 'git fetch --no-tags origin'),
     'job renamed': replaceOnce('  signal-cap:\n    name: signal-cap', '  cap:\n    name: cap'),
     'env file written': replaceOnce('          set -euo pipefail\n', '          set -euo pipefail\n          echo "X=1" >> "$GITHUB_ENV"\n'),
     'yaml anchor': replaceOnce('    runs-on: ubuntu-latest\n', '    runs-on: &r ubuntu-latest\n'),
@@ -499,6 +505,10 @@ test('signal-cap workflow: each weakening of the file is rejected', () => {
     'eval call': replaceOnce('          set -euo pipefail\n', '          set -euo pipefail\n          eval "$PR_NUMBER"\n'),
     'curl call': replaceOnce('          set -euo pipefail\n', '          set -euo pipefail\n          curl -s https://example.invalid\n'),
     'wget call': replaceOnce('          set -euo pipefail\n', '          set -euo pipefail\n          wget -q https://example.invalid\n'),
+    // Input validation weakened.
+    'number check back to a per-line grep': replaceOnce('if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then', 'if ! printf \'%s\' "$PR_NUMBER" | grep -Eq \'^[0-9]+$\'; then'),
+    'number check unanchored': replaceOnce('=~ ^[0-9]+$ ]]', '=~ [0-9]+ ]]'),
+    'head sha validation removed': replaceOnce('          if ! [[ "$EXPECTED_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]; then\n', '          if false; then\n'),
     // Shape.
     'step renamed': replaceOnce('Fetch the PR head as data only', 'Fetch'),
     'fifth step': `${good}\n      - name: Extra\n        run: true\n`,
