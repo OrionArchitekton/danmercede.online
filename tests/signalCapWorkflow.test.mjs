@@ -30,6 +30,76 @@ const FORBIDDEN_COMMAND_RXS = [
 const EXPECTED_FETCH = 'git fetch --no-tags origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/pr/head"';
 const EXPECTED_GUARD = 'node tools/checkDailySignalCap.mjs';
 
+// EXACT CONTRACT. The workflow, with comments and blank lines removed, must
+// equal this list line for line. Any edit to the workflow (a pin, a step, one
+// character of the fetch script) fails the test and forces a deliberate change
+// here, in review. The rule-based checks further down stay as a second net and
+// give a readable reason.
+const CHECKOUT_USES = 'actions/checkout@11d5960a326750d5838078e36cf38b85af677262';
+const SETUP_NODE_USES = 'actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020';
+const EXPECTED_TYPES = '[opened, synchronize, reopened, ready_for_review]';
+const EXPECTED_STEP_NAMES = [
+  'Check out the base branch (never the PR)',
+  'Set up Node (no cache)',
+  'Fetch the PR head as data only',
+  'Daily Pacific signal cap guard (base copy)',
+];
+const EXPECTED_FETCH_SCRIPT = [
+  'set -euo pipefail',
+  'if ! printf \'%s\' "$PR_NUMBER" | grep -Eq \'^[0-9]+$\'; then',
+  'echo "PR number is not a plain number" >&2',
+  'exit 2',
+  'fi',
+  EXPECTED_FETCH,
+  'fetched="$(git rev-parse --verify \'refs/remotes/pr/head^{commit}\')"',
+  'if [ "$fetched" != "$EXPECTED_HEAD_SHA" ]; then',
+  'echo "fetched PR head does not match the event head" >&2',
+  'exit 2',
+  'fi',
+];
+const EXPECTED_WORKFLOW_LINES = [
+  'name: signal-cap',
+  'on:',
+  '  pull_request_target:',
+  `    types: ${EXPECTED_TYPES}`,
+  '    branches: [main]',
+  'permissions:',
+  '  contents: read',
+  '  pull-requests: read',
+  'jobs:',
+  '  signal-cap:',
+  '    name: signal-cap',
+  '    runs-on: ubuntu-latest',
+  '    steps:',
+  `      - name: ${EXPECTED_STEP_NAMES[0]}`,
+  `        uses: ${CHECKOUT_USES}`,
+  '        with:',
+  '          fetch-depth: 0',
+  '          persist-credentials: false',
+  `      - name: ${EXPECTED_STEP_NAMES[1]}`,
+  `        uses: ${SETUP_NODE_USES}`,
+  '        with:',
+  '          node-version: 20',
+  `      - name: ${EXPECTED_STEP_NAMES[2]}`,
+  '        run: |',
+  ...EXPECTED_FETCH_SCRIPT.map((line) => `          ${line}`),
+  '        env:',
+  '          PR_NUMBER: ${{ github.event.pull_request.number }}',
+  '          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}',
+  `      - name: ${EXPECTED_STEP_NAMES[3]}`,
+  `        run: ${EXPECTED_GUARD}`,
+  '        env:',
+  '          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}',
+  '          BASE_SHA: ${{ github.event.pull_request.base.sha }}',
+  '          HEAD_SHA: ${{ github.event.pull_request.head.sha }}',
+];
+
+// Comments and blank lines removed; nothing else is normalized (indentation
+// and trailing spaces count).
+export function normalizedWorkflowLines(text) {
+  return text.split('\n').map(stripComment).filter((line) => line.trim() !== '');
+}
+
 function stripComment(line) {
   // Comments in this file are whole-line, or follow a pinned `uses:` value.
   if (/^\s*#/.test(line)) {
@@ -64,6 +134,18 @@ export function checkSignalCapWorkflow(text) {
   }
   const lines = text.split('\n').map(stripComment);
   const meaningful = lines.filter((line) => line.trim() !== '');
+
+  // Exact contract first: the whole file, line for line.
+  const actual = normalizedWorkflowLines(text);
+  if (actual.length !== EXPECTED_WORKFLOW_LINES.length) {
+    fail(`exact contract: ${actual.length} lines, expected ${EXPECTED_WORKFLOW_LINES.length}`);
+  }
+  for (let i = 0; i < Math.max(actual.length, EXPECTED_WORKFLOW_LINES.length); i += 1) {
+    if (actual[i] !== EXPECTED_WORKFLOW_LINES[i]) {
+      fail(`exact contract: line ${i + 1} is ${JSON.stringify(actual[i])}, expected ${JSON.stringify(EXPECTED_WORKFLOW_LINES[i])}`);
+      break;
+    }
+  }
 
   // No YAML features that could hide structure from a line-based reader.
   for (const line of meaningful) {
@@ -320,6 +402,29 @@ test('signal-cap workflow: the committed file passes the structure check', () =>
   assert.deepEqual(checkSignalCapWorkflow(read(WORKFLOW_PATH)), []);
 });
 
+test('signal-cap workflow: exact contract for pins, steps, trigger, job and scripts', () => {
+  const lines = normalizedWorkflowLines(read(WORKFLOW_PATH));
+  assert.deepEqual(lines, EXPECTED_WORKFLOW_LINES);
+  // The same contract, spelled out item by item.
+  const uses = lines.filter((line) => /\buses:/.test(line)).map((line) => line.trim());
+  assert.deepEqual(uses, [`uses: ${CHECKOUT_USES}`, `uses: ${SETUP_NODE_USES}`]);
+  const stepNames = lines.filter((line) => /^ {6}- name: /.test(line)).map((line) => line.replace(/^ {6}- name: /, ''));
+  assert.deepEqual(stepNames, EXPECTED_STEP_NAMES);
+  assert.equal(lines.filter((line) => /^ {6}- /.test(line)).length, 4);
+  const runAt = lines.indexOf('        run: |');
+  assert.deepEqual(
+    lines.slice(runAt + 1, runAt + 1 + EXPECTED_FETCH_SCRIPT.length).map((line) => line.trim()),
+    EXPECTED_FETCH_SCRIPT.map((line) => line.trim()),
+  );
+  assert.equal(lines[runAt + 1 + EXPECTED_FETCH_SCRIPT.length], '        env:');
+  assert.deepEqual(lines.filter((line) => /^ {8}run: /.test(line)), ['        run: |', `        run: ${EXPECTED_GUARD}`]);
+  const jobsAt = lines.indexOf('jobs:');
+  assert.deepEqual(lines.slice(jobsAt + 1).filter((line) => /^ {2}\S/.test(line)), ['  signal-cap:']);
+  const onAt = lines.indexOf('on:');
+  const permissionsAt = lines.indexOf('permissions:');
+  assert.deepEqual(lines.slice(onAt + 1, permissionsAt).filter((line) => /^ {2}\S/.test(line)), ['  pull_request_target:']);
+});
+
 test('signal-cap workflow: each weakening of the file is rejected', () => {
   const good = read(WORKFLOW_PATH);
   assert.deepEqual(checkSignalCapWorkflow(good), []);
@@ -368,6 +473,38 @@ test('signal-cap workflow: each weakening of the file is rejected', () => {
     'env file written': replaceOnce('          set -euo pipefail\n', '          set -euo pipefail\n          echo "X=1" >> "$GITHUB_ENV"\n'),
     'yaml anchor': replaceOnce('    runs-on: ubuntu-latest\n', '    runs-on: &r ubuntu-latest\n'),
     'tab indentation': replaceOnce('    runs-on: ubuntu-latest\n', '\truns-on: ubuntu-latest\n'),
+    // Pull the PR tree into the workspace.
+    'read-tree into the workspace': replaceOnce('          set -euo pipefail\n', '          set -euo pipefail\n          git read-tree -u --reset refs/remotes/pr/head\n'),
+    'git switch to the PR head': replaceOnce('          fetched=', '          git switch --detach refs/remotes/pr/head\n          fetched='),
+    'git reset to the PR head': replaceOnce('          fetched=', '          git reset --hard refs/remotes/pr/head\n          fetched='),
+    'git worktree of the PR head': replaceOnce('          fetched=', '          git worktree add pr refs/remotes/pr/head\n          fetched='),
+    'git restore from the PR head': replaceOnce('          fetched=', '          git restore --source refs/remotes/pr/head -- tools\n          fetched='),
+    'git merge of the PR head': replaceOnce('          fetched=', '          git merge refs/remotes/pr/head\n          fetched='),
+    'git pull of the PR head': replaceOnce('          fetched=', '          git pull origin refs/pull/1/head\n          fetched='),
+    'git archive of the PR head': replaceOnce('          fetched=', '          git archive refs/remotes/pr/head | tar x\n          fetched='),
+    'git show redirected into the tree': replaceOnce('          fetched=', '          git show refs/remotes/pr/head:tools/checkDailySignalCap.mjs > tools/checkDailySignalCap.mjs\n          fetched='),
+    // A different commit behind the same action name.
+    'checkout pinned to another commit': good.replace(/actions\/checkout@[0-9a-f]{40}/, `actions/checkout@${'a'.repeat(40)}`),
+    'setup-node pinned to another commit': good.replace(/actions\/setup-node@[0-9a-f]{40}/, `actions/setup-node@${'b'.repeat(40)}`),
+    // Defuse the head comparison.
+    'exit 0 before the head comparison': replaceOnce('          fetched=', '          exit 0\n          fetched='),
+    'mismatch exit turned into true': good.replace(/( +echo "fetched PR head does not match the event head" >&2\n +)exit 2\n/, '$1true\n'),
+    'comparison inverted': replaceOnce('"$fetched" != "$EXPECTED_HEAD_SHA"', '"$fetched" = "$EXPECTED_HEAD_SHA"'),
+    'errexit dropped': replaceOnce('          set -euo pipefail\n', '          set -uo pipefail\n'),
+    // Added interpreters and network tools.
+    'perl call': replaceOnce('          set -euo pipefail\n', '          set -euo pipefail\n          perl -e 1\n'),
+    'python call': replaceOnce('          set -euo pipefail\n', '          set -euo pipefail\n          python3 -c pass\n'),
+    'bash -c call': replaceOnce('          set -euo pipefail\n', '          set -euo pipefail\n          bash -c true\n'),
+    'sh -c call': replaceOnce('          set -euo pipefail\n', '          set -euo pipefail\n          sh -c true\n'),
+    'eval call': replaceOnce('          set -euo pipefail\n', '          set -euo pipefail\n          eval "$PR_NUMBER"\n'),
+    'curl call': replaceOnce('          set -euo pipefail\n', '          set -euo pipefail\n          curl -s https://example.invalid\n'),
+    'wget call': replaceOnce('          set -euo pipefail\n', '          set -euo pipefail\n          wget -q https://example.invalid\n'),
+    // Shape.
+    'step renamed': replaceOnce('Fetch the PR head as data only', 'Fetch'),
+    'fifth step': `${good}\n      - name: Extra\n        run: true\n`,
+    'second job': `${good}\n  other:\n    name: other\n    runs-on: ubuntu-latest\n    steps:\n      - name: Extra\n        run: true\n`,
+    'trailing space on the guard line': replaceOnce(`        run: ${EXPECTED_GUARD}\n`, `        run: ${EXPECTED_GUARD} \n`),
+    'guard given an argument': replaceOnce(`        run: ${EXPECTED_GUARD}\n`, `        run: ${EXPECTED_GUARD} --help\n`),
   };
   for (const [label, mutated] of Object.entries(mutations)) {
     assert.notEqual(mutated, good, `mutation did not apply: ${label}`);
