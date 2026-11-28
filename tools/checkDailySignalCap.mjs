@@ -15,6 +15,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HEX_SHA_RX = /^[0-9a-f]{40,64}$/i;
+const ISO_INSTANT_RX =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
 const DEFAULT_DAILY_CAP = 3;
 const PACIFIC_TZ = 'America/Los_Angeles';
 // 100 merged PRs per page. Past MAX_PAGES the read is reported incomplete.
@@ -73,6 +75,12 @@ export function isInboxSignalPath(rawPath) {
 export function formatPacificDay(isoTimestamp) {
   if (typeof isoTimestamp !== 'string' || !isoTimestamp.trim()) {
     throw new Error('mergedAt timestamp is missing');
+  }
+  // Full ISO 8601 instant with an explicit zone only. Date() would read a
+  // zone-less string as runner-local time and a bare date as UTC midnight,
+  // either of which can put a merge on the wrong Pacific day.
+  if (!ISO_INSTANT_RX.test(isoTimestamp)) {
+    throw new Error(`invalid mergedAt timestamp: ${isoTimestamp}`);
   }
   const date = new Date(isoTimestamp);
   if (Number.isNaN(date.getTime())) {

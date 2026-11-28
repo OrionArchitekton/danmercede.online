@@ -8,6 +8,7 @@ import test from 'node:test';
 import {
   evaluateDailySignalCap,
   fetchAllMergedPullRequests,
+  formatPacificDay,
   isInboxSignalPath,
   resolveAddedPaths,
 } from '../tools/checkDailySignalCap.mjs';
@@ -438,4 +439,38 @@ test('null PR nodes and null file nodes are refused', () => {
     graphqlPayload: payloadOf([node]),
   });
   assert.equal(nullFile.exitCode, 2);
+});
+
+test('a merged time that is missing, malformed or has no timezone is refused', () => {
+  const bad = [
+    null,
+    undefined,
+    '',
+    'not-a-date',
+    1764352800000,
+    '2026-11-28',
+    '2026-11-28T18:00:00',
+    '2026-11-28 18:00:00Z',
+    '2026-11-28T18:00Z',
+    '2026-13-45T18:00:00Z',
+    'Sat, 28 Nov 2026 18:00:00 GMT',
+  ];
+  for (const mergedAt of bad) {
+    const verdict = evaluateDailySignalCap({
+      changedPaths: SIGNAL_CANDIDATE,
+      todayPt: '2026-11-28',
+      graphqlPayload: payloadOf([makeNode(7, mergedAt, ['inbox/2026-11-28-one.md'])]),
+    });
+    assert.equal(verdict.exitCode, 2, `mergedAt=${String(mergedAt)}`);
+    assert.equal(verdict.reason, 'REMOTE_RECONCILE_FAILED');
+  }
+});
+
+test('merged times are bucketed by the Pacific day, across midnight and daylight saving', () => {
+  assert.equal(formatPacificDay('2026-11-28T07:59:59Z'), '2026-11-27');
+  assert.equal(formatPacificDay('2026-11-28T08:00:00Z'), '2026-11-28');
+  assert.equal(formatPacificDay('2026-07-04T06:59:59Z'), '2026-07-03');
+  assert.equal(formatPacificDay('2026-07-04T07:00:00Z'), '2026-07-04');
+  assert.equal(formatPacificDay('2026-11-28T00:30:00-08:00'), '2026-11-28');
+  assert.equal(formatPacificDay('2026-11-28T08:00:00.123Z'), '2026-11-28');
 });
