@@ -17,6 +17,13 @@ import {
   resolveAddedPaths,
 } from '../tools/checkDailySignalCap.mjs';
 
+// Fixture repos must store the exact bytes written. A repo-local attributes
+// file outranks core.autocrlf and any global attributes, and is not committed.
+function disableLineEndingConversion(dir) {
+  fs.mkdirSync(path.join(dir, '.git', 'info'), { recursive: true });
+  fs.writeFileSync(path.join(dir, '.git', 'info', 'attributes'), '* -text\n');
+}
+
 // Local throwaway git repo: a base commit, then one commit built by `mutate`.
 function makeRepo(t, mutate) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'signal-cap-'));
@@ -26,6 +33,7 @@ function makeRepo(t, mutate) {
       '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', ...args],
     { cwd: dir, encoding: 'utf8' }).trim();
   git('init', '-q', '-b', 'main');
+  disableLineEndingConversion(dir);
   fs.mkdirSync(path.join(dir, 'inbox'));
   fs.writeFileSync(path.join(dir, 'inbox', 'existing.md'), '---\nslug: existing\n---\none\n');
   fs.writeFileSync(path.join(dir, 'inbox', 'doomed.md'), '---\nslug: doomed\n---\ntwo\n');
@@ -713,6 +721,7 @@ function slugRepo(t, baseContent, headContent) {
       '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', ...args],
     { cwd: dir, encoding: 'utf8' }).trim();
   git('init', '-q', '-b', 'main');
+  disableLineEndingConversion(dir);
   fs.mkdirSync(path.join(dir, 'inbox'));
   fs.writeFileSync(path.join(dir, 'inbox', 'kept.md'), baseContent);
   fs.writeFileSync(path.join(dir, 'inbox', 'gone.md'), entry('gone'));
@@ -840,6 +849,7 @@ test('a modified inbox symlink is a signal whatever its target text says', (t) =
       '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', '-c', 'core.symlinks=true', ...args],
     { cwd: dir, encoding: 'utf8' }).trim();
   git('init', '-q', '-b', 'main');
+  disableLineEndingConversion(dir);
   fs.mkdirSync(path.join(dir, 'inbox'));
   fs.symlinkSync('---\nslug: kept\n---\na', path.join(dir, 'inbox', 'link.md'));
   git('add', '-A');
@@ -1257,4 +1267,19 @@ test('prefix rule agrees with the compiler close rule on mixed line endings', ()
     const compilerClose = text.indexOf('\n---', 4);
     assert.ok(compilerClose !== -1 && compilerClose + 4 <= prefix, JSON.stringify(text));
   }
+});
+
+test('fixture repos keep CRLF bytes whatever the git line-ending config says', (t) => {
+  const crlf = BASE_ENTRY.replaceAll('\n', '\r\n');
+  const { dir, baseSha } = slugRepo(t, crlf, `${crlf}more body\r\n`);
+  for (const rev of [baseSha, 'HEAD']) {
+    const blob = execFileSync('git', ['cat-file', 'blob', `${rev}:inbox/kept.md`], { cwd: dir });
+    assert.ok(blob.includes(Buffer.from('\r\n')), `${rev} blob lost its CRLF bytes`);
+    assert.ok(blob.subarray(0, 5).equals(Buffer.from('---\r\n')));
+  }
+  const viaMakeRepo = makeRepo(t, (d) => {
+    fs.writeFileSync(path.join(d, 'inbox', 'crlf.md'), crlf);
+  });
+  const blob = execFileSync('git', ['cat-file', 'blob', 'HEAD:inbox/crlf.md'], { cwd: viaMakeRepo.dir });
+  assert.ok(blob.equals(Buffer.from(crlf)));
 });
