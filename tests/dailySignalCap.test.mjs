@@ -779,7 +779,7 @@ test('any frontmatter change is a signal: date, title, key order, added key, lin
     'key order': `---\nslug: kept\ntitle: T\ndate: '2026-11-28T10:00:00-0800'\n---\nbody\n`,
     'added key': BASE_ENTRY.replace('title: T\n', 'title: T\ntags: [x]\n'),
     'LF to CRLF': BASE_ENTRY.replaceAll('\n', '\r\n'),
-    'leading BOM': `﻿${BASE_ENTRY}`,
+    'leading BOM': `\uFEFF${BASE_ENTRY}`,
     'engine tag on the open line': BASE_ENTRY.replace('---\n', '---js\n'),
     'trailing space in a value': BASE_ENTRY.replace('title: T\n', 'title: T \n'),
   };
@@ -796,7 +796,7 @@ test('a base entry without the strict frontmatter shape makes any edit a signal'
     'close only as four dashes': `---\nslug: kept\n----\nbody\n`,
     'close is the second line': `---\n---\nslug: kept\n---\nbody\n`,
     'close has no newline after it': `---\nslug: kept\n---`,
-    'leading BOM': `﻿---\nslug: kept\n---\nbody\n`,
+    'leading BOM': `\uFEFF---\nslug: kept\n---\nbody\n`,
     'leading blank line': `\n---\nslug: kept\n---\nbody\n`,
     'CRLF open with LF close': `---\r\nslug: kept\n---\nbody\n`,
   };
