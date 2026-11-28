@@ -1035,3 +1035,40 @@ test('transport handler pinned: a complete non-200 response rejects', async () =
   });
   assert.equal(await outcomeOf(pending, 300), 'rejected');
 });
+
+test('paths are classified exactly: a path that only looks like inbox after trimming is not a signal', (t) => {
+  for (const odd of [' inbox/note.md', '\tinbox/note.md', 'inbox/note.md ', ' inbox/note.md ', 'inbox/note.md\n']) {
+    assert.equal(isInboxSignalPath(odd), false, JSON.stringify(odd));
+  }
+  assert.equal(isInboxSignalPath('inbox/note.md'), true);
+  assert.equal(isInboxSignalPath('inbox/ spaced name.md'), true);
+
+  // PR side: a directory literally named " inbox" is outside inbox/.
+  const { dir, baseSha } = makeRepo(t, (d) => {
+    fs.mkdirSync(path.join(d, ' inbox'));
+    fs.writeFileSync(path.join(d, ' inbox', 'note.md'), 'not an entry\n');
+  });
+  assert.deepEqual(resolveAddedPaths({ cwd: dir, env: { BASE_SHA: baseSha } }), [' inbox/note.md']);
+  const { code, verdict } = runCliIn(dir, { BASE_SHA: baseSha });
+  assert.equal(code, 0);
+  assert.equal(verdict.status, 'skipped_non_signal');
+
+  const candidate = evaluateDailySignalCap({
+    changedPaths: [' inbox/note.md'],
+    todayPt: '2026-11-28',
+    graphqlPayload: null,
+  });
+  assert.equal(candidate.status, 'skipped_non_signal');
+});
+
+test('merged history counts exact inbox paths only, and an exact inbox path still counts', () => {
+  const verdict = evaluateDailySignalCap({
+    changedPaths: SIGNAL_CANDIDATE,
+    todayPt: '2026-11-28',
+    graphqlPayload: payloadOf([
+      makeNode(200, '2026-11-28T18:00:00Z', [' inbox/a.md', 'inbox/b.md ', 'inbox/note.md']),
+    ]),
+  });
+  assert.equal(verdict.exitCode, 0);
+  assert.equal(verdict.remoteMergedPtToday, 1);
+});

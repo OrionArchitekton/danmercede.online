@@ -65,15 +65,17 @@ const PT_DATE_FORMATTER = new Intl.DateTimeFormat('en-CA', {
   day: '2-digit',
 });
 
+// Exact match on the path as git or GitHub reports it. No trimming: a path
+// such as " inbox/note.md" (a directory whose name starts with a space) is
+// outside inbox/ and the compiler never reads it.
 export function isInboxSignalPath(rawPath) {
   if (typeof rawPath !== 'string') {
     return false;
   }
-  const trimmed = rawPath.trim();
   return (
-    trimmed.startsWith('inbox/') &&
-    trimmed.endsWith('.md') &&
-    trimmed !== 'inbox/.gitkeep'
+    rawPath.startsWith('inbox/') &&
+    rawPath.endsWith('.md') &&
+    rawPath !== 'inbox/.gitkeep'
   );
 }
 
@@ -112,7 +114,6 @@ export function evaluateDailySignalCap({
     ...new Set(
       changedPaths
         .filter((item) => typeof item === 'string')
-        .map((item) => item.trim())
         .filter((item) => isInboxSignalPath(item)),
     ),
   ];
@@ -247,7 +248,7 @@ export function evaluateDailySignalCap({
         continue;
       }
       if (isInboxSignalPath(f.path)) {
-        matchedInPr.add(f.path.trim());
+        matchedInPr.add(f.path);
       }
     }
     remoteMergedPtToday += matchedInPr.size;
