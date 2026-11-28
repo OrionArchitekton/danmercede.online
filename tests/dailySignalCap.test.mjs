@@ -6,6 +6,7 @@ import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { pathToFileURL } from 'node:url';
 
 import {
   evaluateDailySignalCap,
@@ -643,12 +644,12 @@ test('transport: a complete response resolves with the parsed body', async (t) =
 });
 
 // Async CLI run (the loopback server lives in this process, so no execFileSync).
-function runCliAsync(dir, env) {
+function runCliAsync(dir, env, { nodeArgs = [] } = {}) {
   const toolPath = path.resolve(import.meta.dirname, '..', 'tools', 'checkDailySignalCap.mjs');
   return new Promise((resolve) => {
     execFile(
       process.execPath,
-      [toolPath],
+      [...nodeArgs, toolPath],
       { cwd: dir, env: { PATH: process.env.PATH, HOME: dir, ...env }, encoding: 'utf8', timeout: 20000 },
       (err, stdout) => resolve({ code: err ? err.code : 0, stdout }),
     );
@@ -1335,11 +1336,19 @@ test('fixture repos keep CRLF bytes whatever the git line-ending config says', (
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '..');
 
-// Loopback history: `count` one-signal PRs merged just now (so, today Pacific).
+// One fixed instant shared by the history server and the guard process, so no
+// run can straddle Pacific midnight: the server stamps its merges with it and
+// the CLI is started with its clock frozen at it (fixedClockArgs). The instant
+// is one millisecond before midnight in Los Angeles (PDT, UTC-7), where a
+// request-time clock would flip the day.
+const FIXED_NOW_MS = Date.UTC(2031, 6, 5, 6, 59, 59, 999);
+const FIXED_TODAY_PT = '2031-07-04';
+
+// Loopback history: `count` one-signal PRs merged at the fixed instant.
 async function startHistoryServer(t, count) {
+  const mergedAt = new Date(FIXED_NOW_MS).toISOString();
   const server = http.createServer((req, res) => {
     req.resume();
-    const mergedAt = new Date().toISOString();
     const nodes = Array.from({ length: count }, (_, i) =>
       makeNode(900 + i, mergedAt, [`inbox/merged-today-${i}.md`]));
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -1350,6 +1359,34 @@ async function startHistoryServer(t, count) {
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   t.after(() => server.close());
   return `http://127.0.0.1:${server.address().port}/graphql`;
+}
+
+// Node arguments that start the guard process with its clock frozen at
+// FIXED_NOW_MS: a preload module, written to its own temp directory, replaces
+// the global Date before the guard is loaded. The guard itself has no clock
+// override, so nothing here is reachable from a workflow.
+function fixedClockArgs(t) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'signal-cap-clock-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const preload = path.join(dir, 'fixed-clock.mjs');
+  fs.writeFileSync(preload, [
+    'const RealDate = Date;',
+    `const FIXED = ${FIXED_NOW_MS};`,
+    'globalThis.Date = class extends RealDate {',
+    '  constructor(...args) {',
+    '    if (args.length === 0) {',
+    '      super(FIXED);',
+    '    } else {',
+    '      super(...args);',
+    '    }',
+    '  }',
+    '  static now() {',
+    '    return FIXED;',
+    '  }',
+    '};',
+    '',
+  ].join('\n'));
+  return ['--import', pathToFileURL(preload).href];
 }
 
 // Fixture: the base commit carries the real guard and workflow; the PR head
@@ -1419,9 +1456,10 @@ for (const [label, attack] of Object.entries(GATE_ATTACKS)) {
       HEAD_SHA: headSha,
       GITHUB_TOKEN: 'test-token',
       SIGNAL_CAP_TEST_ENDPOINT: endpoint,
-    });
+    }, { nodeArgs: fixedClockArgs(t) });
     assert.equal(code, 4);
     const verdict = JSON.parse(stdout);
+    assert.equal(verdict.todayPt, FIXED_TODAY_PT);
     assert.equal(verdict.reason, 'CAP_EXCEEDED_REMOTE_RECONCILED');
     assert.equal(verdict.remoteMergedPtToday, 3);
     assert.deepEqual(verdict.signalPaths, ['inbox/new.md']);
@@ -1460,9 +1498,12 @@ test('control: below the cap the same base guard admits the PR, so the refusals 
     HEAD_SHA: headSha,
     GITHUB_TOKEN: 'test-token',
     SIGNAL_CAP_TEST_ENDPOINT: endpoint,
-  });
+  }, { nodeArgs: fixedClockArgs(t) });
   assert.equal(code, 0);
-  assert.equal(JSON.parse(stdout).projectedTotalPtToday, 3);
+  const verdict = JSON.parse(stdout);
+  assert.equal(verdict.todayPt, FIXED_TODAY_PT);
+  assert.equal(verdict.remoteMergedPtToday, 2);
+  assert.equal(verdict.projectedTotalPtToday, 3);
 });
 
 test('HEAD_SHA: the diff is taken to the named commit, not to the workspace HEAD', (t) => {
