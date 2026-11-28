@@ -10,6 +10,7 @@ import {
   evaluateDailySignalCap,
   fetchAllMergedPullRequests,
   formatPacificDay,
+  isFrontmatterPreservingEdit,
   isInboxSignalPath,
   postGraphql,
   resolveAddedPaths,
@@ -727,8 +728,16 @@ function slugRepo(t, baseContent, headContent) {
   return { dir, baseSha };
 }
 
-test('a modified inbox entry that keeps its slug is not a signal and passes without the remote', (t) => {
-  const { dir, baseSha } = slugRepo(t, entry('kept'), entry('kept', 'typo fixed'));
+const BASE_ENTRY = entry('kept');
+const isSignal = (t, base, head) => {
+  const { dir, baseSha } = slugRepo(t, base, head);
+  const added = resolveAddedPaths({ cwd: dir, env: { BASE_SHA: baseSha } });
+  assert.ok(added.length === 0 || (added.length === 1 && added[0] === 'inbox/kept.md'));
+  return added.length === 1;
+};
+
+test('a body-only edit of an inbox entry is not a signal and passes without the remote', (t) => {
+  const { dir, baseSha } = slugRepo(t, BASE_ENTRY, entry('kept', 'typo fixed\n\nand a new paragraph'));
   assert.deepEqual(resolveAddedPaths({ cwd: dir, env: { BASE_SHA: baseSha } }), []);
   const { code, verdict } = runCliIn(dir, { BASE_SHA: baseSha });
   assert.equal(code, 0);
@@ -736,39 +745,110 @@ test('a modified inbox entry that keeps its slug is not a signal and passes with
 });
 
 test('a modified inbox entry whose slug changed is a signal', (t) => {
-  const { dir, baseSha } = slugRepo(t, entry('kept'), entry('a-whole-new-entry', 'new body'));
+  const { dir, baseSha } = slugRepo(t, BASE_ENTRY, entry('a-whole-new-entry', 'new body'));
   assert.deepEqual(resolveAddedPaths({ cwd: dir, env: { BASE_SHA: baseSha } }), ['inbox/kept.md']);
   const { code, verdict } = runCliIn(dir, { BASE_SHA: baseSha });
   assert.equal(code, 2);
   assert.equal(verdict.reason, 'MISSING_GITHUB_TOKEN');
 });
 
-test('a modified inbox entry whose slug cannot be read on either side is a signal', (t) => {
-  const unreadable = {
-    'no frontmatter at head': [entry('kept'), 'just text\n'],
-    'no slug at head': [entry('kept'), '---\ntitle: T\n---\nbody\n'],
-    'two slug lines at head': [entry('kept'), '---\nslug: kept\nslug: other\n---\nbody\n'],
-    'unsafe slug at head': [entry('kept'), '---\nslug: Kept Thing\n---\nbody\n'],
-    'frontmatter engine tag at head': [entry('kept'), '---js\nslug: kept\n---\nbody\n'],
-    'unclosed frontmatter at head': [entry('kept'), '---\nslug: kept\nbody\n'],
-    'quoted slug key at head': [entry('kept'), '---\nslug: kept\n"slug": other\n---\nbody\n'],
-    'no slug at base': ['---\ntitle: T\n---\nbody\n', entry('kept')],
+test('frontmatter that a YAML parser reads differently from a line reader is a signal', (t) => {
+  // Each head keeps the literal base line `slug: kept` somewhere, yet the
+  // compiler's parser would publish a different entry.
+  const fm = (inner) => `---\n${inner}\n---\nbody\n`;
+  const baseInner = "title: T\nslug: kept\ndate: '2026-11-28T10:00:00-0800'";
+  const bypasses = {
+    'second key spelled with a YAML escape': fm(`${baseInner}\n"\\x73lug": brand-new-entry`),
+    'explicit key form': fm(`title: T\n? slug\n: brand-new-entry\ndate: '2026-11-28T10:00:00-0800'\nnote: |\n  x\nslug: kept`),
+    'tagged key': fm(`title: T\n!!str slug: brand-new-entry\ndate: '2026-11-28T10:00:00-0800'`) + 'slug: kept\n',
+    'anchor and alias': fm(`title: T\nreal: &s brand-new-entry\n? slug\n: *s\ndate: '2026-11-28T10:00:00-0800'`),
+    'early close line of four dashes': `---\ntitle: T\nslug: brand-new-entry\n----\nslug: kept\n---\nbody\n`,
+    'early close line with a trailing space': `---\ntitle: T\nslug: brand-new-entry\n--- \nslug: kept\n---\nbody\n`,
+    'early close line with trailing text': `---\ntitle: T\nslug: brand-new-entry\n---x\nslug: kept\n---\nbody\n`,
   };
-  for (const [label, [base, head]] of Object.entries(unreadable)) {
-    const { dir, baseSha } = slugRepo(t, base, head);
-    assert.deepEqual(
-      resolveAddedPaths({ cwd: dir, env: { BASE_SHA: baseSha } }),
-      ['inbox/kept.md'],
-      label,
-    );
+  for (const [label, head] of Object.entries(bypasses)) {
+    assert.equal(isSignal(t, BASE_ENTRY, head), true, label);
   }
 });
 
-test('a quoted slug equal to the bare slug is the same slug; a deleted entry is not a signal', (t) => {
-  const quoted = slugRepo(t, entry('kept'), `---\nslug: "kept"\n---\nbody\n`);
-  assert.deepEqual(resolveAddedPaths({ cwd: quoted.dir, env: { BASE_SHA: quoted.baseSha } }), []);
-  const deleted = slugRepo(t, entry('kept'), null);
-  assert.deepEqual(resolveAddedPaths({ cwd: deleted.dir, env: { BASE_SHA: deleted.baseSha } }), []);
+test('any frontmatter change is a signal: date, title, key order, added key, line endings, BOM', (t) => {
+  const changes = {
+    'changed date (re-dates the entry)': BASE_ENTRY.replace('2026-11-28T10', '2026-11-29T10'),
+    'changed title': BASE_ENTRY.replace('title: T', 'title: Other'),
+    'key order': `---\nslug: kept\ntitle: T\ndate: '2026-11-28T10:00:00-0800'\n---\nbody\n`,
+    'added key': BASE_ENTRY.replace('title: T\n', 'title: T\ntags: [x]\n'),
+    'LF to CRLF': BASE_ENTRY.replaceAll('\n', '\r\n'),
+    'leading BOM': `﻿${BASE_ENTRY}`,
+    'engine tag on the open line': BASE_ENTRY.replace('---\n', '---js\n'),
+    'trailing space in a value': BASE_ENTRY.replace('title: T\n', 'title: T \n'),
+  };
+  for (const [label, head] of Object.entries(changes)) {
+    assert.equal(isSignal(t, BASE_ENTRY, head), true, label);
+  }
+});
+
+test('a base entry without the strict frontmatter shape makes any edit a signal', (t) => {
+  const bases = {
+    'no frontmatter': 'just text\n',
+    'open line has trailing text': `---yaml\nslug: kept\n---\nbody\n`,
+    'never closed': `---\nslug: kept\nbody\n`,
+    'close only as four dashes': `---\nslug: kept\n----\nbody\n`,
+    'close is the second line': `---\n---\nslug: kept\n---\nbody\n`,
+    'close has no newline after it': `---\nslug: kept\n---`,
+    'leading BOM': `﻿---\nslug: kept\n---\nbody\n`,
+    'leading blank line': `\n---\nslug: kept\n---\nbody\n`,
+    'CRLF open with LF close': `---\r\nslug: kept\n---\nbody\n`,
+  };
+  for (const [label, base] of Object.entries(bases)) {
+    assert.equal(isSignal(t, base, `${base}edited\n`), true, label);
+  }
+});
+
+test('a head cut inside the frontmatter is a signal; a CRLF entry with identical frontmatter is not', (t) => {
+  assert.equal(isSignal(t, BASE_ENTRY, BASE_ENTRY.slice(0, 20)), true);
+  assert.equal(isSignal(t, BASE_ENTRY, '---\ntitle: T\nslug: kept\n'), true);
+  const crlf = BASE_ENTRY.replaceAll('\n', '\r\n');
+  assert.equal(isSignal(t, crlf, `${crlf}more body\r\n`), false);
+  assert.equal(isSignal(t, crlf, `${crlf}mixed ending body\n`), false);
+});
+
+test('a deleted entry is not a signal', (t) => {
+  assert.equal(isSignal(t, BASE_ENTRY, null), false);
+});
+
+test('prefix rule: unreadable blobs and non-buffers are never a frontmatter-preserving edit', () => {
+  const base = Buffer.from(BASE_ENTRY);
+  const head = Buffer.from(`${BASE_ENTRY}more\n`);
+  assert.equal(isFrontmatterPreservingEdit(base, head), true);
+  assert.equal(isFrontmatterPreservingEdit(null, head), false);
+  assert.equal(isFrontmatterPreservingEdit(base, null), false);
+  assert.equal(isFrontmatterPreservingEdit(undefined, undefined), false);
+  assert.equal(isFrontmatterPreservingEdit(BASE_ENTRY, `${BASE_ENTRY}more\n`), false);
+  // Invalid UTF-8 is compared as bytes, never decoded.
+  const rawBase = Buffer.concat([Buffer.from('---\nslug: kept\nx: '), Buffer.from([0xff, 0xfe]), Buffer.from('\n---\nbody\n')]);
+  const rawHead = Buffer.concat([Buffer.from('---\nslug: kept\nx: '), Buffer.from([0xff, 0xfd]), Buffer.from('\n---\nbody\n')]);
+  assert.equal(isFrontmatterPreservingEdit(rawBase, rawBase), true);
+  assert.equal(isFrontmatterPreservingEdit(rawBase, rawHead), false);
+});
+
+test('a modified inbox symlink is a signal whatever its target text says', (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'signal-cap-link-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const git = (...args) =>
+    execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.invalid',
+      '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', '-c', 'core.symlinks=true', ...args],
+    { cwd: dir, encoding: 'utf8' }).trim();
+  git('init', '-q', '-b', 'main');
+  fs.mkdirSync(path.join(dir, 'inbox'));
+  fs.symlinkSync('---\nslug: kept\n---\na', path.join(dir, 'inbox', 'link.md'));
+  git('add', '-A');
+  git('commit', '-q', '-m', 'base');
+  const baseSha = git('rev-parse', 'HEAD');
+  fs.rmSync(path.join(dir, 'inbox', 'link.md'));
+  fs.symlinkSync('---\nslug: kept\n---\nb', path.join(dir, 'inbox', 'link.md'));
+  git('add', '-A');
+  git('commit', '-q', '-m', 'change');
+  assert.deepEqual(resolveAddedPaths({ cwd: dir, env: { BASE_SHA: baseSha } }), ['inbox/link.md']);
 });
 
 test('an other-day merged PR with null or malformed files does not block a later signal PR', () => {

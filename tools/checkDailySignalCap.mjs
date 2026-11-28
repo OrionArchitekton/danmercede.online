@@ -4,9 +4,9 @@
  *
  * Enforces the 3/day America/Los_Angeles ceiling on signal PRs, meaning PRs that
  * ADD an inbox/*.md entry, by querying GitHub GraphQL merged PRs with complete
- * totalCount verification. A PR that only edits (same frontmatter slug) or
- * deletes existing entries publishes no new signal: it is not capped. An edit
- * that changes an entry's slug is a new entry and is capped.
+ * totalCount verification. A PR that only deletes entries, or edits the BODY of
+ * existing entries, publishes no new signal: it is not capped. An edit that
+ * changes any byte of an entry's frontmatter is treated as a signal.
  */
 
 import { execFileSync } from 'node:child_process';
@@ -419,40 +419,65 @@ export async function fetchAllMergedPullRequests(token, owner, name, post = post
   return incomplete(expectedTotal ?? allNodes.length + 1, allNodes, after);
 }
 
-const SAFE_SLUG_RX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+// Length in bytes of the frontmatter block of a BASE (already merged) inbox
+// entry, from offset 0 through the newline that ends its closing line, or -1
+// when the blob does not have the strict shape:
+//   - offset 0 is `---` followed at once by a newline (LF or CRLF; no BOM, no
+//     engine tag, nothing before it);
+//   - the close is the FIRST later line that is exactly `---` with the same
+//     newline style, and it is not the second line of the file.
+// Bytes are compared as they are; nothing is decoded or normalized.
+function strictFrontmatterLength(blob) {
+  if (!Buffer.isBuffer(blob)) {
+    return -1;
+  }
+  let newline;
+  if (blob.subarray(0, 4).equals(Buffer.from('---\n'))) {
+    newline = '\n';
+  } else if (blob.subarray(0, 5).equals(Buffer.from('---\r\n'))) {
+    newline = '\r\n';
+  } else {
+    return -1;
+  }
+  const openLength = 3 + newline.length;
+  const closeLine = Buffer.from(`---${newline}`);
+  if (blob.subarray(openLength, openLength + closeLine.length).equals(closeLine)) {
+    return -1;
+  }
+  // The newline that ends the open line may also be the one before the close
+  // marker, hence the search from the end of `---`; the second-line case is
+  // already excluded above, so any hit here is on line three or later.
+  const marker = Buffer.from(`${newline}---${newline}`);
+  const at = blob.indexOf(marker, 3);
+  if (at === -1) {
+    return -1;
+  }
+  return at + marker.length;
+}
 
-// The frontmatter slug of an inbox entry, or null when it cannot be read with
-// certainty. The site compiler keys entries by this slug, not by filename.
-// Deliberately narrow: plain `---` fences only (no engine tag), exactly one
-// line that looks like a slug key anywhere in the block, written `slug: value`
-// at column 0, value a safe slug (optionally in matching quotes). Anything
-// else is null, and the caller treats null as a signal.
-export function readFrontmatterSlug(text) {
-  if (typeof text !== 'string') {
-    return null;
+// True only when an edit to an existing inbox entry provably leaves its
+// frontmatter untouched: the base has the strict shape above and the head
+// starts with exactly the same bytes through the end of the base's closing
+// line. No YAML is parsed, so there is no parser to disagree with.
+//
+// Why this is sound: the compiler reads frontmatter with gray-matter 2.0.1,
+// which closes the block at the first "\n---" found from offset 4 on (any line
+// that merely STARTS with ---). Our close is a line that is exactly `---`, on
+// line three or later, so the compiler's close for the base lies at or before
+// ours. Identical bytes through our close therefore give the compiler the
+// identical open line, identical frontmatter text and so identical parsed
+// data (slug, date, title, everything) for base and head. Only the body can
+// differ. Any other parser that closes at or before the first exact `---`
+// line gets the same guarantee.
+export function isFrontmatterPreservingEdit(baseBlob, headBlob) {
+  if (!Buffer.isBuffer(baseBlob) || !Buffer.isBuffer(headBlob)) {
+    return false;
   }
-  const lines = text.split(/\r?\n/);
-  if (lines[0] !== '---') {
-    return null;
+  const length = strictFrontmatterLength(baseBlob);
+  if (length === -1 || headBlob.length < length) {
+    return false;
   }
-  const end = lines.indexOf('---', 1);
-  if (end === -1) {
-    return null;
-  }
-  const slugLines = lines.slice(1, end).filter((line) => /^\s*["']?slug["']?\s*:/i.test(line));
-  if (slugLines.length !== 1) {
-    return null;
-  }
-  const match = /^slug:[ \t]*(.*?)[ \t]*$/.exec(slugLines[0]);
-  if (!match) {
-    return null;
-  }
-  let value = match[1];
-  const quoted = /^(["'])(.*)\1$/.exec(value);
-  if (quoted) {
-    value = quoted[2];
-  }
-  return SAFE_SLUG_RX.test(value) ? value : null;
+  return baseBlob.subarray(0, length).equals(headBlob.subarray(0, length));
 }
 
 function git(args, cwd) {
@@ -463,24 +488,35 @@ function git(args, cwd) {
   });
 }
 
-function readBlobSlug(rev, filePath, cwd) {
+// Raw bytes of a blob by object id, or null when it cannot be read.
+function readBlob(objectId, cwd) {
+  if (!/^[0-9a-f]{40,64}$/.test(objectId) || /^0+$/.test(objectId)) {
+    return null;
+  }
   try {
-    return readFrontmatterSlug(git(['cat-file', 'blob', `${rev}:${filePath}`], cwd));
+    return execFileSync('git', ['cat-file', 'blob', objectId], {
+      cwd,
+      maxBuffer: 64 * 1024 * 1024,
+    });
   } catch {
     return null;
   }
 }
 
+const REGULAR_FILE_MODES = new Set(['100644', '100755']);
+const RAW_META_RX = /^:(\d{6}) (\d{6}) ([0-9a-f]{40,64}) ([0-9a-f]{40,64}) ([A-Z])$/;
+
 // Paths by which the PR publishes something NEW, relative to its merge base.
-// - Added (and anything that is not a plain modify or delete): kept.
+// - Deleted: dropped. A deletion publishes nothing.
+// - Modified non-inbox path: dropped.
+// - Modified inbox entry: dropped ONLY when both sides are regular files and
+//   isFrontmatterPreservingEdit holds (a body-only edit). Any frontmatter
+//   change at all (slug, date, title, key order, a single byte), a base
+//   without the strict shape, an unreadable blob or a symlink is a signal.
+// - Everything else (added, type change, unknown status): kept.
 //   --no-renames reports a rename as a delete plus an add, so a file renamed
 //   or copied into inbox/ counts as added.
-// - Deleted: dropped. A deletion publishes nothing.
-// - Modified inbox entry: kept when its frontmatter slug differs between the
-//   merge base and HEAD, or when either slug cannot be read. The compiler keys
-//   entries by slug, so rewriting an existing file under a new slug publishes
-//   a new entry. Same slug on both sides is an edit and is dropped.
-// - Modified non-inbox path: dropped.
+// --raw gives modes and blob ids, so blobs are read by id, not by path.
 // -z: NUL-delimited, never quoted. Without it git quotes a path holding a
 // double quote, backslash or control character even with core.quotePath=false,
 // and the quoted form would not be recognised as an inbox path.
@@ -489,21 +525,25 @@ function gitDiffAddedPaths(baseRef, cwd) {
   if (!HEX_SHA_RX.test(mergeBase)) {
     throw new Error('could not resolve the merge base');
   }
-  const out = git(['diff', '--name-status', '--no-renames', '-z', mergeBase, 'HEAD', '--'], cwd);
+  const out = git(
+    ['diff', '--raw', '--no-abbrev', '--no-renames', '-z', mergeBase, 'HEAD', '--'],
+    cwd,
+  );
   const fields = out.split('\0');
   if (fields[fields.length - 1] === '') {
     fields.pop();
   }
   if (fields.length % 2 !== 0) {
-    throw new Error('unexpected git diff --name-status -z output');
+    throw new Error('unexpected git diff --raw -z output');
   }
   const added = [];
   for (let i = 0; i < fields.length; i += 2) {
-    const status = fields[i];
+    const meta = RAW_META_RX.exec(fields[i]);
     const filePath = fields[i + 1];
-    if (!status || !filePath) {
-      throw new Error('unexpected git diff --name-status -z output');
+    if (!meta || !filePath) {
+      throw new Error('unexpected git diff --raw -z output');
     }
+    const [, baseMode, headMode, baseId, headId, status] = meta;
     if (status === 'D') {
       continue;
     }
@@ -511,9 +551,11 @@ function gitDiffAddedPaths(baseRef, cwd) {
       if (!isInboxSignalPath(filePath)) {
         continue;
       }
-      const baseSlug = readBlobSlug(mergeBase, filePath, cwd);
-      const headSlug = readBlobSlug('HEAD', filePath, cwd);
-      if (baseSlug !== null && headSlug !== null && baseSlug === headSlug) {
+      if (
+        REGULAR_FILE_MODES.has(baseMode) &&
+        REGULAR_FILE_MODES.has(headMode) &&
+        isFrontmatterPreservingEdit(readBlob(baseId, cwd), readBlob(headId, cwd))
+      ) {
         continue;
       }
     }
