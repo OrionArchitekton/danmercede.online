@@ -8,7 +8,7 @@ import test from 'node:test';
 import {
   evaluateDailySignalCap,
   isInboxSignalPath,
-  resolveChangedPaths,
+  resolveAddedPaths,
 } from '../tools/checkDailySignalCap.mjs';
 
 // Local throwaway git repo: a base commit, then one commit built by `mutate`.
@@ -39,7 +39,12 @@ function makeNode(number, mergedAt, paths, filesTotal = paths.length) {
     mergedAt,
     files: {
       totalCount: filesTotal,
-      nodes: paths.map((path) => ({ path })),
+      // A bare string is an added file; [path, changeType] sets the type.
+      nodes: paths.map((entry) =>
+        Array.isArray(entry)
+          ? { path: entry[0], changeType: entry[1] }
+          : { path: entry, changeType: 'ADDED' },
+      ),
     },
   };
 }
@@ -212,7 +217,69 @@ test('an added inbox path that git would quote is still seen as a signal', (t) =
   const { dir, baseSha } = makeRepo(t, (d) => {
     fs.writeFileSync(path.join(d, 'inbox', 'a"b.md'), 'quoted\n');
   });
-  const paths = resolveChangedPaths({ cwd: dir, env: { BASE_SHA: baseSha } });
+  const paths = resolveAddedPaths({ cwd: dir, env: { BASE_SHA: baseSha } });
   assert.deepEqual(paths, ['inbox/a"b.md']);
   assert.equal(paths.some((p) => isInboxSignalPath(p)), true);
+});
+
+test('a PR that only modifies or deletes inbox entries is not a signal PR', (t) => {
+  const { dir, baseSha } = makeRepo(t, (d) => {
+    fs.writeFileSync(path.join(d, 'inbox', 'existing.md'), 'one, edited\n');
+    fs.rmSync(path.join(d, 'inbox', 'doomed.md'));
+    fs.writeFileSync(path.join(d, 'README.md'), 'readme, edited\n');
+  });
+  const added = resolveAddedPaths({ cwd: dir, env: { BASE_SHA: baseSha } });
+  assert.deepEqual(added, []);
+  const verdict = evaluateDailySignalCap({
+    changedPaths: added,
+    todayPt: '2026-11-28',
+    graphqlPayload: null,
+  });
+  assert.equal(verdict.exitCode, 0);
+  assert.equal(verdict.status, 'skipped_non_signal');
+});
+
+test('added and renamed-in inbox entries are signals; an edit beside them is not', (t) => {
+  const { dir, baseSha } = makeRepo(t, (d) => {
+    fs.writeFileSync(path.join(d, 'inbox', 'new.md'), 'brand new\n');
+    fs.renameSync(path.join(d, 'inbox', 'doomed.md'), path.join(d, 'inbox', 'moved.md'));
+    fs.writeFileSync(path.join(d, 'inbox', 'existing.md'), 'one, edited\n');
+  });
+  const added = resolveAddedPaths({ cwd: dir, env: { BASE_SHA: baseSha } });
+  assert.deepEqual([...added].sort(), ['inbox/moved.md', 'inbox/new.md']);
+});
+
+test('merged history counts only inbox entries a PR added, not ones it edited or deleted', () => {
+  const verdict = evaluateDailySignalCap({
+    changedPaths: ['inbox/2026-11-28-new.md'],
+    todayPt: '2026-11-28',
+    graphqlPayload: payloadOf([
+      makeNode(193, '2026-11-28T18:00:00Z', [
+        ['inbox/old-a.md', 'MODIFIED'],
+        ['inbox/old-b.md', 'MODIFIED'],
+        ['inbox/old-c.md', 'MODIFIED'],
+        ['inbox/old-d.md', 'DELETED'],
+        ['inbox/2026-11-28-one.md', 'ADDED'],
+        ['inbox/2026-11-28-moved.md', 'RENAMED'],
+      ]),
+    ]),
+  });
+  assert.equal(verdict.exitCode, 0);
+  assert.equal(verdict.remoteMergedPtToday, 2);
+});
+
+test('a merged inbox file with a missing or unknown change type is counted, never skipped', () => {
+  const verdict = evaluateDailySignalCap({
+    changedPaths: ['inbox/2026-11-28-new.md'],
+    todayPt: '2026-11-28',
+    graphqlPayload: payloadOf([
+      makeNode(193, '2026-11-28T18:00:00Z', [
+        ['inbox/a.md', undefined],
+        ['inbox/b.md', 'SOMETHING_NEW'],
+        ['inbox/c.md', 'COPIED'],
+      ]),
+    ]),
+  });
+  assert.equal(verdict.exitCode, 4);
+  assert.equal(verdict.remoteMergedPtToday, 3);
 });

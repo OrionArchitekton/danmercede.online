@@ -2,8 +2,10 @@
 /**
  * Daily Pacific signal cap guard for danmercede.online pull requests (REC-005 / F-PBG-003).
  *
- * Enforces the 3/day America/Los_Angeles ceiling on signal PRs touching inbox/*.md
- * by querying GitHub GraphQL merged PRs with complete totalCount verification.
+ * Enforces the 3/day America/Los_Angeles ceiling on signal PRs, meaning PRs that
+ * ADD an inbox/*.md entry, by querying GitHub GraphQL merged PRs with complete
+ * totalCount verification. A PR that only edits or deletes existing entries
+ * publishes no new signal: it is not capped and does not use up the day's cap.
  */
 
 import { execFileSync } from 'node:child_process';
@@ -38,6 +40,7 @@ query($owner: String!, $name: String!, $after: String) {
           totalCount
           nodes {
             path
+            changeType
           }
         }
       }
@@ -76,6 +79,7 @@ export function formatPacificDay(isoTimestamp) {
   return PT_DATE_FORMATTER.format(date);
 }
 
+// changedPaths: the paths the candidate PR ADDS (see resolveAddedPaths).
 export function evaluateDailySignalCap({
   changedPaths,
   todayPt,
@@ -187,6 +191,11 @@ export function evaluateDailySignalCap({
     for (const f of files.nodes) {
       if (!f || typeof f.path !== 'string') {
         return { exitCode: 2, status: 'blocked', reason: 'REMOTE_RECONCILE_FAILED' };
+      }
+      // Count what the PR added. Only an explicit MODIFIED or DELETED is
+      // skipped; a missing or unknown change type is counted (fail closed).
+      if (f.changeType === 'MODIFIED' || f.changeType === 'DELETED') {
+        continue;
       }
       if (isInboxSignalPath(f.path)) {
         matchedInPr.add(f.path.trim());
@@ -320,40 +329,71 @@ async function fetchAllMergedPullRequests(token, owner, name) {
   };
 }
 
-function gitDiffNames(rangeSpec, cwd) {
-  // -z: NUL-delimited, never quoted. Without it git quotes a path holding a
-  // double quote, backslash or control character even with core.quotePath=false,
-  // and the quoted form would not be recognised as an inbox path.
+// Paths the range ADDS. A signal is a new inbox entry: editing or deleting an
+// existing entry publishes nothing new. --no-renames reports a rename as a
+// delete plus an add, so a file renamed or copied into inbox/ counts as added.
+// Only a plain modify (M) or delete (D) is dropped; any other status is kept.
+// -z: NUL-delimited, never quoted. Without it git quotes a path holding a
+// double quote, backslash or control character even with core.quotePath=false,
+// and the quoted form would not be recognised as an inbox path.
+function gitDiffAddedPaths(rangeSpec, cwd) {
   const out = execFileSync(
     'git',
-    ['-c', 'core.quotePath=false', 'diff', '--name-only', '-z', rangeSpec, '--'],
+    [
+      '-c',
+      'core.quotePath=false',
+      'diff',
+      '--name-status',
+      '--no-renames',
+      '-z',
+      rangeSpec,
+      '--',
+    ],
     { encoding: 'utf8', cwd },
   );
-  return out.split('\0').filter((entry) => entry.length > 0);
+  const fields = out.split('\0');
+  if (fields[fields.length - 1] === '') {
+    fields.pop();
+  }
+  if (fields.length % 2 !== 0) {
+    throw new Error('unexpected git diff --name-status -z output');
+  }
+  const added = [];
+  for (let i = 0; i < fields.length; i += 2) {
+    const status = fields[i];
+    const filePath = fields[i + 1];
+    if (!status || !filePath) {
+      throw new Error('unexpected git diff --name-status -z output');
+    }
+    if (status !== 'M' && status !== 'D') {
+      added.push(filePath);
+    }
+  }
+  return added;
 }
 
-export function resolveChangedPaths({ cwd = process.cwd(), env = process.env } = {}) {
+export function resolveAddedPaths({ cwd = process.cwd(), env = process.env } = {}) {
   const baseSha = (env.BASE_SHA || env.GITHUB_BASE_SHA || '').trim();
   if (baseSha) {
     if (!HEX_SHA_RX.test(baseSha)) {
       throw new Error('BASE_SHA is not a valid hexadecimal commit digest');
     }
-    return gitDiffNames(`${baseSha}...HEAD`, cwd);
+    return gitDiffAddedPaths(`${baseSha}...HEAD`, cwd);
   }
   const eventPath = env.GITHUB_EVENT_PATH;
   if (eventPath && fs.existsSync(eventPath)) {
     const evt = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
     const prBase = evt?.pull_request?.base?.sha;
     if (typeof prBase === 'string' && HEX_SHA_RX.test(prBase)) {
-      return gitDiffNames(`${prBase}...HEAD`, cwd);
+      return gitDiffAddedPaths(`${prBase}...HEAD`, cwd);
     }
   }
-  return gitDiffNames('HEAD~1...HEAD', cwd);
+  return gitDiffAddedPaths('HEAD~1...HEAD', cwd);
 }
 
 async function runCli() {
   try {
-    const changedPaths = resolveChangedPaths();
+    const changedPaths = resolveAddedPaths();
     const hasSignal = changedPaths.some((p) => isInboxSignalPath(p));
     const todayPt = PT_DATE_FORMATTER.format(new Date());
     if (!hasSignal) {
