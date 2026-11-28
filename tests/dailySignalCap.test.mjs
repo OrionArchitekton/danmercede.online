@@ -888,3 +888,65 @@ test('an other-day merged PR with a bad merged time still fails closed even when
   });
   assert.equal(verdict.exitCode, 2);
 });
+
+// Loopback server that would hand back an empty history, and counts hits.
+async function startCountingServer(t) {
+  const seen = { connections: 0, requests: 0 };
+  const server = http.createServer((req, res) => {
+    seen.requests += 1;
+    req.resume();
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ data: { repository: { pullRequests: {
+      totalCount: 0, pageInfo: { hasNextPage: false, endCursor: null }, nodes: [],
+    } } } }));
+  });
+  server.on('connection', () => { seen.connections += 1; });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => server.close());
+  return { endpoint: `http://127.0.0.1:${server.address().port}/graphql`, seen };
+}
+
+for (const ciEnv of [{ GITHUB_ACTIONS: 'true' }, { CI: 'true' }, { CI: '1' }, { GITHUB_ACTIONS: 'false' }]) {
+  test(`CLI: the test endpoint is refused under CI and nothing connects to it (${JSON.stringify(ciEnv)})`, async (t) => {
+    const { endpoint, seen } = await startCountingServer(t);
+    const { dir, baseSha } = signalRepo(t);
+    const { code, stdout } = await runCliAsync(dir, {
+      BASE_SHA: baseSha,
+      GITHUB_TOKEN: 'test-token',
+      SIGNAL_CAP_TEST_ENDPOINT: endpoint,
+      ...ciEnv,
+    });
+    assert.equal(code, 2);
+    const verdict = JSON.parse(stdout);
+    assert.equal(verdict.status, 'blocked');
+    assert.match(verdict.detail, /SIGNAL_CAP_TEST_ENDPOINT/);
+    assert.deepEqual(seen, { connections: 0, requests: 0 });
+  });
+}
+
+test('CLI: under CI even a non-signal PR is refused when the test endpoint is set', async (t) => {
+  const { endpoint, seen } = await startCountingServer(t);
+  const { dir, baseSha } = makeRepo(t, (d) => {
+    fs.writeFileSync(path.join(d, 'README.md'), 'readme, edited\n');
+  });
+  const { code } = await runCliAsync(dir, {
+    BASE_SHA: baseSha,
+    SIGNAL_CAP_TEST_ENDPOINT: endpoint,
+    SIGNAL_CAP_TEST_TIMEOUT_MS: '5',
+    GITHUB_ACTIONS: 'true',
+  });
+  assert.equal(code, 2);
+  assert.deepEqual(seen, { connections: 0, requests: 0 });
+});
+
+test('CLI: outside CI the counting server is reached, so the zero-hit assertions above mean something', async (t) => {
+  const { endpoint, seen } = await startCountingServer(t);
+  const { dir, baseSha } = signalRepo(t);
+  const { code } = await runCliAsync(dir, {
+    BASE_SHA: baseSha,
+    GITHUB_TOKEN: 'test-token',
+    SIGNAL_CAP_TEST_ENDPOINT: endpoint,
+  });
+  assert.equal(code, 0);
+  assert.equal(seen.requests, 1);
+});

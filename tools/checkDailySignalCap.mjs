@@ -588,6 +588,20 @@ async function runCli() {
   // promise that never settles or an early event-loop drain exits non-zero.
   process.exitCode = 2;
   try {
+    // The test-only transport overrides are never honored on a CI runner. An
+    // earlier workflow step runs PR code, which could plant the variable and a
+    // loopback server that reports an empty history, and would receive the
+    // token. Refused before anything else, signal PR or not.
+    const underCi = Boolean(process.env.GITHUB_ACTIONS) || Boolean(process.env.CI);
+    if (
+      underCi &&
+      (process.env.SIGNAL_CAP_TEST_ENDPOINT !== undefined ||
+        process.env.SIGNAL_CAP_TEST_TIMEOUT_MS !== undefined)
+    ) {
+      throw new Error(
+        'SIGNAL_CAP_TEST_ENDPOINT and SIGNAL_CAP_TEST_TIMEOUT_MS are test-only and refused when GITHUB_ACTIONS or CI is set',
+      );
+    }
     const changedPaths = resolveAddedPaths();
     const hasSignal = changedPaths.some((p) => isInboxSignalPath(p));
     const todayPt = PT_DATE_FORMATTER.format(new Date());
@@ -619,6 +633,7 @@ async function runCli() {
     // CLI can be run against a local misbehaving server. Anything that is not
     // http://127.0.0.1:<port>/graphql is refused, so the token cannot be sent
     // elsewhere.
+    // Never reached on a CI runner with the variable set (refused above).
     const transport = {};
     const testEndpoint = process.env.SIGNAL_CAP_TEST_ENDPOINT;
     if (testEndpoint) {
