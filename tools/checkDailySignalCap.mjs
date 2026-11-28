@@ -494,8 +494,9 @@ export async function fetchAllMergedPullRequests(token, owner, name, post = post
 // when the blob does not have the strict shape:
 //   - offset 0 is `---` followed at once by a newline (LF or CRLF; no BOM, no
 //     engine tag, nothing before it);
-//   - the close is the FIRST later line that is exactly `---` with the same
-//     newline style, and it is not the second line of the file.
+//   - the close is the FIRST later line that is exactly `---` ending with the
+//     opener's newline style, and it is not the second line of the file. Lines
+//     in between may end in LF or CRLF.
 // Bytes are compared as they are; nothing is decoded or normalized.
 function strictFrontmatterLength(blob) {
   if (!Buffer.isBuffer(blob)) {
@@ -514,10 +515,12 @@ function strictFrontmatterLength(blob) {
   if (blob.subarray(openLength, openLength + closeLine.length).equals(closeLine)) {
     return -1;
   }
-  // The newline that ends the open line may also be the one before the close
-  // marker, hence the search from the end of `---`; the second-line case is
-  // already excluded above, so any hit here is on line three or later.
-  const marker = Buffer.from(`${newline}---${newline}`);
+  // The close is the first line, from line three on, that is exactly `---`
+  // ending like the opener. The line BEFORE it may end in LF or CRLF, so the
+  // search anchors on a bare LF (a CRLF line ends in LF too). The LF that ends
+  // the open line may be the one before the close marker, hence the search
+  // from the end of `---`; the second-line case is already excluded above.
+  const marker = Buffer.from(`\n---${newline}`);
   const at = blob.indexOf(marker, 3);
   if (at === -1) {
     return -1;
@@ -532,9 +535,9 @@ function strictFrontmatterLength(blob) {
 //
 // Why this is sound: the compiler reads frontmatter with gray-matter 2.0.1,
 // which closes the block at the first "\n---" found from offset 4 on (any line
-// that merely STARTS with ---). Our close is a line that is exactly `---`, on
-// line three or later, so the compiler's close for the base lies at or before
-// ours. Identical bytes through our close therefore give the compiler the
+// that merely STARTS with ---). Our close always begins with an LF followed by
+// `---` at offset 4 or later (line three or later, whatever the line endings
+// around it), so the compiler's close for the base lies at or before ours. Identical bytes through our close therefore give the compiler the
 // identical open line, identical frontmatter text and so identical parsed
 // data (slug, date, title, everything) for base and head. Only the body can
 // differ. Any other parser that closes at or before the first exact `---`

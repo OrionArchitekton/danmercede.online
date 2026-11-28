@@ -1220,3 +1220,41 @@ test('a page reporting an invalid PR totalCount fails the read instead of being 
   });
   assert.equal(verdict.exitCode, 2);
 });
+
+test('mixed line endings inside the frontmatter: the close is found after any LF when it ends like the opener', (t) => {
+  // CRLF opener, LF line inside, CRLF close: a body-only edit is not a signal.
+  const mixed = '---\r\nslug: kept\n---\r\nold body\n';
+  assert.equal(isSignal(t, mixed, '---\r\nslug: kept\n---\r\nnew body\n'), false);
+  assert.equal(isSignal(t, mixed, '---\r\nslug: other\n---\r\nold body\n'), true);
+  // LF opener, CRLF line inside, LF close.
+  const mixedLf = '---\nslug: kept\r\n---\nold body\n';
+  assert.equal(isSignal(t, mixedLf, '---\nslug: kept\r\n---\nnew body\n'), false);
+  // The close line itself must end like the opener; the second-line close stays excluded.
+  assert.equal(isSignal(t, '---\r\nslug: kept\n---\nbody\n', '---\r\nslug: kept\n---\nbody2\n'), true);
+  assert.equal(isSignal(t, '---\nslug: kept\n---\r\nbody\n', '---\nslug: kept\n---\r\nbody2\n'), true);
+  assert.equal(isSignal(t, '---\r\n---\r\nslug: kept\n---\r\nbody\n', '---\r\n---\r\nslug: kept\n---\r\nbody2\n'), true);
+});
+
+test('prefix rule agrees with the compiler close rule on mixed line endings', () => {
+  // gray-matter 2.0.1 closes at the first "\n---" at or after string offset 4.
+  // For every base the rule accepts, that close must lie inside the compared prefix.
+  const bases = [
+    '---\r\nslug: kept\n---\r\nbody\n',
+    '---\nslug: kept\r\n---\nbody\n',
+    '---\r\na: 1\r\n---x\nslug: kept\n---\r\nbody\n',
+    '---\na: 1\n--- \nslug: kept\r\n---\nbody\n',
+  ];
+  for (const text of bases) {
+    const base = Buffer.from(text);
+    let prefix = -1;
+    for (let length = 1; length <= base.length; length += 1) {
+      if (isFrontmatterPreservingEdit(base, base.subarray(0, length))) {
+        prefix = length;
+        break;
+      }
+    }
+    assert.notEqual(prefix, -1, JSON.stringify(text));
+    const compilerClose = text.indexOf('\n---', 4);
+    assert.ok(compilerClose !== -1 && compilerClose + 4 <= prefix, JSON.stringify(text));
+  }
+});
