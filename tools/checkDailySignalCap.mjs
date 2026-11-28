@@ -210,6 +210,13 @@ export function evaluateDailySignalCap({
     } catch {
       return { exitCode: 2, status: 'blocked', reason: 'REMOTE_RECONCILE_FAILED' };
     }
+    // The merged time of EVERY node is validated above. The Pacific-day filter
+    // then runs before any look at the file list: a merge from another day
+    // cannot add to today's count, so a null, malformed or truncated file list
+    // on it is irrelevant. On the target day each of those still fails closed.
+    if (mergedDayPt !== todayPt) {
+      continue;
+    }
     const files = pr.files;
     if (
       !files ||
@@ -218,12 +225,6 @@ export function evaluateDailySignalCap({
       !Array.isArray(files.nodes)
     ) {
       return { exitCode: 2, status: 'blocked', reason: 'REMOTE_RECONCILE_FAILED' };
-    }
-    // The Pacific-day filter runs BEFORE the truncation refusal: a merge from
-    // another day cannot add to today's count, so its file list is irrelevant.
-    // A truncated list on the target day still fails closed below.
-    if (mergedDayPt !== todayPt) {
-      continue;
     }
     if (files.totalCount > files.nodes.length) {
       return {

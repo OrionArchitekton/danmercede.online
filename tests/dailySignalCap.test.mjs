@@ -770,3 +770,41 @@ test('a quoted slug equal to the bare slug is the same slug; a deleted entry is 
   const deleted = slugRepo(t, entry('kept'), null);
   assert.deepEqual(resolveAddedPaths({ cwd: deleted.dir, env: { BASE_SHA: deleted.baseSha } }), []);
 });
+
+test('an other-day merged PR with null or malformed files does not block a later signal PR', () => {
+  for (const files of [null, undefined, {}, { totalCount: 'x', nodes: [] }, { totalCount: 1, nodes: null }]) {
+    const old = makeNode(150, '2026-08-23T19:57:16Z', []);
+    old.files = files;
+    const verdict = evaluateDailySignalCap({
+      changedPaths: SIGNAL_CANDIDATE,
+      todayPt: '2026-11-28',
+      graphqlPayload: payloadOf([old, makeNode(200, '2026-11-28T18:00:00Z', ['inbox/2026-11-28-one.md'])]),
+    });
+    assert.equal(verdict.exitCode, 0, JSON.stringify(files));
+    assert.equal(verdict.remoteMergedPtToday, 1);
+  }
+});
+
+test('a target-day merged PR with null or malformed files still fails closed', () => {
+  for (const files of [null, undefined, {}, { totalCount: 'x', nodes: [] }, { totalCount: 1, nodes: null }]) {
+    const today = makeNode(200, '2026-11-28T18:00:00Z', []);
+    today.files = files;
+    const verdict = evaluateDailySignalCap({
+      changedPaths: SIGNAL_CANDIDATE,
+      todayPt: '2026-11-28',
+      graphqlPayload: payloadOf([today]),
+    });
+    assert.equal(verdict.exitCode, 2, JSON.stringify(files));
+  }
+});
+
+test('an other-day merged PR with a bad merged time still fails closed even when its files are null', () => {
+  const old = makeNode(150, '2026-08-23', []);
+  old.files = null;
+  const verdict = evaluateDailySignalCap({
+    changedPaths: SIGNAL_CANDIDATE,
+    todayPt: '2026-11-28',
+    graphqlPayload: payloadOf([old]),
+  });
+  assert.equal(verdict.exitCode, 2);
+});
