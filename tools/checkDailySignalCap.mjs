@@ -209,6 +209,20 @@ export function evaluateDailySignalCap({
     };
   }
 
+  // The list must be exactly as long as the count says: fewer is a truncated
+  // read (above), more is a response that contradicts itself and so proves
+  // nothing about what else it left out.
+  if (nodes.length !== totalCount) {
+    return {
+      exitCode: 2,
+      status: 'blocked',
+      reason: 'REMOTE_RECONCILE_FAILED',
+      detail: 'merged PR list length does not match its totalCount',
+      totalCount,
+      fetchedNodes: nodes.length,
+    };
+  }
+
   let remoteMergedPtToday = 0;
   const seenPrNumbers = new Set();
   for (const pr of nodes) {

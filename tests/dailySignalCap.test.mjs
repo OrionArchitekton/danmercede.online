@@ -1231,6 +1231,49 @@ test('a page reporting an invalid PR totalCount fails the read instead of being 
   assert.equal(verdict.exitCode, 2);
 });
 
+test('a merged PR list longer than its reported totalCount is refused', async () => {
+  // A response that lists more PRs than it says exist contradicts itself, so
+  // nothing in it proves the history is complete.
+  const priorDay = [
+    makeNode(1, '2026-11-20T18:00:00Z', ['README.md']),
+    makeNode(2, '2026-11-21T18:00:00Z', ['README.md']),
+  ];
+  const today = [makeNode(3, '2026-11-28T18:00:00Z', ['inbox/today.md'])];
+  const cases = {
+    'two prior-day PRs, count 1': payloadOf(priorDay, 1),
+    'one target-day PR, count 0': payloadOf(today, 0),
+    'three PRs, count 2': payloadOf([...priorDay, ...today], 2),
+  };
+  for (const [label, graphqlPayload] of Object.entries(cases)) {
+    const verdict = evaluateDailySignalCap({
+      changedPaths: SIGNAL_CANDIDATE,
+      todayPt: '2026-11-28',
+      graphqlPayload,
+    });
+    assert.equal(verdict.exitCode, 2, label);
+    assert.equal(verdict.status, 'blocked', label);
+    assert.equal(verdict.reason, 'REMOTE_RECONCILE_FAILED', label);
+  }
+  // The same through the paged read: every page says 1, two PRs arrive.
+  const { post } = stubPost([
+    { totalCount: 1, pageInfo: { hasNextPage: true, endCursor: 'c1' }, nodes: [priorDay[0]] },
+    { totalCount: 1, pageInfo: { hasNextPage: false, endCursor: 'c2' }, nodes: [priorDay[1]] },
+  ]);
+  const paged = evaluateDailySignalCap({
+    changedPaths: SIGNAL_CANDIDATE,
+    todayPt: '2026-11-28',
+    graphqlPayload: await fetchAllMergedPullRequests('t', 'o', 'n', post),
+  });
+  assert.equal(paged.exitCode, 2);
+  // Control: an exact match is still admitted.
+  const exact = evaluateDailySignalCap({
+    changedPaths: SIGNAL_CANDIDATE,
+    todayPt: '2026-11-28',
+    graphqlPayload: payloadOf(priorDay, 2),
+  });
+  assert.equal(exact.exitCode, 0);
+});
+
 test('mixed line endings inside the frontmatter: the close is found after any LF when it ends like the opener', (t) => {
   // CRLF opener, LF line inside, CRLF close: a body-only edit is not a signal.
   const mixed = '---\r\nslug: kept\n---\r\nold body\n';
