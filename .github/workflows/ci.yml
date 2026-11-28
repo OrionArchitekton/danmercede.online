@@ -32,6 +32,8 @@ jobs:
       - name: Test
         run: npm test && node --test tests/dailySignalCap.test.mjs
 
+      # Advisory only: this step runs the PR's own copy of the guard. The binding
+      # check is `signal-cap` (.github/workflows/signal-cap.yml), which runs the base copy.
       - name: Daily Pacific signal cap guard (REC-005)
         run: node tools/checkDailySignalCap.mjs
         env:
