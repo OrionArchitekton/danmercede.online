@@ -1072,3 +1072,36 @@ test('merged history counts exact inbox paths only, and an exact inbox path stil
   assert.equal(verdict.exitCode, 0);
   assert.equal(verdict.remoteMergedPtToday, 1);
 });
+
+test('a merged time with an impossible calendar date or clock time is refused, not shifted to another day', () => {
+  const impossible = [
+    '2026-02-30T18:00:00Z',
+    '2026-02-29T18:00:00Z',
+    '2026-04-31T18:00:00Z',
+    '2026-00-10T18:00:00Z',
+    '2026-11-00T18:00:00Z',
+    '2026-11-28T24:00:00Z',
+    '2026-11-28T18:60:00Z',
+    '2026-11-28T18:00:60Z',
+    '2026-11-28T18:00:00+24:00',
+    '2026-11-28T18:00:00-08:60',
+  ];
+  for (const mergedAt of impossible) {
+    assert.throws(() => formatPacificDay(mergedAt), /invalid mergedAt/, mergedAt);
+    // Run on the day the engine would have shifted it to, with room under the cap.
+    const verdict = evaluateDailySignalCap({
+      changedPaths: SIGNAL_CANDIDATE,
+      todayPt: '2026-03-03',
+      graphqlPayload: payloadOf([makeNode(7, mergedAt, ['inbox/x.md'])]),
+    });
+    assert.equal(verdict.exitCode, 2, mergedAt);
+  }
+});
+
+test('leap days, explicit offsets and fractional seconds stay valid merged times', () => {
+  assert.equal(formatPacificDay('2028-02-29T18:00:00Z'), '2028-02-29');
+  assert.equal(formatPacificDay('2024-02-29T23:59:59-08:00'), '2024-02-29');
+  assert.equal(formatPacificDay('2026-11-28T00:30:00+05:30'), '2026-11-27');
+  assert.equal(formatPacificDay('2026-11-28T23:59:59.999-08:00'), '2026-11-28');
+  assert.equal(formatPacificDay('2026-12-31T23:59:59+14:00'), '2026-12-31');
+});

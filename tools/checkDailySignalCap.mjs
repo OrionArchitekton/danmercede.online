@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 
 const HEX_SHA_RX = /^[0-9a-f]{40,64}$/i;
 const ISO_INSTANT_RX =
-  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,9})?(Z|[+-]\d{2}:\d{2})$/;
 const DEFAULT_DAILY_CAP = 3;
 const PACIFIC_TZ = 'America/Los_Angeles';
 // 100 merged PRs per page. Past MAX_PAGES the read is reported incomplete.
@@ -86,11 +86,42 @@ export function formatPacificDay(isoTimestamp) {
   // Full ISO 8601 instant with an explicit zone only. Date() would read a
   // zone-less string as runner-local time and a bare date as UTC midnight,
   // either of which can put a merge on the wrong Pacific day.
-  if (!ISO_INSTANT_RX.test(isoTimestamp)) {
+  const parts = ISO_INSTANT_RX.exec(isoTimestamp);
+  if (!parts) {
     throw new Error(`invalid mergedAt timestamp: ${isoTimestamp}`);
   }
-  const date = new Date(isoTimestamp);
-  if (Number.isNaN(date.getTime())) {
+  // The pattern alone admits impossible values (February 30, hour 24) and the
+  // engine would quietly roll them into another day. Rebuild the instant from
+  // the written fields and require that it reads back as the same fields.
+  const [year, month, day, hour, minute, second] = parts.slice(1, 7).map(Number);
+  const zone = parts[7];
+  let offsetMinutes = 0;
+  if (zone !== 'Z') {
+    const offsetHours = Number(zone.slice(1, 3));
+    const offsetMins = Number(zone.slice(4, 6));
+    if (offsetHours > 14 || offsetMins > 59) {
+      throw new Error(`invalid mergedAt timestamp: ${isoTimestamp}`);
+    }
+    offsetMinutes = (zone[0] === '-' ? -1 : 1) * (offsetHours * 60 + offsetMins);
+  }
+  const wall = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+  if (
+    wall.getUTCFullYear() !== year ||
+    wall.getUTCMonth() !== month - 1 ||
+    wall.getUTCDate() !== day ||
+    wall.getUTCHours() !== hour ||
+    wall.getUTCMinutes() !== minute ||
+    wall.getUTCSeconds() !== second
+  ) {
+    throw new Error(`invalid mergedAt timestamp: ${isoTimestamp}`);
+  }
+  const date = new Date(wall.getTime() - offsetMinutes * 60000);
+  const parsed = new Date(isoTimestamp);
+  if (
+    Number.isNaN(date.getTime()) ||
+    Number.isNaN(parsed.getTime()) ||
+    Math.floor(parsed.getTime() / 1000) !== date.getTime() / 1000
+  ) {
     throw new Error(`invalid mergedAt timestamp: ${isoTimestamp}`);
   }
   return PT_DATE_FORMATTER.format(date);
